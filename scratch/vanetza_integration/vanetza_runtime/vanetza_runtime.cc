@@ -425,6 +425,26 @@ VanetzaRuntime::PrepareTx()
 bool
 VanetzaRuntime::SendBtpB(
     PacketContext& context,
+    const BtpTxRequest& request,
+    const std::vector<uint8_t>& payload)
+{
+    if (!m_initialized || !m_geonet)
+    {
+        NS_LOG_UNCOND(
+            "[VRT_TX] ERROR: GeoNetworking adapter not initialized");
+
+        return false;
+    }
+
+    return m_geonet->SendBtpB(
+        context,
+        request,
+        payload);
+}
+
+bool
+VanetzaRuntime::SendBtpB(
+    PacketContext& context,
     uint16_t destinationPort,
     const std::vector<uint8_t>& payload)
 {

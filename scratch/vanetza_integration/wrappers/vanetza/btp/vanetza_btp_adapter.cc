@@ -16,6 +16,7 @@
 #include <vanetza/common/its_aid.hpp>
 
 #include <vanetza/geonet/data_confirm.hpp>
+#include <vanetza/geonet/areas.hpp>
 #include <vanetza/geonet/data_request.hpp>
 #include <vanetza/geonet/interface.hpp>
 #include <vanetza/geonet/mib.hpp>
@@ -26,6 +27,7 @@
 
 #include "ns3/log.h"
 
+#include <cmath>
 #include <cstddef>
 #include <memory>
 #include <string>
@@ -416,12 +418,9 @@ VanetzaBtpAdapter::SetRxHandler(
 bool
 VanetzaBtpAdapter::SendBtpB(
     PacketContext& context,
-    uint16_t destinationPort,
+    const BtpTxRequest& txRequest,
     const std::vector<uint8_t>& payload)
 {
-    //----------------------------------------------------------------------
-    // STEP 4 : BTP_TX
-    //----------------------------------------------------------------------
     context.AdvancePipeline(PipelineStage::BTP_TX);
 
     V2XWriteLog(
@@ -429,74 +428,228 @@ VanetzaBtpAdapter::SendBtpB(
         V2XLogLevel::DEBUG,
         "BTP",
         "BTP_TX_BEGIN",
-        "port=" + std::to_string(destinationPort) +
+        "port=" + std::to_string(txRequest.destinationPort) +
         " payload=" + std::to_string(payload.size()));
 
     //----------------------------------------------------------------------
-    // Build BTP request
+    // Validate neutral request at the boundary.
     //----------------------------------------------------------------------
+
+    if (txRequest.destinationPort == 0 ||
+        txRequest.itsAid == 0)
+    {
+        context.MarkFailure();
+        context.reason = "invalid_btp_tx_request";
+
+        V2XWriteLog(
+            context,
+            V2XLogLevel::ERROR,
+            "BTP",
+            "BTP_TX_FAIL",
+            "invalid destination port or ITS-AID");
+
+        return false;
+    }
+
+    if (txRequest.communicationProfile !=
+        BtpCommunicationProfile::ITS_G5)
+    {
+        context.MarkFailure();
+        context.reason = "unsupported_communication_profile";
+
+        V2XWriteLog(
+            context,
+            V2XLogLevel::ERROR,
+            "BTP",
+            "BTP_TX_FAIL",
+            "unsupported communication profile");
+
+        return false;
+    }
+
+    if (txRequest.transport == BtpTransportType::SHB)
+    {
+        if (txRequest.destinationArea.has_value())
+        {
+            context.MarkFailure();
+            context.reason = "SHB_with_destination_area";
+
+            V2XWriteLog(
+                context,
+                V2XLogLevel::ERROR,
+                "BTP",
+                "BTP_TX_FAIL",
+                "SHB request must not contain destination area");
+
+            return false;
+        }
+    }
+    else if (txRequest.transport == BtpTransportType::GBC)
+    {
+        if (!txRequest.destinationArea.has_value())
+        {
+            context.MarkFailure();
+            context.reason = "GBC_without_destination_area";
+
+            V2XWriteLog(
+                context,
+                V2XLogLevel::ERROR,
+                "BTP",
+                "BTP_TX_FAIL",
+                "GBC request requires destination area");
+
+            return false;
+        }
+
+        const auto& area =
+            *txRequest.destinationArea;
+
+        if (!std::isfinite(area.latitudeDeg) ||
+            !std::isfinite(area.longitudeDeg) ||
+            !std::isfinite(area.radiusMeters) ||
+            area.radiusMeters <= 0.0)
+        {
+            context.MarkFailure();
+            context.reason = "invalid_gbc_area";
+
+            V2XWriteLog(
+                context,
+                V2XLogLevel::ERROR,
+                "BTP",
+                "BTP_TX_FAIL",
+                "invalid GBC destination area");
+
+            return false;
+        }
+    }
+
+    //----------------------------------------------------------------------
+    // BTP-B request
+    //----------------------------------------------------------------------
+
     vanetza::btp::DataRequestB request;
 
     request.destination_port =
-        vanetza::uint16be_t(destinationPort);
+        vanetza::uint16be_t(
+            txRequest.destinationPort);
 
     request.destination_port_info =
-        vanetza::uint16be_t(0);
-
-    request.gn.transport_type =
-        vanetza::geonet::TransportType::SHB;
+        vanetza::uint16be_t(
+            txRequest.destinationPortInfo);
 
     request.gn.communication_profile =
         vanetza::geonet::CommunicationProfile::ITS_G5;
 
     request.gn.its_aid =
-        vanetza::aid::CA;
+        txRequest.itsAid;
 
     request.gn.traffic_class =
-        vanetza::geonet::TrafficClass(0);
+        vanetza::geonet::TrafficClass(
+            txRequest.trafficClass);
 
     //----------------------------------------------------------------------
-    // BTP_TX successfully constructed
+    // Select GeoNetworking transport.
+    //
+    // This decision is based on the transport request, never on the BTP
+    // destination port.
     //----------------------------------------------------------------------
-    context.MarkSuccess();
 
-    V2XWriteLog(
-        context,
-        V2XLogLevel::DEBUG,
-        "BTP",
-        "BTP_TX_OK",
-        "port=" + std::to_string(destinationPort));
+    if (txRequest.transport == BtpTransportType::SHB)
+    {
+        request.gn.transport_type =
+            vanetza::geonet::TransportType::SHB;
+
+        request.gn.destination =
+            std::nullptr_t{};
+
+        context.MarkSuccess();
+
+        V2XWriteLog(
+            context,
+            V2XLogLevel::DEBUG,
+            "BTP",
+            "BTP_TX_OK",
+            "port=" +
+                std::to_string(txRequest.destinationPort) +
+            " transport=SHB aid=" +
+                std::to_string(txRequest.itsAid));
+    }
+    else
+    {
+        const auto& area =
+            *txRequest.destinationArea;
+
+        request.gn.transport_type =
+            vanetza::geonet::TransportType::GBC;
+
+        vanetza::geonet::Area destination;
+
+        destination.position =
+            vanetza::geonet::GeodeticPosition(
+                vanetza::units::GeoAngle::from_value(
+                    area.latitudeDeg),
+                vanetza::units::GeoAngle::from_value(
+                    area.longitudeDeg));
+
+        vanetza::geonet::Circle circle;
+
+        circle.r =
+            vanetza::units::Length::from_value(
+                area.radiusMeters);
+
+        destination.shape = circle;
+
+        destination.angle =
+            vanetza::units::Angle::from_value(0.0);
+
+        request.gn.destination =
+            destination;
+
+        context.MarkSuccess();
+
+        V2XWriteLog(
+            context,
+            V2XLogLevel::DEBUG,
+            "BTP",
+            "BTP_TX_OK",
+            "port=" +
+                std::to_string(txRequest.destinationPort) +
+            " transport=GBC aid=" +
+                std::to_string(txRequest.itsAid));
+    }
 
     //----------------------------------------------------------------------
-    // STEP 5 : GEONET_TX
+    // GEONET_TX
     //----------------------------------------------------------------------
+
     context.AdvancePipeline(PipelineStage::GEONET_TX);
+
+    const char* transportName =
+        txRequest.transport == BtpTransportType::SHB
+            ? "SHB"
+            : "GBC";
+
+    const char* aidName =
+        txRequest.itsAid == vanetza::aid::CA
+            ? "CA"
+            : (txRequest.itsAid == vanetza::aid::DEN
+                   ? "DEN"
+                   : "OTHER");
 
     V2XWriteLog(
         context,
         V2XLogLevel::DEBUG,
         "GEONET",
         "GEONET_TX_BEGIN",
-        "transport=SHB profile=ITS_G5 aid=CA");
+        std::string("transport=") +
+            transportName +
+            " profile=ITS_G5 aid=" +
+            aidName);
 
     //----------------------------------------------------------------------
-    // Build GeoNetworking request
+    // Build the appropriate GeoNetworking request.
     //----------------------------------------------------------------------
-    vanetza::geonet::ShbDataRequest gnRequest(m_mib);
 
-    vanetza::geonet::copy_request_parameters(
-        request,
-        gnRequest);
-
-    gnRequest.upper_protocol =
-        vanetza::geonet::UpperProtocol::BTP_B;
-
-    //----------------------------------------------------------------------
-    // BTP-B HEADER
-    //
-    // Construction belongs to this wrapper.
-    // Serialization belongs to Vanetza.
-    //----------------------------------------------------------------------
     vanetza::btp::HeaderB btpHeader;
 
     btpHeader.destination_port =
@@ -505,16 +658,10 @@ VanetzaBtpAdapter::SendBtpB(
     btpHeader.destination_port_info =
         request.destination_port_info;
 
-    //----------------------------------------------------------------------
-    // Build application payload
-    //----------------------------------------------------------------------
     vanetza::ByteBuffer appPayload(
         payload.begin(),
         payload.end());
 
-    //----------------------------------------------------------------------
-    // Build complete DownPacket
-    //----------------------------------------------------------------------
     auto packet =
         std::make_unique<vanetza::DownPacket>();
 
@@ -526,9 +673,39 @@ VanetzaBtpAdapter::SendBtpB(
         vanetza::OsiLayer::Application) =
         std::move(appPayload);
 
-    //----------------------------------------------------------------------
-    // GEONET_TX successfully constructed
-    //----------------------------------------------------------------------
+    vanetza::geonet::DataConfirm confirm =
+        [&]() -> vanetza::geonet::DataConfirm
+    {
+        if (txRequest.transport == BtpTransportType::SHB)
+        {
+            vanetza::geonet::ShbDataRequest gnRequest(m_mib);
+
+            vanetza::geonet::copy_request_parameters(
+                request,
+                gnRequest);
+
+            gnRequest.upper_protocol =
+                vanetza::geonet::UpperProtocol::BTP_B;
+
+            return m_router.request(
+                gnRequest,
+                std::move(packet));
+        }
+
+        vanetza::geonet::GbcDataRequest gnRequest(m_mib);
+
+        vanetza::geonet::copy_request_parameters(
+            request,
+            gnRequest);
+
+        gnRequest.upper_protocol =
+            vanetza::geonet::UpperProtocol::BTP_B;
+
+        return m_router.request(
+            gnRequest,
+            std::move(packet));
+    }();
+
     context.MarkSuccess();
 
     V2XWriteLog(
@@ -536,15 +713,14 @@ VanetzaBtpAdapter::SendBtpB(
         V2XLogLevel::DEBUG,
         "GEONET",
         "GEONET_TX_OK",
-        "transport=SHB profile=ITS_G5 aid=CA");
+        std::string("transport=") +
+            transportName +
+            " profile=ITS_G5 aid=" +
+            aidName);
 
     //----------------------------------------------------------------------
-    // Send through GeoNetworking Router
+    // Router confirmation
     //----------------------------------------------------------------------
-    auto confirm =
-        m_router.request(
-            gnRequest,
-            std::move(packet));
 
     if (!confirm.accepted())
     {
@@ -567,7 +743,8 @@ VanetzaBtpAdapter::SendBtpB(
             "BTP",
             "BTP_TX_FAIL",
             "port=" +
-                std::to_string(destinationPort));
+                std::to_string(
+                    txRequest.destinationPort));
 
         return false;
     }
@@ -579,6 +756,41 @@ VanetzaBtpAdapter::SendBtpB(
             confirm.result_code);
 
     return true;
+}
+
+
+//=============================================================================
+// Compatibility wrapper for existing CAM callers.
+//=============================================================================
+
+bool
+VanetzaBtpAdapter::SendBtpB(
+    PacketContext& context,
+    uint16_t destinationPort,
+    const std::vector<uint8_t>& payload)
+{
+    BtpTxRequest request;
+
+    request.destinationPort =
+        destinationPort;
+
+    request.destinationPortInfo = 0;
+
+    request.transport =
+        BtpTransportType::SHB;
+
+    request.communicationProfile =
+        BtpCommunicationProfile::ITS_G5;
+
+    request.itsAid =
+        vanetza::aid::CA;
+
+    request.trafficClass = 0;
+
+    return SendBtpB(
+        context,
+        request,
+        payload);
 }
 
 } // namespace ns3

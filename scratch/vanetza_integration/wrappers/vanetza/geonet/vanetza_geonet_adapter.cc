@@ -596,6 +596,17 @@ VanetzaGeoNetAdapter::Receive(
 
 bool VanetzaGeoNetAdapter::SendBtpB(
     PacketContext& context,
+    const BtpTxRequest& request,
+    const std::vector<uint8_t>& payload)
+{
+    return m_impl->btpAdapter->SendBtpB(
+        context,
+        request,
+        payload);
+}
+
+bool VanetzaGeoNetAdapter::SendBtpB(
+    PacketContext& context,
     uint16_t destinationPort,
     const std::vector<uint8_t>& payload)
 {

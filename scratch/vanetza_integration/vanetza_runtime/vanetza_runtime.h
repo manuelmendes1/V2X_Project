@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <vector>
+#include "vanetza_integration/wrappers/vanetza/btp/btp_tx_request.h"
 
 #include <ns3/packet.h>
 #include <ns3/ptr.h>
@@ -62,6 +63,11 @@ public:
     void ReceivePacket(
         Ptr<Packet> packet,
         const Address& from);
+
+    bool SendBtpB(
+        PacketContext& context,
+        const BtpTxRequest& request,
+        const std::vector<uint8_t>& payload);
 
     bool SendBtpB(
         PacketContext& context,

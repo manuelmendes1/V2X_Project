@@ -10,6 +10,7 @@
 #include <ns3/mac48-address.h>
 
 #include "vanetza_integration/context/geo_net/geo_net_mid.h"
+#include "vanetza_integration/wrappers/vanetza/btp/btp_tx_request.h"
 
 namespace ns3 {
 
@@ -70,7 +71,15 @@ namespace ns3 {
 
             bool Receive(PacketContext& context, const std::vector<uint8_t>& buffer, const Mac48Address& senderMac);
 
-            bool SendBtpB(PacketContext& context, uint16_t destinationPort, const std::vector<uint8_t>& payload);
+            bool SendBtpB(
+                PacketContext& context,
+                const BtpTxRequest& request,
+                const std::vector<uint8_t>& payload);
+
+            bool SendBtpB(
+                PacketContext& context,
+                uint16_t destinationPort,
+                const std::vector<uint8_t>& payload);
 
             void SetBtpRxHandler(uint16_t destinationPort, BtpRxHandler handler);
 

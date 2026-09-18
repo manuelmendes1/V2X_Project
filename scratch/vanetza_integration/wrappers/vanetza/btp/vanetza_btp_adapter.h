@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "vanetza_integration/context/packet/packet_context.h"
+#include "btp_tx_request.h"
 
 namespace vanetza {
 
@@ -64,7 +65,16 @@ namespace ns3 {
             VanetzaBtpAdapter(const VanetzaBtpAdapter&) = delete;
             VanetzaBtpAdapter& operator=(const VanetzaBtpAdapter&) = delete;
 
-            bool SendBtpB(PacketContext& context, uint16_t destinationPort, const std::vector<uint8_t>& payload);
+            bool SendBtpB(
+                PacketContext& context,
+                const BtpTxRequest& request,
+                const std::vector<uint8_t>& payload);
+
+            // Compatibility entry point for the existing CAM path.
+            bool SendBtpB(
+                PacketContext& context,
+                uint16_t destinationPort,
+                const std::vector<uint8_t>& payload);
 
             void SetRxHandler(uint16_t destinationPort, RxHandler handler);
 
