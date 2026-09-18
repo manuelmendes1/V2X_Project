@@ -1,0 +1,229 @@
+set(target_prefix scratch_)
+
+# =========================================================
+# GLOBAL INCLUDE PATHS (NS-3 + PROJECT)
+# =========================================================
+
+include_directories(
+    ${CMAKE_SOURCE_DIR}/scratch
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration
+    /usr/local/include
+    /usr/local/include/vanetza
+    /usr/local/include/vanetza/asn1
+    /usr/local/include/vanetza/asn1/support
+)
+
+link_directories(/usr/local/lib)
+
+# =========================================================
+# OPENSSL
+# =========================================================
+
+find_package(OpenSSL REQUIRED)
+
+# =========================================================
+# VANETZA LIBS
+# =========================================================
+
+set(VANETZA_LIBS
+    vanetza_access
+    vanetza_asn1
+    vanetza_asn1_its
+    vanetza_asn1_security
+    vanetza_asn1_support
+    vanetza_btp
+    vanetza_common
+    vanetza_dcc
+    vanetza_facilities
+    vanetza_geonet
+    vanetza_gnss
+    vanetza_net
+    vanetza_security
+)
+
+# =========================================================
+# CAM OBJECT LIBRARY
+# =========================================================
+
+add_library(vanetza_cam_encoder_obj OBJECT
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/cam/builder/cam_builder.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/cam/cam_asn1_builder.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/cam/cam_converter.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/cam/vanetza_cam_codec.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/geonet_mid_adapter.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/geonet/vanetza_geonet_adapter.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/cam/decoder/cam_decoder.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/cam/encoder/cam_encoder.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/cam/generation_context/cam_generation_context.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/cam/security_context/cam_security_context.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/cam/scheduler/cam_scheduler.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/cam/service/cam_service.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/cam/sender/cam_sender.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/cam/reception/cam_reception.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/cam/transmission/cam_transmission.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/cam/uper/cam_uper_encoder.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/cam/uper/cam_uper_decoder.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/cam/validation/cam_validator.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/neighbor/neighbor_manager.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/neighbor/neighbor_logger.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/packet/packet_context.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/packet/packet_payload.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/packet/packet_types.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/packet/packet_id_manager.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/rx_bridge/rx_bridge_context.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/simulation_context/simulation_context.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/simulation_controller/simulation_controller.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/simulation_export/simulation_export.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/simulation_step/simulation_step.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/simulation_sync/simulation_sync.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/tx_bridge/tx_bridge_context.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/vehicle_builder/vehicle_builder.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/vehicle_dispatcher/vehicle_dispatcher.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/vehicle_identity/vehicle_identity_initializer.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/vehicle_network/vehicle_network_builder.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/vehicle_registry/vehicle_registry.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/vehicle_mobility/vehicle_mobility_context.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/vehicle_mobility/vehicle_mobility_updater/vehicle_mobility_updater.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/vehicle_security/vehicle_security_context.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/vehicle_security/replay/replay_context.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/security/replay/replay_protection.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/vehicle_security/vehicle_security_initializer/vehicle_security_initializer.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/position/ns3_position_provider.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/vehicle_factory/vehicle_factory.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/vehicle_state_updater/vehicle_state_updater.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/core/v2x_log.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/core/packet_id_tag/packet_id_tag.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/rx/rx_pipeline.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/rx/rx_callback/rx_callback.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/rx/rx_context/rx_context.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/rx/rx_context_builder/rx_context_builder.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/rx/rx_validation/rx_validation.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/rx/rx_unpack/rx_unpack.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/rx/rx_verify/rx_verify.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/rx/rx_decode/rx_decode.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/rx/rx_reception/rx_reception.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/security/cam_security.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/security/vehicle_crypto/vehicle_crypto.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/sumo_adapter/sumo_adapter.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/sumo_adapter/sumo_parser.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/sumo_adapter/sumo_serializer.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/sumo_adapter/sumo_socket.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/btp/vanetza_btp_adapter.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/access/ns3_access_adapter.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/access/ns3_dcc_adapter.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/dcc/ns3_channel_load_probe.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/vanetza_runtime/vanetza_runtime.cc
+
+)
+
+#include "vanetza_integration/context/simulation_step/simulation_step.h"
+
+target_include_directories(vanetza_cam_encoder_obj PUBLIC
+    ${CMAKE_SOURCE_DIR}/scratch
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration
+    /usr/local/include/vanetza
+)
+
+target_link_libraries(vanetza_cam_encoder_obj
+    ${VANETZA_LIBS}
+    OpenSSL::SSL
+    OpenSSL::Crypto
+)
+
+# =========================================================
+# SCRATCH EXEC BUILDER
+# =========================================================
+function(create_scratch source_files)
+
+    list(LENGTH source_files number_sources)
+    if(number_sources EQUAL 0)
+        return()
+    endif()
+
+    set(valid_sources "")
+
+    foreach(source_file ${source_files})
+        file(READ ${source_file} content)
+
+        if(content MATCHES "int[ \t]*main[ \t]*\\(")
+            list(APPEND valid_sources ${source_file})
+        endif()
+    endforeach()
+
+    list(LENGTH valid_sources len)
+
+    if(len EQUAL 0)
+        return()
+    endif()
+
+    if(len GREATER 1)
+        message(FATAL_ERROR "Multiple main() functions detected: ${valid_sources}")
+    endif()
+
+    list(GET valid_sources 0 main_file)
+
+    get_filename_component(name ${main_file} NAME_WLE)
+
+    add_executable(${target_prefix}${name}
+        ${source_files}
+    )
+
+    target_include_directories(${target_prefix}${name} PRIVATE
+        ${CMAKE_SOURCE_DIR}/scratch
+        ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration
+        /usr/local/include/vanetza
+    )
+
+    target_link_libraries(${target_prefix}${name}
+        ${ns3-libs}
+        ${ns3-contrib-libs}
+        ${VANETZA_LIBS}
+        OpenSSL::SSL
+        OpenSSL::Crypto
+        $<TARGET_OBJECTS:vanetza_cam_encoder_obj>
+    )
+
+endfunction()
+
+# =========================================================
+# SCRATCH FILES (.cc ROOT LEVEL)
+# =========================================================
+
+file(GLOB scratch_sources CONFIGURE_DEPENDS
+    ${CMAKE_CURRENT_SOURCE_DIR}/*.cc
+)
+
+create_scratch("${scratch_sources}")
+
+# =========================================================
+# SUBDIRECTORIES SUPPORT (SAFE VERSION)
+# =========================================================
+
+file(GLOB scratch_subdirs CONFIGURE_DEPENDS
+    ${CMAKE_CURRENT_SOURCE_DIR}/*
+)
+
+foreach(entry ${scratch_subdirs})
+
+    if(IS_DIRECTORY ${entry})
+
+        get_filename_component(dir ${entry} NAME)
+
+        if(NOT dir MATCHES "^\\.")
+
+            if(EXISTS ${entry}/CMakeLists.txt)
+                add_subdirectory(${entry})
+            else()
+
+                file(GLOB sub_sources CONFIGURE_DEPENDS
+                    ${entry}/*.cc
+                )
+
+                create_scratch("${sub_sources}")
+            endif()
+
+        endif()
+
+    endif()
+
+endforeach()

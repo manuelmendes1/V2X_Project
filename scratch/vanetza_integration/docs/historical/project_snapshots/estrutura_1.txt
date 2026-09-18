@@ -1,0 +1,1870 @@
+(ns3-venv) mmendes@Ubuntu-Zephyr:~/final/ns-3.47$ find scratch/v2x scratch/vanetza_integration -name "*.cc" -o -name "*.h" | sort | xargs -I{} sh -c 'echo "=== {} ===" && cat "{}"'
+=== scratch/v2x/v2x_sumo.cc ===
+// ======================================================
+// NS3 + SUMO V2X CAM Simulation - CÓDIGO COMPLETO
+// ======================================================
+
+#include "ns3/core-module.h"
+#include "ns3/network-module.h"
+#include "ns3/internet-module.h"
+#include "ns3/mobility-module.h"
+#include "ns3/wifi-module.h"
+#include "ns3/ipv4-address-helper.h"
+#include "ns3/traffic-control-module.h"
+#include "ns3/random-variable-stream.h"
+
+#include <map>
+#include <unordered_map>
+#include <vector>
+#include <string>
+#include <iostream>
+#include <cmath>
+#include <sstream>
+#include <cstring>
+
+#include "vanetza_integration/core/v2x_log.h"
+#include "vanetza_integration/cam/service/cam_service.h"
+#include "vanetza_integration/rx/rx_pipeline.h"
+#include "vanetza_integration/security/cam_security.h"
+#include "vanetza_integration/context/vehicle_state.h"
+#include "vanetza_integration/context/vehicle_registry/vehicle_registry.h"
+#include "vanetza_integration/context/simulation_context/simulation_context.h"
+#include "vanetza_integration/sumo_adapter/sumo_adapter.h"
+
+using namespace ns3;
+using namespace std;
+
+NS_LOG_COMPONENT_DEFINE("NS3V2X_CAM");
+
+static const Time STEP_LENGTH = MilliSeconds(100);
+Ipv4AddressHelper ipv4;
+Ptr<YansWifiChannel> channel;
+bool sumoStepReceived = false;
+
+// Suprimir avisos de deprecated do OpenSSL 3.0 para compilação limpa
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
+std::pair<EVP_PKEY*, X509*> GenerateEcdsaKeyAndCert(const std::string& vehId) {
+    EVP_PKEY* pkey = EVP_PKEY_new();
+    EC_KEY* eckey = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);
+    EC_KEY_generate_key(eckey);
+    EVP_PKEY_assign_EC_KEY(pkey, eckey);
+    X509* cert = X509_new();
+    ASN1_INTEGER_set(X509_get_serialNumber(cert), std::rand());
+    X509_gmtime_adj(X509_get_notBefore(cert), 0);
+    X509_gmtime_adj(X509_get_notAfter(cert), 365 * 24 * 3600);
+    X509_set_pubkey(cert, pkey);
+    X509_NAME* name = X509_get_subject_name(cert);
+    X509_NAME_add_entry_by_txt(name, "CN", MBSTRING_ASC, (unsigned char*)vehId.c_str(), -1, -1, 0);
+    X509_set_issuer_name(cert, name);
+    X509_sign(cert, pkey, EVP_sha256());
+    return {pkey, cert};
+}
+#pragma GCC diagnostic pop
+
+static void RxCallback(Ptr<Socket> socket) {
+    Ptr<Packet> packet;
+    Address from;
+    uint32_t nodeId = socket->GetNode()->GetId();
+    
+    // CORREÇÃO: Acessar via ponteiro e validar existência
+    auto& reg = VehicleRegistry::Instance();
+    VehicleState* state = reg.GetByNodeId(nodeId);
+    std::string receiverVehId = (state) ? state->identity.vehId : "UNKNOWN";
+
+    while ((packet = socket->RecvFrom(from))) {
+        std::vector<uint8_t> buffer(packet->GetSize());
+        packet->CopyData(buffer.data(), buffer.size());
+        
+        InetSocketAddress inetFrom = InetSocketAddress::ConvertFrom(from);
+        Ipv4Address srcIp = inetFrom.GetIpv4();
+        std::stringstream ss;
+        srcIp.Print(ss);
+        
+        int64_t packetSeqId = -1; 
+        if (buffer.size() >= sizeof(int64_t)) {
+            std::memcpy(&packetSeqId, buffer.data(), sizeof(int64_t));
+        }
+        
+        std::string rxMeta = "size=" + std::to_string(packet->GetSize()) + " src_ip=" + ss.str();
+        V2XWriteLog(V2XLogLevel::INFO, "CAM_RX", "RAW_IN", receiverVehId, nodeId, packetSeqId, rxMeta);
+        RxPipeline::Process(socket, buffer);
+    }
+}
+
+
+Ptr<Node> CreateVehicleNode(const std::string& vehId) {
+    Ptr<Node> node = CreateObject<Node>();
+    MobilityHelper mobility;
+    mobility.SetMobilityModel("ns3::ConstantVelocityMobilityModel");
+    mobility.Install(node);
+    InternetStackHelper internet;
+    internet.Install(node);
+    YansWifiPhyHelper phy;
+    WifiHelper wifi;
+    WifiMacHelper mac;
+    phy.SetChannel(channel);
+    wifi.SetStandard(WIFI_STANDARD_80211p);
+    wifi.SetRemoteStationManager("ns3::ConstantRateWifiManager", "DataMode", StringValue("OfdmRate6MbpsBW10MHz"), "ControlMode", StringValue("OfdmRate6MbpsBW10MHz"));
+    mac.SetType("ns3::AdhocWifiMac");
+    NetDeviceContainer devices = wifi.Install(phy, mac, node);
+    TrafficControlHelper tch;
+    tch.SetRootQueueDisc("ns3::PfifoFastQueueDisc");
+    tch.Install(devices);
+    ipv4.Assign(devices);
+    Ptr<Socket> socket = Socket::CreateSocket(node, UdpSocketFactory::GetTypeId());
+    socket->SetAllowBroadcast(true);
+    socket->Bind(InetSocketAddress(Ipv4Address::GetAny(), 5000));
+    socket->SetRecvCallback(MakeCallback(&RxCallback));
+    auto& reg = VehicleRegistry::Instance();
+    VehicleState* vs = reg.CreateOrGet(vehId);
+    vs->node = node;
+    vs->socket = socket;
+    vs->identity.vehId = vehId;
+    vs->identity.nodeId = node->GetId();
+    vs->identity.stationId = static_cast<uint32_t>(std::hash<std::string>{}(vehId) % 100000);
+    reg.RegisterNodeId(vehId, node->GetId());
+    reg.RegisterStationId(vehId, vs->identity.stationId);
+    auto [key, cert] = GenerateEcdsaKeyAndCert(vehId);
+    vs->privateKey = key;
+    vs->certificate = cert;
+    V2XWriteLog(V2XLogLevel::INFO, "CAM_TX", "INIT", vehId, node->GetId(), -1, "stationID=" + std::to_string(vs->identity.stationId));
+    return node;
+}
+
+void HandleVehicleUpdateFromSumo(const VehicleState& parsedVs) {
+    auto& reg = VehicleRegistry::Instance();
+    if (reg.GetAllVehicles().find(parsedVs.identity.vehId) == reg.GetAllVehicles().end()) {
+        CreateVehicleNode(parsedVs.identity.vehId);
+    }
+    VehicleState* vs = reg.CreateOrGet(parsedVs.identity.vehId);
+    if (vs) {
+        vs->position = parsedVs.position;
+        vs->speed = parsedVs.speed;
+        vs->heading = parsedVs.heading;
+        vs->accel = parsedVs.accel;
+        vs->initialized = true;
+        if (vs->node) {
+            auto mob = vs->node->GetObject<ConstantVelocityMobilityModel>();
+            if (mob) {
+                mob->SetPosition(vs->position);
+                double rad = (90.0 - vs->heading) * M_PI / 180.0;
+                mob->SetVelocity(Vector(vs->speed * cos(rad), vs->speed * sin(rad), 0));
+            }
+        }
+    }
+    sumoStepReceived = true;
+}
+
+void SendCam() {
+    double now = Simulator::Now().GetSeconds();
+    auto& reg = VehicleRegistry::Instance();
+    for (auto& [vid, vsPtr] : reg.GetAllVehicles()) {
+        VehicleState& vs = *vsPtr;
+        if (!vs.initialized || !vs.socket) continue;
+        double dt = (vs.lastCamTime < 0.0) ? 999.0 : (now - vs.lastCamTime);
+        if (dt < 0.1) continue;
+        auto data = CamService::GenerateCAM(vs);
+        if (data.empty()) continue;
+        Ptr<Packet> p = Create<Packet>(data.data(), data.size());
+        Simulator::Schedule(MilliSeconds(1), [socket = vs.socket, p, vid, nid = vs.identity.nodeId, pos = vs.position]() {
+            socket->SendTo(p, 0, InetSocketAddress("10.0.0.255", 5000));
+            std::string meta = "pos_x=" + std::to_string(pos.x) + " pos_y=" + std::to_string(pos.y);
+            V2XWriteLog(V2XLogLevel::INFO, "CAM_TX", "sent_to_channel", vid, nid, 0, meta);
+        });
+        vs.lastCamTime = now;
+    }
+}
+
+void SimulationStep() {
+    if (!sumoStepReceived) return;
+    SendCam();
+    auto& reg = VehicleRegistry::Instance();
+    for (auto& [vid, vsPtr] : reg.GetAllVehicles()) {
+        if (vsPtr->node) SumoAdapter::SendToSumo(*vsPtr);
+    }
+    sumoStepReceived = false;
+}
+
+void SumoPollLoop() {
+    SumoAdapter::Poll();
+    if (sumoStepReceived) {
+        SimulationStep();
+        SimulationContext::simulationStep++;
+    }
+    Simulator::Schedule(STEP_LENGTH, &SumoPollLoop);
+}
+
+int main(int argc, char* argv[]) {
+    YansWifiChannelHelper ch;
+    ch.SetPropagationDelay("ns3::ConstantSpeedPropagationDelayModel");
+    ch.AddPropagationLoss("ns3::LogDistancePropagationLossModel", "Exponent", DoubleValue(2.7), "ReferenceDistance", DoubleValue(1.0));
+    channel = ch.Create();
+    ipv4.SetBase("10.0.0.0", "255.255.255.0");
+    SumoAdapter::Init(7400, "127.0.0.1", 7000);
+    SumoAdapter::SetVehicleUpdateCallback(HandleVehicleUpdateFromSumo);
+    Simulator::ScheduleNow(&SumoPollLoop);
+    Simulator::Run();
+    Simulator::Destroy();
+    SumoAdapter::Close();
+    return 0;
+}
+=== scratch/vanetza_integration/cam/cam_constants.h ===
+#pragma once
+
+// ======================================================
+// CAM POSITION ENCODING
+// ======================================================
+// A rede SUMO atual não tem georreferenciação real
+// (projParameter="!" em simple.net.xml), pelo que as posições
+// vindas do SUMO/TraCI são coordenadas cartesianas locais (metros),
+// não latitude/longitude WGS84 reais.
+//
+// Até existir georreferenciação real (fase futura), mapeamos essas
+// coordenadas locais diretamente para os campos ASN.1
+// referencePosition.latitude/longitude do CAM, usando uma escala fixa
+// que mantém os valores dentro do intervalo válido (constrangido) do
+// tipo Latitude/Longitude do ETSI ITS CDD (~±900000000 / ±1800000000),
+// evitando overflow / encoding inválido.
+//
+// IMPORTANTE: este valor TEM de ser idêntico no encoder e no decoder.
+// Está centralizado aqui exatamente para evitar a dessincronização
+// que já causou bugs anteriormente.
+//
+// Margem atual: rede até ~500m por eixo -> 500 * 1e6 = 5e8,
+// confortavelmente dentro do limite. Se o cenário crescer para
+// redes maiores (>900m num eixo), este valor terá de ser revisto.
+constexpr double kCamPositionScale = 1e6;
+=== scratch/vanetza_integration/cam/decoder/cam_decoder.cc ===
+#include "cam_decoder.h"
+#include "../cam_constants.h"
+
+#include "vanetza/asn1/its/CAM.h"
+#include "vanetza/asn1/its/BasicContainer.h"
+#include "vanetza/asn1/its/BasicVehicleContainerHighFrequency.h"
+
+#include "vanetza_integration/core/v2x_log.h"
+#include "vanetza_integration/context/simulation_context/simulation_context.h"
+
+#include <cmath>
+
+CamMessage CamDecoder::Decode(
+    const std::vector<uint8_t>& payload,
+    const std::string& receiverVehId,
+    uint64_t receiverNodeId,
+    int64_t seqId)
+{
+    if (payload.empty())
+    {
+        V2XWriteLog(V2XLogLevel::WARN, "CAM_RX", "DECODE_FAIL_EMPTY", receiverVehId, receiverNodeId, seqId, 
+                    "Cannot decode an empty payload buffer");
+        return {};
+    }
+
+    CAM_t* cam = nullptr;
+
+    // Descodificação ASN.1 UPER nativa da Vanetza
+    asn_dec_rval_t rval = uper_decode_complete(
+        nullptr,
+        &asn_DEF_CAM,
+        (void**)&cam,
+        payload.data(),
+        payload.size());
+
+    if (rval.code != RC_OK || !cam)
+    {
+        if (cam) {
+            ASN_STRUCT_FREE(asn_DEF_CAM, cam);
+        }
+        V2XWriteLog(V2XLogLevel::ERROR, "CAM_RX", "DECODE_FAIL_ASN1", receiverVehId, receiverNodeId, seqId, 
+                    "ASN.1 UPER syntax violation or corruption in incoming stream");
+        return {};
+    }
+
+    CamMessage msg{};
+    
+    // Extração e desnormalização dos campos segundo especificações ETSI
+    msg.stationId = cam->header.stationID;
+
+    auto& pos = cam->cam.camParameters.basicContainer.referencePosition;
+    msg.latitude  = pos.latitude  / kCamPositionScale;
+    msg.longitude = pos.longitude / kCamPositionScale;
+
+    auto& hf = cam->cam.camParameters.highFrequencyContainer.choice.basicVehicleContainerHighFrequency;
+    msg.speed   = hf.speed.speedValue / 100.0;
+    msg.heading = hf.heading.headingValue / 10.0;
+    
+    msg.timestamp = SimulationContext::simulationStep;
+
+    // Log em total conformidade com o Logging Standard v1.0
+    V2XWriteLog(
+        V2XLogLevel::INFO,
+        "CAM_RX",
+        "DECODE",
+        receiverVehId,
+        receiverNodeId,
+        seqId,
+        "stationId=" + std::to_string(msg.stationId) +
+        " pos=(" + std::to_string(msg.longitude) + "," + std::to_string(msg.latitude) + ")" +
+        " speed=" + std::to_string(msg.speed) +
+        " heading=" + std::to_string(msg.heading)
+    );
+
+    ASN_STRUCT_FREE(asn_DEF_CAM, cam);
+    return msg;
+}
+=== scratch/vanetza_integration/cam/decoder/cam_decoder.h ===
+#pragma once
+
+#include <vector>
+#include <cstdint>
+#include <string>
+
+struct CamMessage
+{
+    uint32_t stationId;
+    double latitude;
+    double longitude;
+    double speed;
+    double heading;
+    uint64_t timestamp;
+};
+
+class CamDecoder
+{
+public:
+    // Atualizado para receber o contexto do recetor e o ID de rastreabilidade do pacote
+    static CamMessage Decode(
+        const std::vector<uint8_t>& rawPacket,
+        const std::string& receiverVehId,
+        uint64_t receiverNodeId,
+        int64_t seqId);
+};
+=== scratch/vanetza_integration/cam/encoder/cam_encoder.cc ===
+#include "cam_encoder.h"
+#include "../cam_constants.h"
+#include "vanetza_integration/core/v2x_log.h"
+
+#include <cstdlib>
+#include <cstring>
+#include <algorithm>
+#include <cmath>
+#include <memory>
+#include <array>
+
+extern "C" {
+#include "asn_application.h"
+#include "asn_internal.h"
+}
+
+namespace {
+    struct AsnDeleter {
+        void operator()(CAM_t* ptr) const {
+            if (ptr) {
+                ASN_STRUCT_FREE(asn_DEF_CAM, ptr);
+            }
+        }
+    };
+    using UniqueCamPtr = std::unique_ptr<CAM_t, AsnDeleter>;
+
+    constexpr double kPositionThreshold = 0.0001;
+    constexpr size_t kMaxBufferSize = 2048;
+}
+
+bool CamEncoder::Validate(const CamInput& input)
+{
+    return !(std::abs(input.latitude) < kPositionThreshold && 
+             std::abs(input.longitude) < kPositionThreshold);
+}
+
+std::vector<uint8_t> CamEncoder::Encode(
+    const CamInput& v,
+    const std::string& vehicleId,
+    uint64_t nodeId,
+    int64_t seqId)
+{
+    // 1. Defensiva: Validação estrutural de coordenadas reais
+    if (!Validate(v)) {
+        V2XWriteLog(V2XLogLevel::WARN, "CAM", "ENCODE_ABORT_INVALID_POS", 
+                    vehicleId, nodeId, seqId, 
+                    "Skipping generation: Coordinates are too close to reference origin (0,0)");
+        return {};
+    }
+
+    // 2. Alocação RAII limpa contra fugas de memória
+    UniqueCamPtr cam(static_cast<CAM_t*>(calloc(1, sizeof(CAM_t))));
+    if (!cam) {
+        V2XWriteLog(V2XLogLevel::ERROR, "CAM", "ENCODE_FAIL_ALLOC", 
+                    vehicleId, nodeId, seqId, "System calloc failed to provision memory for CAM_t");
+        return {};
+    }
+
+    // 3. Preenchimento do ASN.1 conforme especificações ETSI
+    cam->header.protocolVersion = 1;
+    cam->header.messageID = 2; // CAM ID
+    cam->header.stationID = v.stationId;
+    cam->cam.generationDeltaTime = 0;
+
+    // Basic Container (Estático)
+    cam->cam.camParameters.basicContainer.stationType = StationType_passengerCar;
+    cam->cam.camParameters.basicContainer.referencePosition.latitude =
+        static_cast<long>(std::llround(v.latitude * kCamPositionScale));
+    cam->cam.camParameters.basicContainer.referencePosition.longitude =
+        static_cast<long>(std::llround(v.longitude * kCamPositionScale));
+
+    // High Frequency Container (Dinâmico)
+    cam->cam.camParameters.highFrequencyContainer.present =
+        HighFrequencyContainer_PR_basicVehicleContainerHighFrequency;
+
+    auto& hf = cam->cam.camParameters.highFrequencyContainer.choice.basicVehicleContainerHighFrequency;
+    hf.speed.speedValue = static_cast<long>(v.speed * 100);
+    hf.speed.speedConfidence = SpeedConfidence_unavailable;
+    hf.heading.headingValue = static_cast<long>(v.heading * 10);
+    hf.heading.headingConfidence = HeadingConfidence_unavailable;
+    hf.driveDirection = DriveDirection_forward;
+    hf.longitudinalAcceleration.longitudinalAccelerationValue = static_cast<long>(v.acceleration * 100);
+    hf.longitudinalAcceleration.longitudinalAccelerationConfidence = 1;
+    hf.curvature.curvatureValue = 0;
+    hf.curvature.curvatureConfidence = CurvatureConfidence_onePerMeter_0_00002;
+    hf.yawRate.yawRateValue = 0;
+    hf.yawRate.yawRateConfidence = 1;
+    hf.vehicleLength.vehicleLengthValue = 50;
+    hf.vehicleWidth = 20;
+    hf.vehicleLength.vehicleLengthConfidenceIndication = VehicleLengthConfidenceIndication_noTrailerPresent;
+
+    // 4. Codificação UPER para buffer estático em pilha
+    std::array<uint8_t, kMaxBufferSize> buffer;
+    asn_enc_rval_t rval = uper_encode_to_buffer(
+        &asn_DEF_CAM, nullptr, cam.get(), buffer.data(), buffer.size());
+
+    if (rval.encoded <= 0) {
+        V2XWriteLog(V2XLogLevel::ERROR, "CAM", "ENCODE_FAIL_ASN1", 
+                    vehicleId, nodeId, seqId, "Vanetza ASN.1 encoder serialization crash");
+        return {};
+    }
+
+    size_t size = (rval.encoded + 7) / 8;
+    
+    // Log em perfeita conformidade com a v1.0 da pipeline de análise
+    V2XWriteLog(V2XLogLevel::TRACE, "CAM", "ENCODE_OK", 
+                vehicleId, nodeId, seqId, 
+                "bytes=" + std::to_string(size) + " stationId=" + std::to_string(v.stationId));
+
+    return std::vector<uint8_t>(buffer.begin(), buffer.begin() + size);
+}
+=== scratch/vanetza_integration/cam/encoder/cam_encoder.h ===
+#ifndef CAM_ENCODER_H
+#define CAM_ENCODER_H
+
+#include <vector>
+#include <cstdint>
+#include <string>
+
+extern "C" {
+#include "vanetza/asn1/its/CAM.h"
+}
+
+struct CamInput
+{
+    uint32_t stationId;
+    double latitude;
+    double longitude;
+    double speed;
+    double heading;
+    double acceleration;
+};
+
+class CamEncoder
+{
+public:
+    // Assinatura atualizada para receber IDs nominais do SUMO/ns-3 e o SEQ gerado
+    static std::vector<uint8_t> Encode(
+        const CamInput& input,
+        const std::string& vehicleId,
+        uint64_t nodeId,
+        int64_t seqId);
+
+private:
+    static bool Validate(const CamInput& input);
+};
+
+#endif
+=== scratch/vanetza_integration/cam/framing/cam_framing.cc ===
+#include "cam_framing.h"
+#include "vanetza_integration/core/v2x_log.h"
+
+#include <cstring>
+
+std::vector<uint8_t> CamFraming::Pack(
+    const std::vector<uint8_t>& payload,
+    const std::vector<uint8_t>& signature,
+    uint32_t timestamp,
+    const std::string& vehicleId,
+    uint64_t nodeId,
+    int64_t seqId)
+{
+    uint16_t payloadSize   = payload.size();
+    uint16_t signatureSize = signature.size();
+
+    std::vector<uint8_t> buffer;
+
+    buffer.resize(sizeof(payloadSize) +
+                  sizeof(signatureSize) +
+                  sizeof(timestamp));
+
+    size_t offset = 0;
+
+    // Nota: memcpy direto mantido para estabilidade de baixo nível, mas com logging contextualizado
+    memcpy(buffer.data() + offset, &payloadSize, sizeof(payloadSize));
+    offset += sizeof(payloadSize);
+
+    memcpy(buffer.data() + offset, &signatureSize, sizeof(signatureSize));
+    offset += sizeof(signatureSize);
+
+    memcpy(buffer.data() + offset, &timestamp, sizeof(timestamp));
+    offset += sizeof(timestamp);
+
+    buffer.insert(buffer.end(), payload.begin(), payload.end());
+    buffer.insert(buffer.end(), signature.begin(), signature.end());
+
+    // Log em total conformidade com a v1.0 do interpretador analítico
+    V2XWriteLog(
+        V2XLogLevel::DEBUG,
+        "CAM",
+        "FRAME_PACK",
+        vehicleId,
+        nodeId,
+        seqId,
+        "payload=" + std::to_string(payloadSize) +
+        " signature=" + std::to_string(signatureSize) +
+        " total=" + std::to_string(buffer.size()) +
+        " timestamp=" + std::to_string(timestamp));
+
+    return buffer;
+}
+
+// ------------------------------------------------------
+
+bool CamFraming::Unpack(
+    const std::vector<uint8_t>& raw,
+    CamFrame& frame,
+    const std::string& vehicleId,
+    uint64_t nodeId,
+    int64_t seqId)
+{
+    const size_t headerMinimumSize = sizeof(uint16_t) * 2 + sizeof(uint32_t);
+    
+    if (raw.size() < headerMinimumSize)
+    {
+        V2XWriteLog(
+            V2XLogLevel::WARN,
+            "CAM",
+            "FRAME_UNPACK_FAIL",
+            vehicleId,
+            nodeId,
+            seqId,
+            "raw too small: bytes=" + std::to_string(raw.size()) + 
+            " min_required=" + std::to_string(headerMinimumSize));
+        return false;
+    }
+
+    size_t offset = 0;
+
+    uint16_t payloadSize;
+    uint16_t signatureSize;
+    uint32_t timestamp;
+
+    memcpy(&payloadSize, raw.data() + offset, sizeof(payloadSize));
+    offset += sizeof(payloadSize);
+
+    memcpy(&signatureSize, raw.data() + offset, sizeof(signatureSize));
+    offset += sizeof(signatureSize);
+
+    memcpy(&timestamp, raw.data() + offset, sizeof(timestamp));
+    offset += sizeof(timestamp);
+
+    size_t expectedSize = offset + payloadSize + signatureSize;
+
+    if (raw.size() < expectedSize)
+    {
+        V2XWriteLog(
+            V2XLogLevel::ERROR,
+            "CAM",
+            "FRAME_UNPACK_FAIL",
+            vehicleId,
+            nodeId,
+            seqId,
+            "size mismatch raw=" + std::to_string(raw.size()) +
+            " expected=" + std::to_string(expectedSize));
+        return false;
+    }
+
+    frame.payload.assign(
+        raw.begin() + offset,
+        raw.begin() + offset + payloadSize);
+
+    offset += payloadSize;
+
+    frame.signature.assign(
+        raw.begin() + offset,
+        raw.begin() + offset + signatureSize);
+
+    frame.timestamp = timestamp;
+
+    // Log contextualizado emitindo as métricas corretas do fluxo de entrada de quadros
+    V2XWriteLog(
+        V2XLogLevel::DEBUG,
+        "CAM",
+        "FRAME_UNPACK_OK",
+        vehicleId,
+        nodeId,
+        seqId,
+        "payload=" + std::to_string(payloadSize) +
+        " signature=" + std::to_string(signatureSize) +
+        " timestamp=" + std::to_string(timestamp));
+
+    return true;
+}
+=== scratch/vanetza_integration/cam/framing/cam_framing.h ===
+#pragma once
+
+#include <vector>
+#include <cstdint>
+#include <string>
+
+struct CamFrame
+{
+    std::vector<uint8_t> payload;
+    std::vector<uint8_t> signature;
+    uint32_t timestamp;
+};
+
+class CamFraming
+{
+public:
+    static std::vector<uint8_t> Pack(
+        const std::vector<uint8_t>& payload,
+        const std::vector<uint8_t>& signature,
+        uint32_t timestamp,
+        const std::string& vehicleId,
+        uint64_t nodeId,
+        int64_t seqId);
+
+    static bool Unpack(
+        const std::vector<uint8_t>& raw,
+        CamFrame& frame,
+        const std::string& vehicleId,
+        uint64_t nodeId,
+        int64_t seqId);
+};
+=== scratch/vanetza_integration/cam/receiver/cam_receiver.cc ===
+#include "cam_receiver.h"
+#include "vanetza_integration/core/v2x_log.h"
+
+bool CamReceiver::ProcessRawPacket(
+    const std::string& recVehId,
+    uint32_t recStationId,
+    int64_t seqId,
+    const std::vector<uint8_t>& raw,
+    CamFrame& outFrame)
+{
+    // ======================================================
+    // EMPTY CHECK
+    // ======================================================
+    if (raw.empty())
+    {
+        V2XWriteLog(
+            V2XLogLevel::WARN,
+            "CAM",
+            "RX_EMPTY",
+            recVehId,
+            static_cast<uint64_t>(recStationId),
+            seqId,
+            "received empty packet");
+        return false;
+    }
+
+    // ======================================================
+    // UNPACK 
+    // Assinatura esperada pelo header:
+    // (const std::vector<uint8_t>& raw, CamFrame& frame, const std::string& vehicleId, uint64_t nodeId, int64_t seqId)
+    // ======================================================
+    if (!CamFraming::Unpack(raw, outFrame, recVehId, static_cast<uint64_t>(recStationId), seqId))
+    {
+        V2XWriteLog(
+            V2XLogLevel::ERROR,
+            "CAM",
+            "RX_UNPACK_FAIL",
+            recVehId,
+            static_cast<uint64_t>(recStationId),
+            seqId,
+            "framing unpack failed size=" + std::to_string(raw.size()));
+        return false;
+    }
+
+    // ======================================================
+    // SUCCESS RX
+    // ======================================================
+    V2XWriteLog(
+        V2XLogLevel::INFO,
+        "CAM",
+        "RX_OK",
+        recVehId,
+        static_cast<uint64_t>(recStationId),
+        seqId,
+        "payload=" + std::to_string(outFrame.payload.size()) +
+        " signature=" + std::to_string(outFrame.signature.size()) +
+        " timestamp=" + std::to_string(outFrame.timestamp));
+
+    return true;
+}
+=== scratch/vanetza_integration/cam/receiver/cam_receiver.h ===
+#pragma once
+
+#include <vector>
+#include <cstdint>
+#include <string>
+
+#include "../framing/cam_framing.h"
+
+class CamReceiver
+{
+public:
+    // Processa pacote bruto vindo do socket injetando a identidade do recetor para rastreabilidade
+
+	static bool ProcessRawPacket(
+	    const std::string& recVehId,
+	    uint32_t recStationId,
+	    int64_t seqId, // Adicione isto
+	    const std::vector<uint8_t>& raw,
+	    CamFrame& outFrame);
+
+};
+=== scratch/vanetza_integration/cam/service/cam_service.cc ===
+#include "cam_service.h"
+#include <cmath>
+#include <ctime>
+#include <iomanip>
+#include "ns3/simulator.h"
+#include "vanetza_integration/core/v2x_log.h"
+
+// ======================================================
+// GENERATE CAM (CORRIGIDO)
+// ======================================================
+std::vector<uint8_t> CamService::GenerateCAM(const VehicleState& v)
+{
+    if (!v.node) return {};
+
+    uint32_t stationID   = v.identity.stationId;
+    uint32_t nodeId      = v.identity.nodeId;
+    std::string vehId    = v.identity.vehId;
+    int64_t currentSeqId = v.camSequenceCounter; 
+
+    if (stationID == 0) return {};
+
+    CamInput input;
+    input.stationId    = stationID;
+    input.latitude     = v.position.y;
+    input.longitude    = v.position.x;
+    input.speed        = v.speed;
+    input.heading      = v.heading;
+    input.acceleration = v.accel;
+
+    // 1. ENCODE (Agora passa os 4 argumentos exigidos)
+    std::vector<uint8_t> payload = CamEncoder::Encode(input, vehId, nodeId, currentSeqId);
+    if (payload.empty()) return {};
+
+    // 2. SIGN (Agora passa os 4 argumentos exigidos: data, key, vehId, nodeId)
+    // Nota: Assume que 'v.privateKey' é do tipo EVP_PKEY*
+    std::vector<uint8_t> signature = CamSecurity::Sign(payload, v.privateKey, vehId, nodeId);
+    if (signature.empty()) return {};
+
+    // 3. FRAME (Agora passa os 6 argumentos exigidos)
+    uint32_t simTimestampEtsi = static_cast<uint32_t>(ns3::Simulator::Now().GetMilliSeconds() % 65536);
+    
+    // Assinatura: payload, signature, timestamp, vehId, nodeId, seqId
+    std::vector<uint8_t> frame = CamFraming::Pack(payload, signature, simTimestampEtsi, vehId, nodeId, currentSeqId);
+    
+    if (frame.empty()) return {};
+
+    V2XWriteLog(V2XLogLevel::INFO, "CAM", "TX_READY", vehId, nodeId, currentSeqId, "frame_size=" + std::to_string(frame.size()));
+
+    return frame;
+}
+
+bool CamService::ShouldSendCAM(const VehicleState& cur, const VehicleState& last)
+{
+    double dpos = std::sqrt(std::pow(cur.position.x - last.position.x, 2) + std::pow(cur.position.y - last.position.y, 2));
+    double dspeed = std::fabs(cur.speed - last.speed);
+    double dheading = std::fabs(cur.heading - last.heading);
+    return (dpos > 4.0 || dspeed > 0.5 || dheading > 4.0);
+}
+=== scratch/vanetza_integration/cam/service/cam_service.h ===
+#pragma once
+
+#include <vector>
+#include <cstdint>
+#include <string>
+
+#include "../encoder/cam_encoder.h"
+#include "../framing/cam_framing.h"
+#include "../../security/cam_security.h"
+#include "../../context/vehicle_state.h"
+
+class CamService
+{
+public:
+    static std::vector<uint8_t> GenerateCAM(const VehicleState& v);
+
+    static bool ShouldSendCAM(const VehicleState& current,
+                              const VehicleState& last);
+};
+=== scratch/vanetza_integration/context/neighbor/neighbor_manager.cc ===
+#include "neighbor_manager.h"
+
+#include "vanetza_integration/core/v2x_log.h"
+#include "vanetza_integration/context/simulation_context/simulation_context.h"
+
+namespace ns3 {
+
+// ======================================================
+// UPDATE / INSERT NEIGHBOR
+// ======================================================
+void NeighborManager::UpdateNeighbor(
+    std::map<uint32_t, NeighborInfo>& table,
+    uint32_t stationID,
+    double x,
+    double y,
+    double speed,
+    double heading,
+    uint64_t step)
+{
+    NeighborInfo& n = table[stationID];
+
+    n.stationID = stationID;
+    n.x = x;
+    n.y = y;
+    n.speed = speed;
+    n.heading = heading;
+    n.lastUpdateStep = step;
+
+    V2XWriteLog(
+        V2XLogLevel::DEBUG,
+        "NEIGHBOR",
+        "UPDATE",
+        std::to_string(stationID), // vehId
+        0,                         // nodeId
+        -1,                        // seqId
+        "pos=(" + std::to_string(x) + "," + std::to_string(y) + ")" +
+        " speed=" + std::to_string(speed));
+}
+
+// ======================================================
+// PRINT TABLE (DEBUG SAFE VERSION)
+// ======================================================
+void NeighborManager::PrintTable(
+    const std::string& vehId,
+    const std::map<uint32_t, NeighborInfo>& table,
+    uint64_t step)
+{
+    V2XWriteLog(
+        V2XLogLevel::INFO,
+        "NEIGHBOR",
+        "TABLE_PRINT",
+        vehId,
+        0,    // nodeId
+        -1,   // seqId
+        "step=" + std::to_string(step) +
+        " size=" + std::to_string(table.size()));
+
+    for (const auto& [id, n] : table)
+    {
+        V2XWriteLog(
+            V2XLogLevel::DEBUG,
+            "NEIGHBOR",
+            "ENTRY",
+            std::to_string(id), // vehId
+            0,                  // nodeId
+            -1,                 // seqId
+            "pos=(" + std::to_string(n.x) + "," + std::to_string(n.y) + ")" +
+            " speed=" + std::to_string(n.speed) +
+            " heading=" + std::to_string(n.heading) +
+            " age=" + std::to_string(step - n.lastUpdateStep));
+    }
+}
+
+// ======================================================
+// PURGE OLD NEIGHBORS
+// ======================================================
+void NeighborManager::PurgeOld(
+    std::map<uint32_t, NeighborInfo>& table,
+    uint64_t currentStep,
+    uint64_t maxAge)
+{
+    for (auto it = table.begin(); it != table.end(); )
+    {
+        if (currentStep - it->second.lastUpdateStep > maxAge)
+        {
+            V2XWriteLog(
+                V2XLogLevel::DEBUG,
+                "NEIGHBOR",
+                "PURGE",
+                std::to_string(it->first), // vehId
+                0,                         // nodeId
+                -1,                        // seqId
+                "age=" + std::to_string(currentStep - it->second.lastUpdateStep));
+
+            it = table.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
+    }
+}
+
+} // namespace ns3
+=== scratch/vanetza_integration/context/neighbor/neighbor_manager.h ===
+#pragma once
+
+#include <map>
+#include <string>
+#include <iostream>
+
+#include "neighbor_types.h"
+
+namespace ns3 {
+
+/**
+ * ======================================================
+ * NEIGHBOR MANAGER
+ * ======================================================
+ * Responsável por:
+ *  - atualizar tabela de vizinhos
+ *  - imprimir estado (debug)
+ *  - remover vizinhos antigos (aging)
+ * ======================================================
+ */
+class NeighborManager
+{
+public:
+
+    // Atualiza ou cria entrada na tabela de vizinhos
+    static void UpdateNeighbor(
+        std::map<uint32_t, NeighborInfo>& table,
+        uint32_t stationID,
+        double x,
+        double y,
+        double speed,
+        double heading,
+        uint64_t step);
+
+    // Debug: imprime tabela de vizinhos
+    static void PrintTable(
+        const std::string& vehId,
+        const std::map<uint32_t, NeighborInfo>& table,
+        uint64_t step);
+
+    // Remove vizinhos antigos
+    static void PurgeOld(
+        std::map<uint32_t, NeighborInfo>& table,
+        uint64_t currentStep,
+        uint64_t maxAge);
+};
+
+} // namespace ns3
+=== scratch/vanetza_integration/context/neighbor/neighbor_types.h ===
+#pragma once
+
+#include <cstdint>
+
+namespace ns3 {
+
+/**
+ * ======================================================
+ * NEIGHBOR INFORMATION (SINGLE SOURCE OF TRUTH)
+ * ======================================================
+ * Representa o estado de um veículo vizinho no sistema V2X.
+ * Usado por:
+ *  - NeighborManager
+ *  - VehicleState
+ *  - CAM receiver logic
+ * ======================================================
+ */
+struct NeighborInfo
+{
+    uint32_t stationID;
+
+    double x;
+    double y;
+
+    double speed;
+    double heading;
+
+    uint64_t lastUpdateStep;
+};
+
+} // namespace ns3
+=== scratch/vanetza_integration/context/simulation_context/simulation_context.cc ===
+#include "simulation_context.h"
+
+namespace SimulationContext
+{
+    uint64_t simulationStep = 0;
+}
+=== scratch/vanetza_integration/context/simulation_context/simulation_context.h ===
+#pragma once
+#include <cstdint>
+
+namespace SimulationContext
+{
+    extern uint64_t simulationStep;
+}
+=== scratch/vanetza_integration/context/vehicle_registry/vehicle_registry.cc ===
+#include "vehicle_registry.h"
+#include "vanetza_integration/core/v2x_log.h"
+#include <iostream>
+
+namespace ns3
+{
+
+VehicleRegistry& VehicleRegistry::Instance()
+{
+    static VehicleRegistry instance;
+    return instance;
+}
+
+// ======================================================
+// Create or Get (RESOLVIDO BUG C2)
+// ======================================================
+VehicleState* VehicleRegistry::CreateOrGet(const std::string& vehId)
+{
+    auto it = vehiclesById.find(vehId);
+
+    if (it != vehiclesById.end())
+        return it->second.get();
+
+    auto vs = std::make_unique<VehicleState>();
+
+    // Single Source of Truth
+    vs->identity.vehId = vehId;
+
+    // FIX C2: Inicializa estritamente a false.
+    // Só é considerado pronto quando o nó ns-3 for construído e o SUMO enviar dados reais.
+    vs->initialized = false; 
+
+    // Registo de log padrão v1.0
+    V2XWriteLog(
+        V2XLogLevel::INFO,
+        "REGISTRY",
+        "CREATE",
+        vehId,
+        0,
+        -1,
+        "Allocated new vehicle state container inside database"
+    );
+
+    VehicleState* ptr = vs.get();
+    vehiclesById[vehId] = std::move(vs);
+
+    return ptr;
+}
+
+// ======================================================
+// Getters (Pesquisas em tempo constante O(1))
+// ======================================================
+VehicleState* VehicleRegistry::GetByVehId(const std::string& vehId)
+{
+    auto it = vehiclesById.find(vehId);
+    if (it == vehiclesById.end()) return nullptr;
+    return it->second.get();
+}
+
+VehicleState* VehicleRegistry::GetByNodeId(uint32_t nodeId)
+{
+    auto it = nodeToVeh.find(nodeId);
+    if (it == nodeToVeh.end()) return nullptr;
+    return GetByVehId(it->second);
+}
+
+VehicleState* VehicleRegistry::GetByStationId(uint32_t stationId)
+{
+    auto it = stationToVeh.find(stationId);
+    if (it == stationToVeh.end()) return nullptr;
+    return GetByVehId(it->second);
+}
+
+// ======================================================
+// Updates
+// ======================================================
+void VehicleRegistry::UpdateFromSUMO(const VehicleState& vs)
+{
+    VehicleState* state = CreateOrGet(vs.identity.vehId);
+
+    state->position = vs.position;
+    state->speed    = vs.speed;
+    state->heading  = vs.heading;
+    state->accel    = vs.accel;
+    
+    // Agora sim, com coordenadas válidas injetadas, marcamos como pronto!
+    state->initialized = true; 
+}
+
+// ======================================================
+// ID Registration & Reverse Mapping
+// ======================================================
+void VehicleRegistry::RegisterNodeId(const std::string& vehId, uint32_t nodeId)
+{
+    nodeToVeh[nodeId] = vehId;
+
+    VehicleState* vs = GetByVehId(vehId);
+    if (vs) {
+        vs->identity.nodeId = nodeId;
+        
+        V2XWriteLog(
+            V2XLogLevel::DEBUG,
+            "REGISTRY",
+            "REG_NODE",
+            vehId,
+            nodeId,
+            -1,
+            "Registered bidirectional mapping between SUMO and ns-3 node"
+        );
+    }
+}
+
+void VehicleRegistry::RegisterStationId(const std::string& vehId, uint32_t stationId)
+{
+    stationToVeh[stationId] = vehId;
+
+    VehicleState* vs = GetByVehId(vehId);
+    if (vs) {
+        vs->identity.stationId = stationId;
+
+        V2XWriteLog(
+            V2XLogLevel::DEBUG,
+            "REGISTRY",
+            "REG_STATION",
+            vehId,
+            vs->identity.nodeId,
+            -1,
+            "Registered ETSI station ID: " + std::to_string(stationId)
+        );
+    }
+}
+
+// ======================================================
+// Helpers
+// ======================================================
+uint32_t VehicleRegistry::GetStationId(const std::string& vehId)
+{
+    VehicleState* vs = GetByVehId(vehId);
+    if (vs) {
+        return vs->identity.stationId;
+    }
+    return 0;
+}
+
+void VehicleRegistry::Clear()
+{
+    vehiclesById.clear();
+    nodeToVeh.clear();
+    stationToVeh.clear();
+}
+
+const std::unordered_map<std::string, std::unique_ptr<VehicleState>>&
+VehicleRegistry::GetAllVehicles() const
+{
+    return vehiclesById;
+}
+
+} // namespace ns3
+=== scratch/vanetza_integration/context/vehicle_registry/vehicle_registry.h ===
+#pragma once
+
+#include <unordered_map>
+#include <string>
+#include <memory>
+#include <cstdint>
+
+#include "../vehicle_state.h"
+
+namespace ns3
+{
+
+class VehicleRegistry
+{
+public:
+    // ======================================================
+    // Singleton Access
+    // ======================================================
+    static VehicleRegistry& Instance();
+
+    // ======================================================
+    // Core API
+    // ======================================================
+    // Cria ou recupera o estado de um veículo. Garante Bug C2 fix.
+    VehicleState* CreateOrGet(const std::string& vehId);
+
+    VehicleState* GetByVehId(const std::string& vehId);
+
+    VehicleState* GetByNodeId(uint32_t nodeId);
+
+    VehicleState* GetByStationId(uint32_t stationId);
+
+    // ======================================================
+    // Updates
+    // ======================================================
+    void UpdateFromSUMO(const VehicleState& vs);
+
+    void RegisterNodeId(const std::string& vehId, uint32_t nodeId);
+    void RegisterStationId(const std::string& vehId, uint32_t stationId);
+
+    // ======================================================
+    // Helpers & Metadados
+    // ======================================================
+    uint32_t GetStationId(const std::string& vehId);
+
+    void Clear();
+
+    const std::unordered_map<std::string, std::unique_ptr<VehicleState>>& GetAllVehicles() const;
+
+private:
+    VehicleRegistry() = default;
+
+    // Impede cópia acidental do Singleton para segurança de memória
+    VehicleRegistry(const VehicleRegistry&) = delete;
+    VehicleRegistry& operator=(const VehicleRegistry&) = delete;
+
+private:
+    // Centralização de posse única das instâncias de VehicleState
+    std::unordered_map<std::string, std::unique_ptr<VehicleState>> vehiclesById;
+
+    // Índices de mapeamento reverso rápidos de O(1) para consultas eficientes no pipeline
+    std::unordered_map<uint32_t, std::string> nodeToVeh;
+    std::unordered_map<uint32_t, std::string> stationToVeh;
+};
+
+} // namespace ns3
+=== scratch/vanetza_integration/context/vehicle_state.h ===
+#pragma once
+
+#include "ns3/node.h"
+#include "ns3/mobility-module.h"
+#include "ns3/core-module.h"
+#include "ns3/network-module.h"
+#include "ns3/internet-module.h"
+#include "ns3/wifi-module.h"
+#include "ns3/traffic-control-module.h"
+
+#include <vector>
+#include <map>
+#include <string>
+
+#include <openssl/evp.h>
+#include <openssl/x509.h>
+
+#include "context/neighbor/neighbor_types.h"
+
+namespace ns3
+{
+
+struct VehicleIdentity
+{
+    std::string vehId;
+    uint32_t nodeId;
+    uint32_t stationId;
+};
+
+struct VehicleState
+{
+    // Identity & Basics
+    VehicleIdentity identity;
+    Ptr<Node> node;
+    Ptr<Socket> socket;
+
+    // Timing & State
+    double lastCamTime = -1.0;
+    double lastCamGenTime = -1.0;
+    bool initialized = false;
+
+    // Mobility
+    Vector position;
+    double speed = 0.0;
+    double heading = 0.0;
+    double accel = 0.0;
+
+    // Sequence Counters (Corrigido conforme erro de compilação)
+    int64_t camSequenceCounter = 0;
+    int64_t currentTxSeqId = 0; 
+
+    // Security (OpenSSL)
+    bool certLoaded = false;
+    std::string certFile;
+    std::string keyFile;
+    EVP_PKEY* privateKey = nullptr;
+    X509* certificate = nullptr;
+    std::vector<std::string> trustedCertificates;
+
+    // Metrics & Neighbors
+    std::vector<Ptr<QueueDisc>> queueDiscs;
+    std::map<uint32_t, NeighborInfo> neighbors;
+
+    VehicleState() = default;
+
+    // Prevenção de cópias acidentais para evitar double-free do OpenSSL
+    VehicleState(const VehicleState&) = delete;
+    VehicleState& operator=(const VehicleState&) = delete;
+
+    // Destrutor seguro
+    ~VehicleState()
+    {
+        if (privateKey) {
+            EVP_PKEY_free(privateKey);
+        }
+        if (certificate) {
+            X509_free(certificate);
+        }
+    }
+};
+
+} // namespace ns3
+=== scratch/vanetza_integration/core/v2x_log.cc ===
+#include "v2x_log.h"
+
+#include <ns3/log.h>
+#include <ns3/simulator.h>
+#include <sstream>
+#include <iomanip> // <--- NOVO: Necessário para std::fixed e std::setprecision
+
+#include "vanetza_integration/context/simulation_context/simulation_context.h"
+
+namespace
+{
+const char* ToString(V2XLogLevel level)
+{
+    switch (level)
+    {
+        case V2XLogLevel::TRACE: return "TRACE";
+        case V2XLogLevel::DEBUG: return "DEBUG";
+        case V2XLogLevel::INFO:  return "INFO";
+        case V2XLogLevel::WARN:  return "WARN";
+        case V2XLogLevel::ERROR: return "ERROR";
+        default:                 return "UNKNOWN";
+    }
+}
+}
+
+void V2XWriteLog(
+    V2XLogLevel level,
+    const std::string& module,
+    const std::string& event,
+    const std::string& vehicleId,
+    uint64_t nodeId,
+    int64_t seqId,
+    const std::string& msg)
+{
+    uint64_t step = SimulationContext::simulationStep;
+    double t = ns3::Simulator::Now().GetSeconds();
+
+    std::ostringstream oss;
+
+    // Garante ponto fixo estrito com 6 casas decimais (precisão de microssegundo para o Python)
+    oss << "[STEP=" << step << "]"
+        << "[T=" << std::fixed << std::setprecision(6) << t << "s]"
+        << "[LVL=" << ToString(level) << "]"
+        << "[MOD=" << module << "]"
+        << "[EV=" << event << "]"
+        << "[VEH=" << (vehicleId.empty() ? "-" : vehicleId) << "]"
+        << "[NODE=" << nodeId << "]"
+        << "[SEQ=" << seqId << "] " // <--- NOVO: Tokenizado de forma limpa
+        << msg;
+
+    NS_LOG_UNCOND(oss.str());
+}
+=== scratch/vanetza_integration/core/v2x_log.h ===
+#pragma once
+
+#include <string>
+#include <cstdint>
+
+enum class V2XLogLevel
+{
+    TRACE,
+    DEBUG,
+    INFO,
+    WARN,
+    ERROR
+};
+
+// Assinatura atualizada com seqId para viabilizar Rastreabilidade Construtiva em Python
+void V2XWriteLog(
+    V2XLogLevel level,
+    const std::string& module,
+    const std::string& event,
+    const std::string& vehicleId,
+    uint64_t nodeId,
+    int64_t seqId, // <--- NOVO: ID único do pacote, ou -1 se não aplicável
+    const std::string& msg);
+=== scratch/vanetza_integration/rx/rx_pipeline.cc ===
+#include "rx_pipeline.h"
+#include "vanetza_integration/cam/receiver/cam_receiver.h"
+#include "vanetza_integration/cam/decoder/cam_decoder.h"
+#include "vanetza_integration/security/cam_security.h"
+#include "vanetza_integration/context/vehicle_registry/vehicle_registry.h"
+#include "vanetza_integration/context/simulation_context/simulation_context.h"
+#include "vanetza_integration/core/v2x_log.h"
+#include <ns3/socket.h>
+
+void RxPipeline::Process(ns3::Ptr<ns3::Socket> socket, const std::vector<unsigned char>& buffer)
+{
+    // 1. Identificação do nó receptor
+    const uint32_t rxNodeId = socket->GetNode()->GetId();
+    auto& registry = VehicleRegistry::Instance();
+    
+    VehicleState* receiver = registry.GetByNodeId(rxNodeId);
+    std::string rxVehId = receiver ? receiver->identity.vehId : "unknown_rx";
+
+    // Parâmetros para as novas assinaturas (ajustar conforme necessidade da stack)
+    const std::string senderId = "unknown"; // Extrair do header se disponível
+    const uint32_t timestamp = 0;           // Ou obter de um relógio global
+    const int64_t seqId = -1;
+
+    V2XWriteLog(V2XLogLevel::TRACE, "RX", "RAW_IN", rxVehId, rxNodeId, seqId, "size=" + std::to_string(buffer.size()));
+
+    // 2. Processamento da camada de frame
+    CamFrame frame;
+    // Corrigido: ProcessRawPacket exige 5 argumentos conforme o erro de compilação
+    if (!CamReceiver::ProcessRawPacket(senderId, timestamp, seqId, buffer, frame)) {
+        V2XWriteLog(V2XLogLevel::WARN, "RX", "FRAME_FAIL", rxVehId, rxNodeId, seqId, "framing failed");
+        return;
+    }
+
+    // 3. Decodificação
+    // Corrigido: Decode exige 4 argumentos
+    CamMessage msg = CamDecoder::Decode(frame.payload, senderId, timestamp, seqId);
+    
+    if (msg.stationId == 0) {
+        V2XWriteLog(V2XLogLevel::ERROR, "RX", "DECODE_FAIL", rxVehId, rxNodeId, seqId, "invalid stationId");
+        return;
+    }
+
+    V2XWriteLog(V2XLogLevel::TRACE, "RX", "DECODE_OK", rxVehId, rxNodeId, seqId, "sid=" + std::to_string(msg.stationId));
+
+    // 4. Validação do Remetente
+    VehicleState* sender = registry.GetByStationId(msg.stationId);
+    if (!sender) {
+        V2XWriteLog(V2XLogLevel::ERROR, "RX", "SENDER_NOT_FOUND", rxVehId, rxNodeId, seqId, "sid_not_in_registry");
+        return;
+    }
+
+    // 5. Verificação de Segurança
+    if (!sender->certificate) {
+        V2XWriteLog(V2XLogLevel::WARN, "RX", "NO_CERT", sender->identity.vehId, rxNodeId, seqId, "missing_cert");
+        return;
+    }
+
+    // Corrigido: VerifyFrame exige 5 argumentos
+    if (!CamSecurity::VerifyFrame(frame, sender->certificate, senderId, timestamp, seqId)) {
+        V2XWriteLog(V2XLogLevel::ERROR, "RX", "VERIFY_RESULT_FAIL", sender->identity.vehId, rxNodeId, seqId, "auth_failed");
+        return;
+    }
+
+    // 6. Atualização de Estado
+    if (receiver) {
+        NeighborInfo info;
+        info.stationID = msg.stationId;
+        info.x = msg.longitude;
+        info.y = msg.latitude;
+        info.speed = msg.speed;
+        info.heading = msg.heading;
+        info.lastUpdateStep = SimulationContext::simulationStep;
+
+        receiver->neighbors[msg.stationId] = info;
+        
+        V2XWriteLog(V2XLogLevel::INFO, "RX", "PIPELINE_OK", sender->identity.vehId, rxNodeId, seqId, "neighbor_updated");
+    }
+}
+=== scratch/vanetza_integration/rx/rx_pipeline.h ===
+#pragma once
+
+#include <ns3/socket.h>
+#include <ns3/packet.h>
+#include <vector>
+#include <cstdint>
+
+class RxPipeline
+{
+public:
+    static void Process(
+        ns3::Ptr<ns3::Socket> socket,
+        const std::vector<uint8_t>& buffer);
+};
+=== scratch/vanetza_integration/security/cam_security.cc ===
+#include "cam_security.h"
+
+#include "vanetza_integration/core/v2x_log.h"
+#include "vanetza_integration/cam/framing/cam_framing.h"
+
+#include <openssl/evp.h>
+#include <openssl/x509.h>
+#include <memory>
+
+// Custom Deleters para RAII seguro com structs do OpenSSL
+struct OpenSSLDeleter {
+    void operator()(EVP_MD_CTX* ctx) const { if (ctx) EVP_MD_CTX_free(ctx); }
+    void operator()(EVP_PKEY* key) const { if (key) EVP_PKEY_free(key); }
+};
+
+// ======================================================
+// SIGN
+// ======================================================
+std::vector<uint8_t> CamSecurity::Sign(
+    const std::vector<uint8_t>& data,
+    EVP_PKEY* privateKey,
+    const std::string& vehId,
+    uint32_t nodeId)
+{
+    if (!privateKey || data.empty())
+    {
+        V2XWriteLog(V2XLogLevel::ERROR, "SECURITY", "SIGN_FAIL", vehId, nodeId, -1, "invalid input or missing key");
+        return {};
+    }
+
+    std::unique_ptr<EVP_MD_CTX, OpenSSLDeleter> ctx(EVP_MD_CTX_new());
+    if (!ctx)
+    {
+        V2XWriteLog(V2XLogLevel::ERROR, "SECURITY", "SIGN_FAIL", vehId, nodeId, -1, "EVP_MD_CTX_new failed");
+        return {};
+    }
+
+    size_t sigLen = EVP_PKEY_size(privateKey);
+    std::vector<uint8_t> signature(sigLen);
+
+    bool ok =
+        EVP_DigestSignInit(ctx.get(), nullptr, EVP_sha256(), nullptr, privateKey) == 1 &&
+        EVP_DigestSignUpdate(ctx.get(), data.data(), data.size()) == 1 &&
+        EVP_DigestSignFinal(ctx.get(), signature.data(), &sigLen) == 1;
+
+    if (!ok)
+    {
+        V2XWriteLog(V2XLogLevel::ERROR, "SECURITY", "SIGN_FAIL", vehId, nodeId, -1, "digest sign failed");
+        return {};
+    }
+
+    signature.resize(sigLen);
+
+    V2XWriteLog(V2XLogLevel::DEBUG, "SECURITY", "SIGN_OK", vehId, nodeId, -1, "signature_size=" + std::to_string(sigLen));
+
+    return signature;
+}
+
+// ======================================================
+// VERIFY
+// ======================================================
+bool CamSecurity::Verify(
+    const std::vector<uint8_t>& data,
+    const std::vector<uint8_t>& signature,
+    X509* certificate,
+    const std::string& vehId,
+    uint32_t nodeId)
+{
+    if (!certificate || data.empty() || signature.empty())
+    {
+        V2XWriteLog(V2XLogLevel::WARN, "SECURITY", "VERIFY_FAIL", vehId, nodeId, -1, "invalid input");
+        return false;
+    }
+
+    std::unique_ptr<EVP_PKEY, OpenSSLDeleter> pubKey(X509_get_pubkey(certificate));
+    if (!pubKey)
+    {
+        V2XWriteLog(V2XLogLevel::ERROR, "SECURITY", "VERIFY_FAIL", vehId, nodeId, -1, "pubkey extraction failed");
+        return false;
+    }
+
+    std::unique_ptr<EVP_MD_CTX, OpenSSLDeleter> ctx(EVP_MD_CTX_new());
+    if (!ctx)
+    {
+        V2XWriteLog(V2XLogLevel::ERROR, "SECURITY", "VERIFY_FAIL", vehId, nodeId, -1, "EVP_MD_CTX_new failed");
+        return false;
+    }
+
+    bool valid = false;
+    if (EVP_DigestVerifyInit(ctx.get(), nullptr, EVP_sha256(), nullptr, pubKey.get()) == 1 &&
+        EVP_DigestVerifyUpdate(ctx.get(), data.data(), data.size()) == 1 &&
+        EVP_DigestVerifyFinal(ctx.get(), signature.data(), signature.size()) == 1)
+    {
+        valid = true;
+    }
+
+    V2XWriteLog(
+        valid ? V2XLogLevel::INFO : V2XLogLevel::ERROR,
+        "SECURITY",
+        "VERIFY_RESULT",
+        vehId,
+        nodeId,
+        -1,
+        valid ? "OK" : "FAIL");
+
+    return valid;
+}
+
+// ======================================================
+// VERIFY FRAME (PIPELINE DE ALTO NÍVEL)
+// ======================================================
+bool CamSecurity::VerifyFrame(
+    const CamFrame& frame,
+    X509* certificate,
+    const std::string& currentVehId,
+    uint32_t currentNodeId,
+    uint32_t seqId)
+{
+    bool ok = Verify(frame.payload, frame.signature, certificate, currentVehId, currentNodeId);
+
+    V2XWriteLog(
+        ok ? V2XLogLevel::INFO : V2XLogLevel::ERROR,
+        "SECURITY",
+        "FRAME_VERIFY",
+        currentVehId,
+        currentNodeId,
+        static_cast<int64_t>(seqId),
+        "frame_valid=" + std::string(ok ? "TRUE" : "FALSE"));
+
+    return ok;
+}
+=== scratch/vanetza_integration/security/cam_security.h ===
+#ifndef CAM_SECURITY_H
+#define CAM_SECURITY_H
+
+#include <vector>
+#include <cstdint>
+#include <string>
+
+#include <openssl/evp.h>
+#include <openssl/x509.h>
+
+// Forward declaration
+struct CamFrame;
+
+class CamSecurity
+{
+public:
+    // ======================================================
+    // LOW-LEVEL CRYPTO API (Operações puras de dados)
+    // ======================================================
+    static std::vector<uint8_t> Sign(
+        const std::vector<uint8_t>& data,
+        EVP_PKEY* privateKey,
+        const std::string& vehId,
+        uint32_t nodeId);
+
+    static bool Verify(
+        const std::vector<uint8_t>& data,
+        const std::vector<uint8_t>& signature,
+        X509* certificate,
+        const std::string& vehId,
+        uint32_t nodeId);
+
+    // ======================================================
+    // HIGH-LEVEL PIPELINE API (Integrado com Contexto V2X)
+    // ======================================================
+    static bool VerifyFrame(
+        const CamFrame& frame,
+        X509* certificate,
+        const std::string& currentVehId,
+        uint32_t currentNodeId,
+        uint32_t seqId);
+};
+
+#endif
+=== scratch/vanetza_integration/sumo_adapter/sumo_adapter.cc ===
+#include "sumo_adapter.h"
+#include "vanetza_integration/core/v2x_log.h"
+#include "vanetza_integration/context/vehicle_registry/vehicle_registry.h"
+
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <cstring>
+#include <sstream>
+#include <memory>
+#include <functional>
+
+static int udpRxSocketFd = -1;
+static sockaddr_in sumoAddr;
+static sockaddr_in localAddr;
+
+static std::function<void(const VehicleState&)> onVehicleUpdate;
+
+// ======================================================
+// PARSER: Retorna unique_ptr para evitar cópia proibida
+// ======================================================
+std::unique_ptr<VehicleState> SumoAdapter::ParseMessage(const std::string& msg)
+{
+    auto vs = std::make_unique<VehicleState>();
+
+    // Inicialização segura
+    vs->identity.nodeId = 0;
+    vs->identity.stationId = 0;
+    vs->speed = 0.0;
+    vs->heading = 0.0;
+    vs->accel = 0.0;
+    vs->position.x = 0.0;
+    vs->position.y = 0.0;
+    vs->initialized = false;
+
+    std::stringstream ss(msg);
+    std::string token;
+
+    if (!getline(ss, vs->identity.vehId, ',')) return nullptr;
+    if (!getline(ss, token, ',')) return nullptr;
+    vs->position.x = std::stod(token);
+    if (!getline(ss, token, ',')) return nullptr;
+    vs->position.y = std::stod(token);
+    if (!getline(ss, token, ',')) return nullptr;
+    vs->speed = std::stod(token);
+    if (!getline(ss, token, ',')) return nullptr;
+    vs->heading = std::stod(token);
+    if (!getline(ss, token, ',')) return nullptr;
+    vs->accel = std::stod(token);
+
+    vs->initialized = true;
+    return vs;
+}
+
+// ======================================================
+// INIT
+// ======================================================
+bool SumoAdapter::Init(int localPort, const std::string& sumoIp, int sumoPort)
+{
+    udpRxSocketFd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (udpRxSocketFd < 0) {
+        V2XWriteLog(V2XLogLevel::ERROR, "SUMO", "SOCKET_FAIL", "-", 0, -1, "UDP socket creation failed");
+        return false;
+    }
+
+    memset(&localAddr, 0, sizeof(localAddr));
+    localAddr.sin_family = AF_INET;
+    localAddr.sin_port = htons(localPort);
+    localAddr.sin_addr.s_addr = INADDR_ANY;
+
+    if (bind(udpRxSocketFd, (sockaddr*)&localAddr, sizeof(localAddr)) < 0) {
+        V2XWriteLog(V2XLogLevel::ERROR, "SUMO", "BIND_FAIL", "-", 0, -1, "UDP bind failed");
+        return false;
+    }
+
+    memset(&sumoAddr, 0, sizeof(sumoAddr));
+    sumoAddr.sin_family = AF_INET;
+    sumoAddr.sin_port = htons(sumoPort);
+    sumoAddr.sin_addr.s_addr = inet_addr(sumoIp.c_str());
+
+    V2XWriteLog(V2XLogLevel::INFO, "SUMO", "INIT_OK", "-", 0, -1, "adapter initialized");
+    return true;
+}
+
+// ======================================================
+// CALLBACK
+// ======================================================
+void SumoAdapter::SetVehicleUpdateCallback(std::function<void(const VehicleState&)> cb)
+{
+    onVehicleUpdate = std::move(cb);
+}
+
+// ======================================================
+// SEND
+// ======================================================
+void SumoAdapter::SendToSumo(const VehicleState& vs)
+{
+    if (udpRxSocketFd < 0) return;
+
+    std::string msg = vs.identity.vehId + "," + std::to_string(vs.position.x) + "," + 
+                      std::to_string(vs.position.y) + "," + std::to_string(vs.speed) + "," + 
+                      std::to_string(vs.heading) + "," + std::to_string(vs.accel);
+
+    sendto(udpRxSocketFd, msg.c_str(), msg.size(), 0, (sockaddr*)&sumoAddr, sizeof(sumoAddr));
+
+    V2XWriteLog(V2XLogLevel::DEBUG, "SUMO_TX", "VEHICLE_STATE", vs.identity.vehId, 
+                vs.identity.nodeId, -1, "pos=(" + std::to_string(vs.position.x) + "," + 
+                std::to_string(vs.position.y) + ") speed=" + std::to_string(vs.speed));
+}
+
+// ======================================================
+// POLL: Processa via ponteiro (unique_ptr)
+// ======================================================
+void SumoAdapter::Poll()
+{
+    if (udpRxSocketFd < 0) return;
+
+    char buffer[512];
+    sockaddr_in sender{};
+    socklen_t len = sizeof(sender);
+    auto& reg = VehicleRegistry::Instance();
+
+    while (true) {
+        int bytes = recvfrom(udpRxSocketFd, buffer, sizeof(buffer) - 1, MSG_DONTWAIT, (sockaddr*)&sender, &len);
+        if (bytes <= 0) break;
+
+        buffer[bytes] = '\0';
+        auto vs_ptr = ParseMessage(buffer);
+        
+        if (!vs_ptr || !vs_ptr->initialized) continue;
+
+        VehicleState* registeredVeh = reg.GetByVehId(vs_ptr->identity.vehId);
+        if (registeredVeh) {
+            vs_ptr->identity.nodeId = registeredVeh->identity.nodeId;
+            vs_ptr->identity.stationId = registeredVeh->identity.stationId;
+        }
+
+        V2XWriteLog(V2XLogLevel::DEBUG, "SUMO_RX", "VEHICLE_STATE", vs_ptr->identity.vehId, 
+                    vs_ptr->identity.nodeId, -1, "pos=(" + std::to_string(vs_ptr->position.x) + 
+                    "," + std::to_string(vs_ptr->position.y) + ") speed=" + std::to_string(vs_ptr->speed));
+
+        if (onVehicleUpdate) {
+            onVehicleUpdate(*vs_ptr);
+        }
+    }
+}
+
+void SumoAdapter::Close()
+{
+    if (udpRxSocketFd >= 0) {
+        close(udpRxSocketFd);
+        udpRxSocketFd = -1;
+    }
+}
+=== scratch/vanetza_integration/sumo_adapter/sumo_adapter.h ===
+#ifndef SUMO_ADAPTER_H
+#define SUMO_ADAPTER_H
+
+#include <string>
+#include <functional>
+#include <memory>
+#include "../context/vehicle_state.h"
+
+class SumoAdapter
+{
+public:
+    // Inicializa o socket UDP para comunicação com o SUMO
+    static bool Init(int localPort,
+                     const std::string& sumoIp,
+                     int sumoPort);
+
+    // Processa mensagens recebidas do SUMO
+    static void Poll();
+
+    // Envia estado do veículo para o SUMO
+    static void SendToSumo(const VehicleState& vs);
+
+    // Define o callback para tratamento de atualizações de estado de veículos
+    static void SetVehicleUpdateCallback(std::function<void(const VehicleState&)> cb);
+
+    // Analisa a string recebida do SUMO e retorna um unique_ptr para evitar cópia proibida
+    static std::unique_ptr<VehicleState> ParseMessage(const std::string& msg);
+
+    // Fecha o socket
+    static void Close();
+};
+
+#endif // SUMO_ADAPTER_H
+(ns3-venv) mmendes@Ubuntu-Zephyr:~/final/ns-3.47$ 

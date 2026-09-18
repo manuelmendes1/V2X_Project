@@ -1,0 +1,63 @@
+# ============================================================
+# Project repository is an overlay on top of an ns-3 workspace
+# ============================================================
+
+# Ignore everything by default
+*
+
+# Keep Git metadata and ignore file
+!.gitignore
+!README.md
+
+# ------------------------------------------------------------
+# Project paths to version
+# ------------------------------------------------------------
+
+!/scratch/
+!/scratch/CMakeLists.txt
+
+!/scratch/vanetza_integration/
+!/scratch/vanetza_integration/**
+
+!/scratch/v2x/
+!/scratch/v2x/**
+
+!/scratch/v2x_analyzer/
+!/scratch/v2x_analyzer/**
+
+# ------------------------------------------------------------
+# Generated Python files
+# ------------------------------------------------------------
+
+scratch/v2x_analyzer/**/__pycache__/
+scratch/v2x_analyzer/**/*.pyc
+
+# ------------------------------------------------------------
+# Historical snapshot generated at scratch root
+# ------------------------------------------------------------
+
+/scratch/up_code_v16x.txt
+
+# ------------------------------------------------------------
+# Build / generated artefacts inside project tree
+# ------------------------------------------------------------
+
+scratch/**/build/
+scratch/**/CMakeFiles/
+scratch/**/cmake-build-*/
+scratch/**/.pytest_cache/
+scratch/**/.cache/
+
+# Logs and generated runtime output
+scratch/**/*.log
+scratch/**/*.out
+
+# Databases
+scratch/**/*.db
+scratch/**/*.sqlite
+scratch/**/*.sqlite3
+
+# Temporary files
+scratch/**/*~
+scratch/**/*.tmp
+scratch/**/*.bak

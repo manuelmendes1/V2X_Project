@@ -1,0 +1,293 @@
+#!/usr/bin/env python3
+
+from __future__ import annotations
+
+import re
+
+from pathlib import Path
+from dataclasses import dataclass, field
+from collections import defaultdict
+
+TAG_RE = re.compile(r"\[(.*?)=(.*?)\]")
+
+
+@dataclass(slots=True)
+class LogEntry:
+
+    raw: str
+    tags: dict[str, str]
+    message: str
+    line: int
+    filename: str
+
+    def tag(self, key: str, default=None):
+        return self.tags.get(key, default)
+
+    @property
+    def sim_step(self):
+        return int(self.tags.get("SIM_STEP", "-1"))
+
+    @property
+    def sim_time(self):
+        return float(self.tags.get("SIM_TIME", "0").rstrip("s"))
+
+    @property
+    def vehicle(self):
+        return self.tags.get("VEH", "-")
+
+    @property
+    def node(self):
+        try:
+            return int(self.tags.get("NODE", "-1"))
+        except ValueError:
+            return -1
+
+    @property
+    def station(self):
+        try:
+            return int(self.tags.get("STATION", "-1"))
+        except ValueError:
+            return -1
+
+    @property
+    def seq(self):
+        try:
+            return int(self.tags.get("SEQ", "-1"))
+        except ValueError:
+            return -1
+
+    @property
+    def module(self):
+        return self.tags.get("MOD", "")
+
+    @property
+    def event(self):
+        return self.tags.get("EV", "")
+
+    @property
+    def level(self):
+        return self.tags.get("LVL", "")
+
+    @property
+    def result(self):
+        return self.tags.get("RESULT")
+
+    @property
+    def pipe_stage(self):
+        return self.tags.get("PIPE_STAGE")
+
+    @property
+    def pipe_step(self):
+        return self.tags.get("PIPE_STEP")
+
+    @property
+    def duration_us(self):
+        value = self.tags.get("DURATION_US")
+        if value is None:
+            return None
+        try:
+            return int(value)
+        except ValueError:
+            return None
+
+
+@dataclass(slots=True)
+class Packet:
+
+    seq: int
+    vehicle: str
+    node: int
+    station: int
+
+    entries: list[LogEntry] = field(default_factory=list)
+
+    def add(self, entry: LogEntry):
+        self.entries.append(entry)
+
+
+class Logger:
+
+    def __init__(self):
+
+        self.entries: list[LogEntry] = []
+
+        self.packets: dict[tuple[str, int], Packet] = {}
+
+        self.vehicles: defaultdict[str, list[LogEntry]] = defaultdict(list)
+
+        self.modules: defaultdict[str, list[LogEntry]] = defaultdict(list)
+
+        self.events: defaultdict[str, list[LogEntry]] = defaultdict(list)
+
+        self.stages: defaultdict[str, list[LogEntry]] = defaultdict(list)
+
+        self.results: defaultdict[str, list[LogEntry]] = defaultdict(list)
+
+    def parse_line(self,
+                   raw: str,
+                   line: int,
+                   filename: str):
+
+        raw = raw.rstrip()
+
+        if not raw:
+            return None
+
+        matches = list(TAG_RE.finditer(raw))
+
+        if not matches:
+            return None
+
+        tags = {}
+
+        for match in matches:
+            tags[match.group(1)] = match.group(2)
+
+        message = raw[matches[-1].end():].strip()
+
+        return LogEntry(
+            raw=raw,
+            tags=tags,
+            message=message,
+            line=line,
+            filename=filename,
+        )
+
+    def load(self, *filenames):
+
+        for filename in filenames:
+
+            path = Path(filename)
+
+            if not path.exists():
+                raise FileNotFoundError(path)
+
+            with path.open(
+                "r",
+                encoding="utf-8",
+                errors="replace",
+            ) as f:
+
+                for line_number, raw in enumerate(f, 1):
+
+                    entry = self.parse_line(
+                        raw,
+                        line_number,
+                        str(path),
+                    )
+
+                    if entry is None:
+                        continue
+
+                    self.entries.append(entry)
+
+                    if entry.vehicle and entry.vehicle != "-":
+                        self.vehicles[entry.vehicle].append(entry)
+
+                    self.modules[entry.module].append(entry)
+
+                    self.events[entry.event].append(entry)
+
+                    if entry.pipe_stage:
+                        self.stages[entry.pipe_stage].append(entry)
+
+                    if entry.result:
+                        self.results[entry.result].append(entry)
+
+                    if entry.seq >= 0:
+
+                        key = (
+                            entry.vehicle,
+                            entry.seq,
+                        )
+
+                        packet = self.packets.get(key)
+
+                        if packet is None:
+
+                            packet = Packet(
+                                seq=entry.seq,
+                                vehicle=entry.vehicle,
+                                node=entry.node,
+                                station=entry.station,
+                            )
+
+                            self.packets[key] = packet
+
+                        packet.add(entry)
+
+        return self
+
+    def get_vehicle(self, vehicle: str):
+        return self.vehicles.get(vehicle, [])
+
+    def get_module(self, module: str):
+        return self.modules.get(module, [])
+
+    def get_event(self, event: str):
+        return self.events.get(event, [])
+
+    def get_stage(self, stage: str):
+        return self.stages.get(stage, [])
+
+    def get_result(self, result: str):
+        return self.results.get(result, [])
+
+    def get_packet(self,
+                   vehicle: str,
+                   seq: int):
+
+        return self.packets.get(
+            (
+                vehicle,
+                seq,
+            )
+        )
+
+    def filter(self, **tags):
+
+        result = []
+
+        for entry in self.entries:
+
+            ok = True
+
+            for key, value in tags.items():
+
+                if entry.tag(key) != str(value):
+                    ok = False
+                    break
+
+            if ok:
+                result.append(entry)
+
+        return result
+
+    @property
+    def total_entries(self):
+        return len(self.entries)
+
+    @property
+    def total_packets(self):
+        return len(self.packets)
+
+    @property
+    def total_vehicles(self):
+        return len(self.vehicles)
+
+
+if __name__ == "__main__":
+
+    log = Logger().load("output_log.txt")
+
+    print(f"Entries  : {log.total_entries}")
+    print(f"Packets  : {log.total_packets}")
+    print(f"Vehicles : {log.total_vehicles}")
+    print(f"Modules  : {len(log.modules)}")
+    print(f"Events   : {len(log.events)}")
+ 
+    print("\nVehicles")
+
+    for vehicle in sorted(log.vehicles):
+        print(vehicle, len(log.vehicles[vehicle]))
+   
