@@ -1858,6 +1858,7 @@ Ns3AccessAdapter::request(
 {
     std::shared_ptr<PacketContext> ctx = TxBridgeContext::Current();
 
+
     TxBridgeContext::Pop();
 
     //----------------------------------------------------------------------
@@ -2053,6 +2054,22 @@ Ns3AccessAdapter::request(
                     ValidateShbExtendedHeaderTx(
                         networkBytes);
                 }
+                else if (common.header_type ==
+                         vanetza::geonet::HeaderType::GeoBroadcast_Circle)
+                {
+                    //------------------------------------------------------------------
+                    // DENM / GeoBroadcast Circle / GBC
+                    //
+                    // GBC does not use the SHB/TSB extended header validator.
+                    // Validate the common GeoNetworking header only here.
+                    //------------------------------------------------------------------
+
+                    ValidateCommonHeaderTx(
+                        networkBytes,
+                        0,
+                        0,
+                        frame.size());
+                }
                 else
                 {
                     NS_LOG_UNCOND(
@@ -2199,9 +2216,11 @@ Ns3AccessAdapter::request(
     // Deferred send
     //----------------------------------------------------------------------
 
+
     Simulator::ScheduleNow(
         [ctx, socket, ns3Packet]()
         {
+
             //--------------------------------------------------------------
             // Internal Router transmissions without application context
             //--------------------------------------------------------------

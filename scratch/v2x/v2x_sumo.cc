@@ -25,9 +25,26 @@ int main(int argc, char* argv[]) {
 
     double simDurationSec = 60.0;
 
+    bool enableDenm = false;
+
+    double denmRadiusMeters = 1000.0;
+
     CommandLine cmd;
 
-    cmd.AddValue("simDuration","Duracao maxima da simulacao em segundos (cenario SUMO + margem)",simDurationSec);
+    cmd.AddValue(
+        "simDuration",
+        "Duracao maxima da simulacao em segundos (cenario SUMO + margem)",
+        simDurationSec);
+
+    cmd.AddValue(
+        "enableDenm",
+        "Ativa o baseline TX DENM",
+        enableDenm);
+
+    cmd.AddValue(
+        "denmRadius",
+        "Raio GBC do baseline DENM em metros",
+        denmRadiusMeters);
 
     cmd.Parse(argc, argv);
 
@@ -46,6 +63,10 @@ int main(int argc, char* argv[]) {
     SumoAdapter::Init(7400,"127.0.0.1",7000);
 
     SumoAdapter::SetVehicleUpdateCallback(&SimulationController::HandleVehicleUpdateFromSumo);
+
+    SimulationController::SetDenmEnabled(enableDenm);
+
+    SimulationController::SetDenmRadiusMeters(denmRadiusMeters);
 
     SimulationController::Start(MilliSeconds(100));
 

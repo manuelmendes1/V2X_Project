@@ -1,6 +1,7 @@
 #include "simulation_controller.h"
 
 #include "vanetza_integration/cam/scheduler/cam_scheduler.h"
+#include "vanetza_integration/denm/scheduler/denm_scheduler.h"
 #include "vanetza_integration/context/simulation_context/simulation_context.h"
 #include "vanetza_integration/context/simulation_step/simulation_step.h"
 #include "vanetza_integration/context/simulation_sync/simulation_sync.h"
@@ -13,6 +14,10 @@ namespace ns3
 {
 
 Time SimulationController::m_stepLength = MilliSeconds(100);
+
+bool SimulationController::m_denmEnabled = false;
+
+double SimulationController::m_denmRadiusMeters = 1000.0;
 
 // ============================================================================
 // Simulation lifecycle
@@ -30,6 +35,15 @@ SimulationController::Start(Time stepLength)
     // CAM passa a ter um scheduler independente.
     Simulator::ScheduleNow(
         &SimulationController::SendCam);
+
+    // DENM é explicitamente opt-in e não altera o comportamento CAM.
+    if (m_denmEnabled)
+    {
+        DenmScheduler::Reset();
+
+        Simulator::ScheduleNow(
+            &SimulationController::SendDenm);
+    }
 }
 
 void
@@ -62,7 +76,37 @@ void SimulationController::SendCam() {
 
     CamScheduler::Run();
 
-    Simulator::Schedule(CamScheduler::RunInterval(), &SimulationController::SendCam);
+    Simulator::Schedule(
+        CamScheduler::RunInterval(),
+        &SimulationController::SendCam);
+}
+
+void
+SimulationController::SetDenmEnabled(bool enabled)
+{
+    m_denmEnabled = enabled;
+}
+
+void
+SimulationController::SetDenmRadiusMeters(double radiusMeters)
+{
+    m_denmRadiusMeters = radiusMeters;
+}
+
+void
+SimulationController::SendDenm()
+{
+    if (!m_denmEnabled)
+    {
+        return;
+    }
+
+    DenmScheduler::Run(
+        m_denmRadiusMeters);
+
+    Simulator::Schedule(
+        DenmScheduler::RunInterval(),
+        &SimulationController::SendDenm);
 }
 
 // ============================================================================

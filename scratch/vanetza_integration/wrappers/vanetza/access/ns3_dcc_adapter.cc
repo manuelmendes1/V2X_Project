@@ -399,6 +399,21 @@ Ns3DccAdapter::request(
     ScheduleNextRuntimeEvent();
 
     /*
+     * The PacketContext is now owned by m_packetContexts for any queued
+     * transmission. The bridge must not remain populated after returning
+     * from FlowControl::request(), otherwise an unrelated/internal
+     * transmission can inherit a stale application context.
+     *
+     * For an immediate transmission, Ns3AccessAdapter::request() has
+     * already consumed the bridge, so Current() is null here.
+     */
+    if (ctx &&
+        TxBridgeContext::Current() == ctx)
+    {
+        TxBridgeContext::Pop();
+    }
+
+    /*
      * For immediate transmission, the packet_transmit_hook has already
      * transferred the PacketContext to Ns3AccessAdapter through
      * TxBridgeContext. In that case there is no pending Runtime event

@@ -13,9 +13,15 @@ public:
 
     static void Start(Time stepLength);
 
+    static void SetDenmEnabled(bool enabled);
+
+    static void SetDenmRadiusMeters(double radiusMeters);
+
     static void HandleVehicleUpdateFromSumo(const VehicleState& parsedVs);
 
     static void SendCam();
+
+    static void SendDenm();
 
     static void SimulationStep();
 
@@ -26,6 +32,10 @@ public:
 private:
 
     static Time m_stepLength;
+
+    static bool m_denmEnabled;
+
+    static double m_denmRadiusMeters;
 };
 
 } // namespace ns3
