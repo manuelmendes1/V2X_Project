@@ -135,6 +135,7 @@ target_link_libraries(vanetza_cam_encoder_obj
 # =========================================================
 
 add_library(vanetza_denm_obj OBJECT
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/denm/action/denm_action_id_manager.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/denm/denm_asn1_builder.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/denm/vanetza_denm_codec.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/denm/uper/denm_uper_encoder.cc
