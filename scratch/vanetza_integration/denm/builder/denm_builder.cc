@@ -84,11 +84,19 @@ DenmBuilder::Build(VehicleState& vehicle)
     // by CAM. Conversion/quantization into ETSI ASN.1 belongs to the codec.
     //----------------------------------------------------------------------
 
+    // SUMO/ns-3 mobility uses local Cartesian metres:
+    //   x = east  -> longitude
+    //   y = north -> latitude
+    //
+    // GeoNetworking/DENM uses geographic degrees.
+    // Keep the same conversion contract as Ns3PositionProvider.
+    constexpr double meters_per_degree = 111320.0;
+
     context.denmInput.eventPosition.latitude =
-        vehicle.mobility.position.x;
+        vehicle.mobility.position.y / meters_per_degree;
 
     context.denmInput.eventPosition.longitude =
-        vehicle.mobility.position.y;
+        vehicle.mobility.position.x / meters_per_degree;
 
     //----------------------------------------------------------------------
     // Minimal valid SituationContainer baseline.

@@ -2,12 +2,13 @@
 
 #include "vanetza_integration/context/packet/packet_id_manager.h"
 #include "vanetza_integration/context/rx_bridge/rx_bridge_context.h"
-#include "vanetza_integration/wrappers/vanetza/geonet/vanetza_geonet_adapter.h"
 #include "vanetza_integration/context/vehicle_state.h"
 #include "vanetza_integration/context/vehicle_registry/vehicle_registry.h"
 #include "vanetza_integration/core/v2x_log.h"
+#include "vanetza_integration/denm/rx/denm_rx_pipeline.h"
 #include "vanetza_integration/rx/rx_pipeline.h"
 #include "vanetza_integration/rx/rx_context_builder/rx_context_builder.h"
+#include "vanetza_integration/wrappers/vanetza/geonet/vanetza_geonet_adapter.h"
 
 #include "ns3/inet-socket-address.h"
 #include "ns3/log.h"
@@ -334,6 +335,74 @@ VanetzaRuntime::Initialize()
                 *ctx,
                 rx.payload);
         });
+
+    //=========================================================================
+    // DENM BTP RX boundary
+    //=========================================================================
+    //
+    // Stage 8.7.1:
+    // prove that BTP port 2002 reaches a dedicated DENM handler without
+    // replacing the CAM handler registered on port 2001.
+    //
+    // DENM decode/replay/reception are intentionally NOT invoked yet.
+    //=========================================================================
+
+    m_geonet->SetBtpRxHandler(
+    2002,
+    [this](const VanetzaGeoNetAdapter::BtpRxData& rx)
+    {
+        PacketContext* ctx =
+            RxBridgeContext::Current();
+
+        if (!ctx)
+        {
+            NS_LOG_UNCOND(
+                "[DENM_RX] ERROR: RxBridgeContext is null");
+            return;
+        }
+
+        ctx->btpDestinationPort =
+            rx.destinationPort;
+
+        ctx->geonet.hasItsAid =
+            rx.hasItsAid;
+
+        if (rx.hasItsAid)
+        {
+            ctx->geonet.itsAid =
+                rx.itsAid;
+        }
+
+        ctx->geonet.hasSenderMid =
+            rx.hasSourceMid;
+
+        if (rx.hasSourceMid)
+        {
+            ctx->geonet.senderMid =
+                rx.sourceMid;
+        }
+
+        V2XWriteLog(
+            *ctx,
+            V2XLogLevel::INFO,
+            "DENM",
+            "DENM_RX_DISPATCH",
+            "port=" +
+                std::to_string(
+                    rx.destinationPort) +
+            " payload=" +
+                std::to_string(
+                    rx.payload.size()) +
+            " aid=" +
+                std::to_string(
+                    rx.hasItsAid
+                        ? rx.itsAid
+                        : 0));
+
+        DenmRxPipeline::Process(
+            *ctx,
+            rx.payload);
+    });
 
     //=========================================================================
     // Final initialization state

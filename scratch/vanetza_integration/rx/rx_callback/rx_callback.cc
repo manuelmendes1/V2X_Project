@@ -21,6 +21,17 @@ RxCallback::Receive(
 
     while ((packet = socket->RecvFrom(from)))
     {
+        if (packet && packet->GetSize() <= 200)
+        {
+            NS_LOG_UNCOND(
+                "[RX_SOCKET_DIAG] node="
+                << socket->GetNode()->GetId()
+                << " size="
+                << packet->GetSize()
+                << " from="
+                << from);
+        }
+
         const uint32_t receiverNodeId =
             socket->GetNode()->GetId();
 

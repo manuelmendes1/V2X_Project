@@ -7,6 +7,7 @@
 #include <openssl/x509.h>
 
 #include "vanetza_integration/context/vehicle_security/replay/replay_context.h"
+#include "vanetza_integration/denm/replay/denm_replay_context.h"
 
 namespace ns3
 {
@@ -60,6 +61,7 @@ struct VehicleSecurityContext
     // ------------------------------------------------------------------------
 
     ReplayContext replay;
+    DenmReplayContext denmReplay;
 
     // ------------------------------------------------------------------------
     // Construction

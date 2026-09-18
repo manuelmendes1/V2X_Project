@@ -96,16 +96,27 @@ public:
         const vanetza::btp::DataIndication& ind,
         std::unique_ptr<vanetza::UpPacket> packet) override
     {
+        const uint16_t destinationPort =
+            ind.destination_port.get();
+
         NS_LOG_UNCOND(
             "[BTP_HANDLER] indicate() called port="
-            << ind.destination_port.get());
+            << destinationPort);
 
-        if (!m_owner.m_handler)
+        const auto handlerIt =
+            m_owner.m_handlers.find(destinationPort);
+
+        if (handlerIt == m_owner.m_handlers.end())
         {
             NS_LOG_UNCOND(
-                "[BTP_HANDLER] ERROR: RX handler not installed");
+                "[BTP_HANDLER] ERROR: RX handler not installed "
+                "for port="
+                << destinationPort);
             return;
         }
+
+        RxHandler handler =
+            handlerIt->second;
 
         if (!packet)
         {
@@ -308,7 +319,7 @@ public:
         //----------------------------------------------------------------------
         // Deliver neutral RX data to the application/runtime.
         //----------------------------------------------------------------------
-        m_owner.m_handler(data);
+        handler(data);
     }
 
 private:
@@ -399,7 +410,8 @@ VanetzaBtpAdapter::SetRxHandler(
         return;
     }
 
-    m_handler = std::move(handler);
+    m_handlers[destinationPort] =
+        std::move(handler);
 
     m_dispatcher->set_non_interactive_handler(
         vanetza::btp::port_type(destinationPort),

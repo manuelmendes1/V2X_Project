@@ -246,6 +246,20 @@ VehicleRegistry::RegisterLinkMac(
     m_byLinkMac[mac] = &vehicle;
 }
 
+VehicleState*
+VehicleRegistry::GetByMid(
+    const GeoNetMid& mid)
+{
+    auto it = m_byMid.find(mid);
+
+    if (it == m_byMid.end())
+    {
+        return nullptr;
+    }
+
+    return it->second;
+}
+
 void
 VehicleRegistry::RegisterMid(
     const GeoNetMid& mid,

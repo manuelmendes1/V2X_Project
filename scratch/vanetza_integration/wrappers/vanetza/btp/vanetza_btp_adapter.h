@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <functional>
 #include <memory>
+#include <unordered_map>
 #include <vector>
 
 #include "vanetza_integration/context/packet/packet_context.h"
@@ -88,7 +89,7 @@ namespace ns3 {
             std::unique_ptr<vanetza::btp::PortDispatcher> m_dispatcher;
             std::unique_ptr<RxIndicationHandler> m_rxHandler;
 
-            RxHandler m_handler;
+            std::unordered_map<uint16_t, RxHandler> m_handlers;
     };
 
 } // namespace ns3
