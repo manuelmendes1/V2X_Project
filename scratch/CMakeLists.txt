@@ -131,6 +131,33 @@ target_link_libraries(vanetza_cam_encoder_obj
 )
 
 # =========================================================
+# DENM OBJECT LIBRARY
+# =========================================================
+
+add_library(vanetza_denm_obj OBJECT
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/denm/denm_asn1_builder.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/denm/vanetza_denm_codec.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/denm/uper/denm_uper_encoder.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/denm/uper/denm_uper_decoder.cc
+)
+
+target_include_directories(vanetza_denm_obj PUBLIC
+    ${CMAKE_SOURCE_DIR}/scratch
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration
+    /usr/local/include
+    /usr/local/include/vanetza
+    /usr/local/include/vanetza/asn1
+    /usr/local/include/vanetza/asn1/support
+)
+
+target_link_libraries(vanetza_denm_obj
+    ${VANETZA_LIBS}
+    OpenSSL::SSL
+    OpenSSL::Crypto
+)
+
+
+# =========================================================
 # SCRATCH EXEC BUILDER
 # =========================================================
 function(create_scratch source_files)
@@ -181,6 +208,7 @@ function(create_scratch source_files)
         OpenSSL::SSL
         OpenSSL::Crypto
         $<TARGET_OBJECTS:vanetza_cam_encoder_obj>
+        $<TARGET_OBJECTS:vanetza_denm_obj>
     )
 
 endfunction()
