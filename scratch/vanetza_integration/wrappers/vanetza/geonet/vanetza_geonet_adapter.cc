@@ -2,12 +2,14 @@
 
 #include "vanetza_integration/context/vehicle_state.h"
 #include "vanetza_integration/context/vehicle_registry/vehicle_registry.h"
+#include "vanetza_integration/context/rx_bridge/rx_bridge_context.h"
 #include "vanetza_integration/wrappers/vanetza/geonet_mid_adapter.h"
 #include "vanetza_integration/wrappers/vanetza/position/ns3_position_provider.h"
 #include "vanetza_integration/wrappers/vanetza/access/ns3_access_adapter.h"
 #include "vanetza_integration/wrappers/vanetza/access/ns3_dcc_adapter.h"
 #include "vanetza_integration/wrappers/vanetza/btp/vanetza_btp_adapter.h"
-#include "vanetza_integration/context/rx_bridge/rx_bridge_context.h"
+#include "vanetza_integration/wrappers/vanetza/security/denm_v3_sign_service.h"
+#include "vanetza_integration/wrappers/vanetza/security/denm_v3_verify_service.h"
 
 #include <vanetza/common/bit_number.hpp>
 #include <vanetza/common/byte_buffer.hpp>
@@ -78,15 +80,50 @@ namespace ns3 {
         m_impl->runtime = std::make_unique<vanetza::ManualRuntime>();
 
         //=====================================================================
-        // GeoNetworking security
+        // Position provider
+        //
+        // Must exist before the real V3 DENM signer because
+        // DefaultSignHeaderPolicy uses it to populate generationLocation.
         //=====================================================================
 
-        auto signService = std::make_unique<vanetza::security::v3::DummySignService>(*m_impl->runtime);
+        m_impl->position = std::make_unique<Ns3PositionProvider>(m_impl->vehicle);
 
-        auto verifyService = std::make_unique<vanetza::security::DummyVerifyService>(vanetza::security::VerificationReport::Success, vanetza::security::CertificateValidity::valid());
+        //=====================================================================
+        // GeoNetworking security
+        //
+        // DENM / AID 37 -> real ETSI ITS Security V3 signing
+        // CAM  / other  -> previous dummy signer
+        //=====================================================================
 
-        m_impl->securityEntity = std::make_unique<vanetza::security::DelegatingSecurityEntity>(std::move(signService), std::move(verifyService));
+        std::unique_ptr<vanetza::security::SignService> signService;
 
+        if (!m_impl->vehicle.security.certFile.empty() && !m_impl->vehicle.security.keyFile.empty()){
+
+            signService = std::make_unique<DenmV3SignService>(*m_impl->runtime, *m_impl->position, m_impl->vehicle.security.certFile, m_impl->vehicle.security.keyFile);
+
+            NS_LOG_UNCOND("[SECURITY] DENM V3 signer=REAL " << "veh=" << m_impl->vehicle.identity.vehId << " cert=" << m_impl->vehicle.security.certFile);
+        
+        }else{
+
+            signService = std::make_unique<vanetza::security::v3::DummySignService>(*m_impl->runtime);
+
+            NS_LOG_UNCOND("[SECURITY] DENM V3 signer=DUMMY " << "veh=" << m_impl->vehicle.identity.vehId);
+        }
+
+        auto verifyService =
+            std::make_unique<DenmV3VerifyService>(
+                *m_impl->runtime);
+
+        NS_LOG_UNCOND(
+            "[SECURITY] DENM V3 verifier=REAL "
+            << "veh=" << m_impl->vehicle.identity.vehId);
+
+        m_impl->securityEntity =
+            std::make_unique<
+                vanetza::security::DelegatingSecurityEntity>(
+                std::move(signService),
+                std::move(verifyService));
+        
         //=====================================================================
         // MIB
         //=====================================================================
@@ -170,7 +207,7 @@ namespace ns3 {
         // Position provider
         //=====================================================================
 
-        m_impl->position = std::make_unique<Ns3PositionProvider>(m_impl->vehicle);
+        //m_impl->position = std::make_unique<Ns3PositionProvider>(m_impl->vehicle);
 
         m_impl->router->update_position(m_impl->position->position_fix());
 

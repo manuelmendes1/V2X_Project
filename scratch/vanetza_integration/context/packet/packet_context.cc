@@ -277,6 +277,11 @@ namespace ns3 {
         payload.Clear();
 
         geonet = GeoNetRxContext{};
+
+        verificationPerformed = false;
+        verificationSucceeded = false;
+        verificationReport = 0;
+        verifiedItsAid = 0;
     }
 
 } // namespace ns3

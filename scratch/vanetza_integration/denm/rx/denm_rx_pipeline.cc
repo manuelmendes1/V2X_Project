@@ -82,21 +82,68 @@ DenmRxPipeline::Process(
     //----------------------------------------------------------------------
     // VERIFY
     //
-    // 8.7 baseline uses unsigned application DENM.
-    // The security boundary remains explicit, but there is currently no
-    // application signature to verify.
+    // DENM/AID 37 has already been processed by the real ETSI ITS
+    // Security V3 SecurityEntity before BTP delivery.
+    //
+    // PacketContext carries that result across the Vanetza/application
+    // boundary. No second cryptographic verification is performed here.
     //----------------------------------------------------------------------
     ctx.AdvancePipeline(
         PipelineStage::VERIFY);
+
+    if (!ctx.geonet.hasItsAid ||
+        ctx.geonet.itsAid != 37 ||
+        ctx.verifiedItsAid != 37 ||
+        !ctx.verificationPerformed)
+    {
+        ctx.MarkFailure();
+        ctx.reason =
+            "denm_v3_verification_unavailable";
+
+        V2XWriteLog(
+            ctx,
+            V2XLogLevel::ERROR,
+            "SECURITY",
+            "VERIFY_FAIL",
+            "DENM AID 37 reached application layer "
+            "without a V3 verification result");
+
+        return;
+    }
+
+    if (!ctx.verificationSucceeded)
+    {
+        ctx.MarkFailure();
+        ctx.reason =
+            "denm_v3_verification_failed";
+
+        V2XWriteLog(
+            ctx,
+            V2XLogLevel::ERROR,
+            "SECURITY",
+            "VERIFY_FAIL",
+            "DENM V3 cryptographic verification failed "
+            "report=" +
+                std::to_string(
+                    ctx.verificationReport));
+
+        return;
+    }
 
     ctx.MarkSuccess();
 
     V2XWriteLog(
         ctx,
-        V2XLogLevel::DEBUG,
+        V2XLogLevel::INFO,
         "SECURITY",
-        "VERIFY_NA",
-        "DENM application security not enabled in baseline");
+        "VERIFY_OK",
+        "DENM V3 cryptographic verification succeeded "
+        "aid=" +
+            std::to_string(
+                ctx.verifiedItsAid) +
+        " report=" +
+            std::to_string(
+                ctx.verificationReport));
 
     //----------------------------------------------------------------------
     // DECODE

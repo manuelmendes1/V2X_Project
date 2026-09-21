@@ -136,6 +136,10 @@ DenmSender::SendRaw(
         std::to_string(
             input.actionId.sequenceNumber));
 
+    // Preserve the BTP_TX context before SendBtpB() mutates ctx
+    // while the asynchronous downstream TX path advances the pipeline.
+    PacketContext requestCtx = ctx;
+
     const bool sent =
         vehicle.runtime->SendBtpB(
             ctx,
@@ -144,12 +148,12 @@ DenmSender::SendRaw(
 
     if (!sent)
     {
-        ctx.MarkFailure();
-        ctx.reason =
+        requestCtx.MarkFailure();
+        requestCtx.reason =
             "btp_send_failed";
 
         V2XWriteLog(
-            ctx,
+            requestCtx,
             V2XLogLevel::ERROR,
             "DENM",
             "BTP_TX_FAIL",
@@ -169,11 +173,13 @@ DenmSender::SendRaw(
         return false;
     }
 
+    requestCtx.MarkSuccess();
+
     V2XWriteLog(
-        ctx,
+        requestCtx,
         V2XLogLevel::DEBUG,
         "DENM",
-        "BTP_TX_OK",
+        "GBC_REQUEST_OK",
         "port=2002"
         " aid=37"
         " action_seq=" +

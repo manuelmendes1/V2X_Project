@@ -129,6 +129,22 @@ struct PacketContext
     GeoNetRxContext geonet;
 
     //=========================================================================
+    // RX security verification
+    //
+    // Resultado neutro produzido pela camada de segurança Vanetza.
+    // Nenhum tipo Vanetza atravessa esta fronteira.
+    //=========================================================================
+
+    bool verificationPerformed = false;
+    bool verificationSucceeded = false;
+
+    // Numeric representation of vanetza::security::VerificationReport.
+    uint32_t verificationReport = 0;
+
+    // ITS-AID actually verified by the security layer.
+    uint32_t verifiedItsAid = 0;
+
+    //=========================================================================
     // Pipeline control
     //=========================================================================
 
