@@ -35,6 +35,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cmath>
+#include <cstdlib>
 #include <cstddef>
 #include <cstdint>
 #include <iomanip>
@@ -777,15 +778,20 @@ Ns3AccessAdapter::ValidateCommonHeaderTx(
     const bool isTsbSingleHop =
         headerType == 0x50;
 
+    const bool isGeoBroadcastCircle =
+        headerType == 0x40;
+
     const uint8_t expectedNextHeader =
         isBeacon
             ? 0
-            : (isTsbSingleHop ? 2 : 0);
+            : ((isTsbSingleHop || isGeoBroadcastCircle) ? 2 : 0);
 
     const uint8_t expectedHeaderType =
         isBeacon
             ? 0x10
-            : (isTsbSingleHop ? 0x50 : 0x00);
+            : (isTsbSingleHop
+                   ? 0x50
+                   : (isGeoBroadcastCircle ? 0x40 : 0x00));
 
     const uint8_t expectedTrafficClass =
         0x00;
@@ -796,7 +802,9 @@ Ns3AccessAdapter::ValidateCommonHeaderTx(
             : 0x00;
 
     const uint8_t expectedMaximumHopLimit =
-        1;
+        isGeoBroadcastCircle
+            ? 10
+            : 1;
 
     bool payloadLengthOk = false;
     std::size_t expectedPayloadLength = 0;
@@ -888,7 +896,8 @@ Ns3AccessAdapter::ValidateCommonHeaderTx(
 
     const bool packetTypeOk =
         isBeacon ||
-        isTsbSingleHop;
+        isTsbSingleHop ||
+        isGeoBroadcastCircle;
 
     const bool beaconPayloadOk =
         !isBeacon ||
@@ -1065,10 +1074,12 @@ Ns3AccessAdapter::ValidateCommonHeaderTx(
 
         << " packet_type="
         << (isBeacon
-                ? "BEACON"
-                : (isTsbSingleHop
-                    ? "TSB_SINGLE_HOP"
-                    : "UNKNOWN"))
+        ? "BEACON"
+        : (isTsbSingleHop
+            ? "TSB_SINGLE_HOP"
+            : (isGeoBroadcastCircle
+                ? "GEO_BROADCAST_CIRCLE"
+                : "UNKNOWN")))
 
         << " packet_type_ok="
         << (packetTypeOk
@@ -1955,6 +1966,9 @@ Ns3AccessAdapter::request(
     ValidateBasicHeaderTx(
         networkBytes);
 
+    vanetza::ItsAid securedTxAid = 0;
+    bool securedTxAidValid = false;
+
     if (m_mib.itsGnSecurity)
     {
         //------------------------------------------------------------------
@@ -1985,6 +1999,9 @@ Ns3AccessAdapter::request(
         }
         else
         {
+            securedTxAid = securedAid;
+            securedTxAidValid = true;
+
             vanetza::geonet::Parser payloadParser(
                 securedPayload.begin(),
                 securedPayload.end());
@@ -2161,6 +2178,66 @@ Ns3AccessAdapter::request(
     }
 
     //----------------------------------------------------------------------
+    // TEST HOOK: deterministic DENM V3 wire tampering.
+    //
+    // Applied only after the complete secured frame has been serialized
+    // and all TX structural validation has already succeeded.
+    //
+    // The target is the final byte of the serialized Network layer.
+    // With the current V3 layout this byte is inside the SecuredMessage
+    // signature field. The actual ns-3 Packet is created only afterwards,
+    // so this mutation affects the bytes put on the simulated wire.
+    //
+    // Normal behavior is unchanged unless:
+    //     V2X_DENM_TAMPER=1
+    //----------------------------------------------------------------------
+
+    const char* tamperEnv =
+        std::getenv("V2X_DENM_TAMPER");
+
+    if (securedTxAidValid &&
+        securedTxAid == 37 &&
+        tamperEnv != nullptr &&
+        std::string(tamperEnv) == "1" &&
+        !frame.empty() &&
+        !networkBytes.empty() &&
+        networkBytes.size() <= frame.size())
+    {
+        const std::size_t networkOffset =
+            frame.size() - networkBytes.size();
+
+        const std::size_t tamperOffset =
+            networkOffset + networkBytes.size() - 1;
+
+        const uint8_t originalByte =
+            frame[tamperOffset];
+
+        frame[tamperOffset] ^= 0x01;
+
+        NS_LOG_UNCOND(
+            "[DENM_V3_TAMPER] "
+            "aid=37 "
+            "target=network_last_byte "
+            "offset="
+            << tamperOffset
+            << " original=0x"
+            << std::hex
+            << std::setw(2)
+            << std::setfill('0')
+            << static_cast<unsigned>(
+                   originalByte)
+            << " tampered=0x"
+            << std::setw(2)
+            << static_cast<unsigned>(
+                   frame[tamperOffset])
+            << std::dec
+            << " frame_size="
+            << frame.size()
+            << " network_size="
+            << networkBytes.size());
+    }
+
+    //----------------------------------------------------------------------
     // STEP 6 : ACCESS_TX
     //----------------------------------------------------------------------
 
@@ -2213,12 +2290,31 @@ Ns3AccessAdapter::request(
         m_vehicle.socket;
 
     //----------------------------------------------------------------------
+    // TEST HOOK: deterministic DENM V3 duplicate.
+    //
+    // Reuses an exact copy of the already serialized ns3::Packet so that
+    // the simulated wire receives the same secured DENM twice.
+    //
+    // Normal behavior is unchanged unless:
+    //     V2X_DENM_DUPLICATE=1
+    //----------------------------------------------------------------------
+
+    const char* duplicateEnv =
+        std::getenv("V2X_DENM_DUPLICATE");
+
+    const bool duplicateDenm =
+        ctx &&
+        securedTxAidValid &&
+        securedTxAid == 37 &&
+        duplicateEnv != nullptr &&
+        std::string(duplicateEnv) == "1";
+
+    //----------------------------------------------------------------------
     // Deferred send
     //----------------------------------------------------------------------
 
-
     Simulator::ScheduleNow(
-        [ctx, socket, ns3Packet]()
+        [ctx, socket, ns3Packet, duplicateDenm]()
         {
 
             //--------------------------------------------------------------
@@ -2236,6 +2332,43 @@ Ns3AccessAdapter::request(
                         5000));
 
                 return;
+            }
+
+            //------------------------------------------------------------------
+            // TEST HOOK: send an identical DENM frame again.
+            //
+            // The first SEND follows the normal path below. The duplicate is
+            // scheduled 100 us later so that it is an independent wire
+            // transmission while preserving exactly the same bytes.
+            //------------------------------------------------------------------
+
+            if (duplicateDenm)
+            {
+                Ptr<Packet> duplicatePacket =
+                    ns3Packet->Copy();
+
+                Simulator::Schedule(
+                    MicroSeconds(100),
+                    [socket, duplicatePacket]()
+                    {
+                        const int duplicateSent =
+                            socket->SendTo(
+                                duplicatePacket,
+                                0,
+                                InetSocketAddress(
+                                    Ipv4Address(
+                                        "10.0.0.255"),
+                                    5000));
+
+                        NS_LOG_UNCOND(
+                            "[DENM_V3_DUPLICATE] "
+                            "aid=37 "
+                            "delay_us=100 "
+                            "sent_bytes="
+                            << duplicateSent
+                            << " packet_bytes="
+                            << duplicatePacket->GetSize());
+                    });
             }
 
             //--------------------------------------------------------------
