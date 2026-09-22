@@ -2,7 +2,6 @@
 
 #include "vanetza_integration/context/vehicle_dispatcher/vehicle_dispatcher.h"
 #include "vanetza_integration/core/v2x_log.h"
-#include "vanetza_integration/denm/action/denm_action_id_manager.h"
 #include "vanetza_integration/denm/lifecycle/denm_lifecycle_manager.h"
 #include "vanetza_integration/denm/trigger/denm_trigger.h"
 #include "vanetza_integration/denm/builder/denm_builder.h"
@@ -216,7 +215,6 @@ DenmScheduler::Reset()
 {
     g_sentStations.clear();
     g_lifecycle.Reset();
-    DenmActionIdManager::Instance().Reset();
 }
 
 } // namespace ns3

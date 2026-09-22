@@ -240,10 +240,13 @@ DenmLifecycleManager::GetActionId(
     return true;
 }
 
-void
-DenmLifecycleManager::Reset()
+void DenmLifecycleManager::Reset()
 {
     m_events.clear();
+
+    // ActionID state belongs to the originator lifecycle authority.
+    // Resetting the lifecycle must therefore also clear its ActionIDs.
+    DenmActionIdManager::Instance().Reset();
 }
 
 } // namespace ns3

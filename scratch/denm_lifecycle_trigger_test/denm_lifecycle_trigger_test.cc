@@ -79,8 +79,7 @@ Expect(
 
 } // namespace
 
-int
-main()
+int main()
 {
     bool ok = true;
 
@@ -293,6 +292,43 @@ main()
         "active event-B ActionID remains active");
 
     // ------------------------------------------------------------
+    // Abort / local cleanup
+    // ------------------------------------------------------------
+
+    DenmActionId abortActionId;
+    ok &= Expect(
+        lifecycle.GetActionId(
+            "veh0",
+            "event-B",
+            abortActionId),
+        "active event-B has lifecycle ActionID before abort");
+
+    ok &= Expect(
+        lifecycle.Abort(
+            "veh0",
+            "event-B"),
+        "Abort closes active event");
+
+    ok &= Expect(
+        !DenmActionIdManager::Instance().IsActive(
+            abortActionId),
+        "Abort closes ActionID");
+
+    DenmActionId afterAbortActionId;
+    ok &= Expect(
+        !lifecycle.GetActionId(
+            "veh0",
+            "event-B",
+            afterAbortActionId),
+        "Abort removes event mapping");
+
+    ok &= Expect(
+        !lifecycle.Abort(
+            "veh0",
+            "event-B"),
+        "Abort of unknown event is rejected");
+
+    // ------------------------------------------------------------
     // Identity mismatch
     // ------------------------------------------------------------
 
@@ -309,9 +345,21 @@ main()
             result),
         "vehicle identity mismatch rejected");
 
+    // ------------------------------------------------------------
+    // Lifecycle reset owns ActionID cleanup
+    // ------------------------------------------------------------
+
+    ok &= Expect(
+        DenmActionIdManager::Instance().IsActive(
+            actionC),
+        "active event from veh1 exists before lifecycle reset");
+
     lifecycle.Reset();
 
-    DenmActionIdManager::Instance().Reset();
+    ok &= Expect(
+        !DenmActionIdManager::Instance().IsActive(
+            actionC),
+        "LifecycleManager reset closes ActionID state");
 
     if (!ok)
     {

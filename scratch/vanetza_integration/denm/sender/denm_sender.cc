@@ -1,7 +1,6 @@
 #include "denm_sender.h"
 
 #include "vanetza_integration/context/simulation_context/simulation_context.h"
-#include "vanetza_integration/denm/action/denm_action_id_manager.h"
 #include "vanetza_integration/context/tx_bridge/tx_bridge_context.h"
 #include "vanetza_integration/core/v2x_log.h"
 #include "vanetza_integration/wrappers/vanetza/btp/btp_tx_request.h"
@@ -159,15 +158,8 @@ DenmSender::SendRaw(
             "BTP_TX_FAIL",
             "DENM BTP/GBC transmission request failed");
 
-        //------------------------------------------------------------------
-        // Roll back the locally-open ActionID so a failed baseline
-        // transmission does not leave a permanently active action.
-        //------------------------------------------------------------------
-
-        DenmActionIdManager::Instance().Apply(
-            input.actionId,
-            DenmManagementAction::CANCELLATION);
-
+        // Lifecycle cleanup is owned by DenmLifecycleManager.
+        // The scheduler performs Abort() after SendRaw() fails.
         TxBridgeContext::Pop();
 
         return false;
