@@ -220,10 +220,10 @@ int main()
 
     if (!ok)
     {
-        std::cout << "DENM_LIFECYCLE_RED_EXIT=1" << std::endl;
+        std::cout << "DENM_REPLAY_PROTECTION_EXIT=1" << std::endl;
         return 1;
     }
 
-    std::cout << "DENM_LIFECYCLE_GREEN_EXIT=0" << std::endl;
+    std::cout << "DENM_REPLAY_PROTECTION_EXIT=0" << std::endl;
     return 0;
 }
