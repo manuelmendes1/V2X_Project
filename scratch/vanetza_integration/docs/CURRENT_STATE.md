@@ -254,7 +254,7 @@ Estado atual:
 ```text
 8.11 = COMPLETE
 8.12 = COMPLETE / PASS
-8.13 = TO CONSOLIDATE
+8.13 = COMPLETE / PASS
 8.14 = PENDING
 ```
 
@@ -262,3 +262,48 @@ Relacionado:
 
 [[scratch/vanetza_integration/docs/DOCUMENT_STATUS]]
 [[scratch/v2x_analyzer/README]]
+
+### Etapa 8.13 — CAM Regression Acceptance
+
+**STATUS:** COMPLETE / PASS
+**DATE:** 2026-09-22
+
+A regressão CAM foi formalmente validada com DENM desativado através de `--enableDenm=0`.
+
+Evidência formal:
+
+[[scratch/vanetza_integration/docs/ETAPA_8_13_CAM_REGRESSION]]
+
+Teste:
+
+[[scratch/vanetza_integration/tests/test_cam_regression_acceptance.sh]]
+
+Resultado:
+
+```text
+RUN_EXIT=0
+RESULTADO 8.13: PASS
+ACCEPTANCE_EXIT=0
+```
+
+CAM TX: 75 ocorrências em cada estágio instrumentado até `TX_COMPLETE`.
+
+CAM RX: 133 ocorrências em cada estágio instrumentado desde `RAW_RX` até `DELIVER_OK`.
+
+Identidade CAM: BTP port `2001`, transport `SHB`, ITS-AID `36 / CA`, profile `ITS_G5`.
+
+DENM/GBC: zero eventos observados na execução de regressão.
+
+Esta validação não interpreta TX=75 e RX=133 como taxa de entrega.
+
+Relacionado:
+
+[[scratch/vanetza_integration/docs/ETAPA_8_12_E2E_ACCEPTANCE]]
+
+[[scratch/vanetza_integration/docs/ETAPA_8_13_CAM_REGRESSION]]
+
+[[scratch/v2x_analyzer/README]]
+
+Próxima etapa:
+
+[[scratch/vanetza_integration/docs/ETAPA_8_14_CLOSEOUT]]

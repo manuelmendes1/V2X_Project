@@ -100,3 +100,52 @@ Relacionado:
 [[scratch/vanetza_integration/docs/CURRENT_STATE]]
 
 [[scratch/v2x_analyzer/README]]
+
+## 8.13 — CAM Regression Acceptance
+
+**STATUS:** COMPLETED
+**DATE:** 2026-09-22
+**RESULT:** PASS
+
+A aceitação formal da regressão CAM da fase 8.13 foi concluída com uma execução runtime real e com DENM explicitamente desativado.
+
+Evidência:
+
+[[scratch/vanetza_integration/docs/ETAPA_8_13_CAM_REGRESSION]]
+
+Teste:
+
+[[scratch/vanetza_integration/tests/test_cam_regression_acceptance.sh]]
+
+Commit:
+
+`PENDING`
+
+Resultado:
+
+```text
+RESULTADO 8.13: PASS
+ACCEPTANCE_EXIT=0
+```
+
+A execução foi realizada com `--enableDenm=0` e terminou com `RUN_EXIT=0`. O pipeline CAM TX apresentou 75 ocorrências em cada estágio desde BTP até `TX_COMPLETE`. O pipeline CAM RX apresentou 133 ocorrências em cada estágio desde `RAW_RX` até `DELIVER_OK`.
+
+A identidade CAM foi preservada com BTP port `2001`, transport `SHB`, ITS-AID `36 / CA` e perfil `ITS_G5`. No RX, o BTP confirmou igualmente port `2001`.
+
+A instrumentação Access RX utiliza `ACCESS_RX_BEGIN` e `ACCESS_RX_OK`, ambos com 133 ocorrências.
+
+Não foram observados eventos DENM/GBC durante a regressão: `GBC_REQUEST`, `DENM_RX_DISPATCH`, `DENM_DECODE_OK`, `DENM_REPLAY_OK`, `DENM_RECEPTION_OK`, `DENM_DELIVER_OK` e `DENM_SELF_ORIGIN_DROP` permaneceram em zero.
+
+As contagens TX=75 e RX=133 não são comparadas entre si como taxa de entrega; a aceitação verifica a integridade das cadeias instrumentadas e a ausência de atividade DENM.
+
+Relacionado:
+
+[[scratch/vanetza_integration/docs/CURRENT_STATE]]
+
+[[scratch/vanetza_integration/docs/ETAPA_8_12_E2E_ACCEPTANCE]]
+
+[[scratch/v2x_analyzer/README]]
+
+Próxima etapa:
+
+[[scratch/vanetza_integration/docs/ETAPA_8_14_CLOSEOUT]]
