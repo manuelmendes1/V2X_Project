@@ -59,7 +59,51 @@ DenmReplayProtection::Process(
         return false;
     }
 
-    if (IsReplay(ctx, message, replay))
+    DenmMessage effectiveMessage = message;
+
+    // ------------------------------------------------------------
+    // Implicit UPDATE classification
+    //
+    // On the wire, R1 DENM uses:
+    //   - absent termination for NEW and UPDATE
+    //   - same ActionID for the whole lifecycle
+    //
+    // The ASN.1 decoder therefore initially represents both NEW and
+    // UPDATE as DenmManagementAction::NEW. A previously known,
+    // non-terminal ActionID with a new application payload is an UPDATE.
+    // ------------------------------------------------------------
+
+    auto existing =
+        replay.database.find(
+            effectiveMessage.actionId);
+
+    if (effectiveMessage.action ==
+            DenmManagementAction::NEW &&
+        existing != replay.database.end())
+    {
+        const uint64_t fingerprint =
+            Fingerprint(ctx);
+
+        const bool samePayload =
+            existing->second.fingerprints.find(
+                fingerprint) !=
+            existing->second.fingerprints.end();
+
+        const bool terminal =
+            IsTerminal(
+                existing->second.lastAction);
+
+        if (!samePayload && !terminal)
+        {
+            effectiveMessage.action =
+                DenmManagementAction::UPDATE;
+        }
+    }
+
+    if (IsReplay(
+            ctx,
+            effectiveMessage,
+            replay))
     {
         ctx.MarkDrop();
         ctx.reason = "denm_replay_detected";
@@ -71,15 +115,18 @@ DenmReplayProtection::Process(
             "DENM_REPLAY_DROP",
             "origin_station=" +
                 std::to_string(
-                    message.actionId.originatingStationId) +
+                    effectiveMessage.actionId.originatingStationId) +
             " action_seq=" +
                 std::to_string(
-                    message.actionId.sequenceNumber));
+                    effectiveMessage.actionId.sequenceNumber));
 
         return false;
     }
 
-    if (!Apply(ctx, message, replay))
+    if (!Apply(
+            ctx,
+            effectiveMessage,
+            replay))
     {
         ctx.MarkFailure();
         ctx.reason = "invalid_denm_lifecycle_transition";
@@ -101,10 +148,14 @@ DenmReplayProtection::Process(
         "DENM_REPLAY_OK",
         "origin_station=" +
             std::to_string(
-                message.actionId.originatingStationId) +
+                effectiveMessage.actionId.originatingStationId) +
         " action_seq=" +
             std::to_string(
-                message.actionId.sequenceNumber));
+                effectiveMessage.actionId.sequenceNumber) +
+        " action=" +
+            std::to_string(
+                static_cast<unsigned>(
+                    effectiveMessage.action)));
 
     return true;
 }
@@ -140,16 +191,12 @@ DenmReplayProtection::IsReplay(
     }
 
     /*
-     * NEW must never be accepted twice for the same ActionID.
-     */
-    if (message.action == DenmManagementAction::NEW)
-    {
-        return true;
-    }
-
-    /*
      * A terminal action cannot be followed by UPDATE,
      * CANCELLATION or NEGATION.
+     *
+     * For a non-terminal ActionID, a NEW decoded from the wire may
+     * represent an implicit UPDATE. That classification is performed
+     * by Process() before reaching this function.
      */
     if (IsTerminal(entry.lastAction))
     {

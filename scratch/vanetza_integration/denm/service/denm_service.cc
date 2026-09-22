@@ -138,10 +138,9 @@ DenmService::GenerateRawPayload(
             context.denmInput.actionId.sequenceNumber));
 
     //----------------------------------------------------------------------
-    // Security/signature is intentionally deferred to Stage 8.8.
-    //
-    // Do not mark SIGN as successful because this baseline does not yet
-    // attach a DENM security envelope.
+    // Security/signature is handled later in the DENM security layer.
+    // Keep ENCODE successful here; the raw DENM payload is handed to the
+    // security path where the V3 security envelope is attached.
     //----------------------------------------------------------------------
 
     V2XWriteLog(
@@ -149,7 +148,7 @@ DenmService::GenerateRawPayload(
         V2XLogLevel::DEBUG,
         "DENM",
         "SIGN_DEFERRED",
-        "DENM security envelope deferred to stage 8.8");
+        "DENM security envelope handled by DENM security layer");
 
     return encoded.bytes;
 }
