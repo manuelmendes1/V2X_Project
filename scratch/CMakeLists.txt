@@ -144,6 +144,7 @@ add_library(vanetza_denm_obj OBJECT
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/denm/service/denm_service.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/denm/sender/denm_sender.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/denm/scheduler/denm_scheduler.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/denm/scheduler/denm_repetition_policy.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/denm/rx/denm_rx_pipeline.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/denm/replay/denm_replay_protection.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/denm/denm_asn1_builder.cc

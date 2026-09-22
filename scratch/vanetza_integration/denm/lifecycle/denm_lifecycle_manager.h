@@ -27,6 +27,13 @@ public:
         const DenmTriggerRequest& request,
         DenmLifecycleResult& result);
 
+    // Reuse the existing active event and ActionID for a repetition.
+    // This is a lifecycle operation, not a DenmManagementAction.
+    bool Repeat(
+        VehicleState& vehicle,
+        const std::string& eventId,
+        DenmLifecycleResult& result);
+
     // Roll back local lifecycle state after a failed generation/transmission.
     // This is internal failure cleanup, not a wire-level CANCELLATION event.
     bool Abort(

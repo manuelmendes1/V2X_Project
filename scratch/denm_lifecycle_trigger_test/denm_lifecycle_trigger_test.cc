@@ -292,6 +292,91 @@ int main()
         "active event-B ActionID remains active");
 
     // ------------------------------------------------------------
+    // REPETITION
+    // ------------------------------------------------------------
+
+    DenmLifecycleResult repetitionResult;
+
+    ok &= Expect(
+        lifecycle.Repeat(
+            veh1,
+            "event-A",
+            repetitionResult),
+        "REPETITION of active event accepted");
+
+    ok &= Expect(
+        repetitionResult.actionId.originatingStationId ==
+            actionC.originatingStationId &&
+        repetitionResult.actionId.sequenceNumber ==
+            actionC.sequenceNumber,
+        "REPETITION reuses same ActionID");
+
+    ok &= Expect(
+        repetitionResult.action ==
+            DenmManagementAction::NEW,
+        "REPETITION preserves current NEW lifecycle state");
+
+    ok &= Expect(
+        DenmActionIdManager::Instance().IsActive(
+            actionC),
+        "REPETITION keeps ActionID active");
+
+    ok &= Expect(
+        lifecycle.Repeat(
+            veh1,
+            "event-A",
+            repetitionResult),
+        "second REPETITION accepted");
+
+    ok &= Expect(
+        repetitionResult.actionId.originatingStationId ==
+            actionC.originatingStationId &&
+        repetitionResult.actionId.sequenceNumber ==
+            actionC.sequenceNumber,
+        "second REPETITION reuses same ActionID");
+
+    // ------------------------------------------------------------
+    // REPETITION after UPDATE
+    // ------------------------------------------------------------
+
+    const auto updateEventBRequest =
+        MakeRequest(
+            "veh0",
+            "event-B",
+            DenmTriggerEventType::HAZARD_UPDATED);
+
+    ok &= Expect(
+        lifecycle.Process(
+            veh0,
+            updateEventBRequest,
+            repetitionResult),
+        "UPDATE of event-B accepted before repetition");
+
+    ok &= Expect(
+        repetitionResult.action ==
+            DenmManagementAction::UPDATE,
+        "event-B lifecycle state becomes UPDATE");
+
+    ok &= Expect(
+        lifecycle.Repeat(
+            veh0,
+            "event-B",
+            repetitionResult),
+        "REPETITION after UPDATE accepted");
+
+    ok &= Expect(
+        repetitionResult.action ==
+            DenmManagementAction::UPDATE,
+        "REPETITION preserves current UPDATE lifecycle state");
+
+    ok &= Expect(
+        repetitionResult.actionId.originatingStationId ==
+            actionB.originatingStationId &&
+        repetitionResult.actionId.sequenceNumber ==
+            actionB.sequenceNumber,
+        "REPETITION after UPDATE reuses same ActionID");
+
+    // ------------------------------------------------------------
     // Abort / local cleanup
     // ------------------------------------------------------------
 
@@ -327,6 +412,13 @@ int main()
             "veh0",
             "event-B"),
         "Abort of unknown event is rejected");
+
+    ok &= Expect(
+        !lifecycle.Repeat(
+            veh0,
+            "event-B",
+            repetitionResult),
+        "REPETITION after Abort is rejected");
 
     // ------------------------------------------------------------
     // Identity mismatch
