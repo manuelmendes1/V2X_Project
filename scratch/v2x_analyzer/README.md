@@ -1,3 +1,22 @@
+---
+status: current
+type: tool-process
+date: 2026-09-22
+project: ns-3-vanetza-sumo
+tags:
+  - ns3
+  - vanetza
+  - v2x
+  - denm
+  - analyzer
+  - validation
+  - current
+related:
+  - [[scratch/vanetza_integration/docs/CURRENT_STATE]]
+  - [[scratch/vanetza_integration/docs/DOCUMENT_STATUS]]
+  - [[scratch/vanetza_integration/docs/vanetza_architecture]]
+---
+
 # v2x_analyzer — Current Analysis Tool
 
 > **STATUS: CURRENT**
@@ -8,7 +27,7 @@
 > References to earlier logger/parser formats are historical regression
 > context and must not be interpreted as the current operational log format.
 
-Analisador modular de logs V2X (ns-3 + SUMO + Vanetza CAM), em Python.
+Analisador modular de logs V2X (ns-3 + SUMO + Vanetza CAM + DENM), em Python.
 
 ## Novidades desta versão (face à v1.0.0 em `code_analyzer.txt`)
 
@@ -101,7 +120,7 @@ python3 -m v2x_analyzer --json output_log.txt            # para consumo program�
 python3 -m v2x_analyzer -o relatorio.txt output_log.txt   # gravar em ficheiro
 ```
 
-Código de saída: `0` se a Etapa 4 passa todos os critérios, `1` caso
+Código de saída: `0` se o relatório passa todos os critérios atuais, `1` caso
 contrário.
 
 ## Estrutura
@@ -112,18 +131,18 @@ v2x_analyzer/
     aliases.py            — grupos de (módulo,evento) equivalentes entre variantes do logger
     identity.py            — mapa vehId<->nodeId<->stationId + resolve_sender_receiver (achados N7/N8)
     metrics/
-        tx_pipeline.py     — Encode/Sign/Frame/TX Ready/TX Sent (achado N3)
+        tx_pipeline.py     — TX taxonomy: Generate/Encode/Sign/BTP/GeoNet/Access/Send/Complete
         trigger_reasons.py — motivo de disparo do ShouldSendCAM
-        rx_pipeline.py      — Raw In/Verify/Decode/Pipeline OK (achados N2/N4/N5/N6)
+        rx_pipeline.py      — RX taxonomy: Raw/Access/GeoNet/BTP/Verify/Decode/Replay/Reception/Deliver
         errors.py           — Sender/Receiver Not Found, Self-RX, No Cert (achado N4)
         connectivity.py     — pares ativos, entrega efetiva, fan-out (achados N6/N7)
         vehicles.py          — TX/RX por veículo, ghost check (achados N6/N7)
         timing.py            — estatísticas de DURATION_US (achado N2)
         duplicates.py         — deteção real de duplicados (achado N9, módulo NOVO)
-        exit_criteria.py     — critérios de saída da Etapa 4
+        exit_criteria.py     — critérios de saída da taxonomia atual
     report.py            — junta tudo, formata texto e JSON
     cli.py / __main__.py — linha de comandos
-    tests/                — 40 testes (ver abaixo)
+    tests/                — 26 testes validados
 ```
 
 ## Testes
@@ -133,7 +152,7 @@ pip install pytest --break-system-packages
 python3 -m pytest v2x_analyzer/tests/ -v
 ```
 
-40 testes: parsing (incluindo as 5 linhas reais do
+26 testes atualmente: parsing (incluindo as 5 linhas reais do
 `analisador_output.txt` como regressão literal do achado N1, mais
 independência de ordem de campos e aliases STEP/SIM_STEP e T/SIM_TIME),
 métricas (regressões dos bugs históricos do bash **e** dos achados
@@ -171,3 +190,45 @@ código Python foi fornecido, não os dados de teste). O fixture atual é
   precisa de saber qual é a verdade de facto (mesma lição do achado
   crítico #1 original: nunca assumir que um log corresponde ao código
   atual sem reproduzir).
+## Estado atual — P3 e DENM
+
+### Taxonomia operacional
+
+```text
+TX: GENERATE → ENCODE → SIGN → BTP_TX → GEONET_TX → ACCESS_TX → SEND → TX_COMPLETE
+
+RX: RAW_RX → ACCESS_RX → GEONET_RX → BTP_RX → VERIFY → DECODE → REPLAY → RECEPTION → DELIVER
+```
+
+### Normalização DENM
+
+```text
+DENM/GENERATE_OK       → GENERATE
+DENM/ENCODE_OK         → ENCODE
+SECURITY/SIGN_BEGIN    → SIGN
+SECURITY/SIGN_OK       → SIGN
+DENM/DENM_DECODE_OK    → DECODE
+DENM/DENM_REPLAY_OK    → REPLAY
+DENM/DENM_RECEPTION_OK → RECEPTION
+DENM/DENM_DELIVER_OK   → DELIVER
+```
+
+### Evidência de validação
+
+Log de referência: `output_log_etapa_8_10_v2.txt`
+
+```text
+Analyzer tests:           26/26 PASS
+Real-log analyzer:        RESULTADO P3: PASS
+Analyzer exit code:       0
+Structured DENM SIGN_OK:  4
+TX:                       106 em todas as 8 etapas
+RX:                       154 em todas as 9 etapas
+```
+
+### Relações documentais
+
+- [[scratch/vanetza_integration/docs/CURRENT_STATE]]
+- [[scratch/vanetza_integration/docs/DOCUMENT_STATUS]]
+- [[scratch/vanetza_integration/docs/vanetza_architecture]]
+- [[scratch/vanetza_integration/docs/historical/project_snapshots/code_analyzer]]

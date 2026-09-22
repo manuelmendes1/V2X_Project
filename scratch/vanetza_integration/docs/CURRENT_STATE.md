@@ -1,8 +1,24 @@
+---
+status: current
+type: architectural-operational-baseline
+date: 2026-09-22
+project: ns-3-vanetza-sumo
+tags:
+  - ns3
+  - vanetza
+  - sumo
+  - v2x
+  - denm
+  - analyzer
+  - validation
+  - current-state
+---
+
 # Current State — ns-3 + Vanetza + SUMO Integration
 
 **STATUS:** CURRENT
 **TYPE:** ARCHITECTURAL AND OPERATIONAL BASELINE
-**DATE:** 2026-09-18
+**DATE:** 2026-09-22
 
 This document is the authoritative description of the current integration state.
 Historical snapshots, previous freezes, exploratory notes and test artefacts are not operational baselines.
@@ -122,3 +138,88 @@ plausible code ≠ demonstrated behavior
 clean build ≠ validated functionality
 local run ≠ external interoperability
 ```
+
+## 8. Current Analyzer State
+
+The current V2X analyzer is aligned with the operational pipeline taxonomy and has been validated against a real ns-3 + SUMO + Vanetza execution.
+
+### 8.1 TX taxonomy
+
+```text
+GENERATE
+→ ENCODE
+→ SIGN
+→ BTP_TX
+→ GEONET_TX
+→ ACCESS_TX
+→ SEND
+→ TX_COMPLETE
+```
+
+### 8.2 RX taxonomy
+
+```text
+RAW_RX
+→ ACCESS_RX
+→ GEONET_RX
+→ BTP_RX
+→ VERIFY
+→ DECODE
+→ REPLAY
+→ RECEPTION
+→ DELIVER
+```
+
+### 8.3 DENM analyzer integration
+
+DENM events are normalized into the current analyzer taxonomy:
+
+```text
+DENM/GENERATE_OK       → GENERATE
+DENM/ENCODE_OK         → ENCODE
+
+SECURITY/SIGN_BEGIN    → SIGN
+SECURITY/SIGN_OK       → SIGN
+
+DENM/DENM_DECODE_OK    → DECODE
+DENM/DENM_REPLAY_OK    → REPLAY
+DENM/DENM_RECEPTION_OK → RECEPTION
+DENM/DENM_DELIVER_OK   → DELIVER
+```
+
+The DENM V3 security service emits structured `SIGN_BEGIN` and `SIGN_OK` events while retaining the existing `[DENM_V3_SIGN]` diagnostic marker.
+
+### 8.4 P3 validation evidence
+
+Validated against:
+
+`output_log_etapa_8_10_v2.txt`
+
+Results:
+
+```text
+Build                         PASS
+Runtime                       PASS
+DENM security logging         PASS
+Analyzer tests                26/26 PASS
+Real-log analyzer             RESULTADO P3: PASS
+Analyzer exit code            0
+Structured DENM SIGN_OK       4
+TX successful stages          106 / 106 / 106 / 106 / 106 / 106 / 106 / 106
+RX successful stages          154 / 154 / 154 / 154 / 154 / 154 / 154 / 154 / 154
+```
+
+Implementation commit:
+
+`658c53c713fadda05be3e817e3147461e9b0b463`
+
+Commit message:
+
+`fix(v2x-analyzer): align DENM events with current pipeline taxonomy`
+
+### 8.5 Related documentation
+
+- [[scratch/vanetza_integration/docs/DOCUMENT_STATUS]]
+- [[scratch/vanetza_integration/docs/vanetza_architecture]]
+- [[scratch/v2x_analyzer/README]]
+- [[scratch/vanetza_integration/docs/historical/project_snapshots/code_analyzer]]
