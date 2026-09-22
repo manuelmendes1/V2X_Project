@@ -16,9 +16,10 @@
 !/scratch/
 !/scratch/CMakeLists.txt
 
+!/scratch/denm_trigger_test/
+!/scratch/denm_trigger_test/**
 !/scratch/vanetza_integration/
 !/scratch/vanetza_integration/**
-
 !/scratch/v2x/
 !/scratch/v2x/**
 
