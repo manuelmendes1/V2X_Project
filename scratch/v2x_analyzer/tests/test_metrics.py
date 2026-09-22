@@ -235,3 +235,95 @@ def test_timing_uses_current_decode_module():
     assert m.operations["sign"].n == 1
     assert m.operations["decode"].n == 1
     assert m.operations["decode"].samples == [40]
+
+
+def test_denm_tx_events_follow_current_tx_taxonomy():
+    entries = [
+        mk(
+            "DENM",
+            "GENERATE_OK",
+            msg="reason=BASELINE_NEW",
+            veh="veh0",
+            node=0,
+            station=1,
+        ),
+        mk(
+            "DENM",
+            "ENCODE_OK",
+            msg="bytes=43",
+            veh="veh0",
+            node=0,
+            station=1,
+        ),
+        mk(
+            "SECURITY",
+            "SIGN_BEGIN",
+            msg="DENM_V3 signing",
+            veh="veh0",
+            node=0,
+            station=1,
+        ),
+        mk(
+            "SECURITY",
+            "SIGN_OK",
+            msg="DENM_V3 signed protocol_version=3 aid=37 signed=1",
+            veh="veh0",
+            node=0,
+            station=1,
+        ),
+    ]
+
+    m = tx_pipeline.compute(entries)
+
+    assert m.generate_ok == 1
+    assert m.encode_ok == 1
+    assert m.sign_begin == 1
+    assert m.sign_ok == 1
+
+
+def test_denm_rx_events_follow_current_rx_taxonomy():
+    entries = [
+        mk(
+            "DENM",
+            "DENM_DECODE_OK",
+            veh="veh1",
+            node=1,
+            station=2,
+        ),
+        mk(
+            "DENM",
+            "DENM_REPLAY_OK",
+            veh="veh1",
+            node=1,
+            station=2,
+        ),
+        mk(
+            "DENM",
+            "DENM_RECEPTION_OK",
+            veh="veh1",
+            node=1,
+            station=2,
+            msg=(
+                "sender=veh0 sender_station=1 "
+                "receiver=veh1 receiver_station=2"
+            ),
+        ),
+        mk(
+            "DENM",
+            "DENM_DELIVER_OK",
+            veh="veh1",
+            node=1,
+            station=2,
+            msg=(
+                "sender=veh0 sender_station=1 "
+                "receiver=veh1 receiver_station=2"
+            ),
+        ),
+    ]
+
+    m = rx_pipeline.compute(entries)
+
+    assert m.decode_ok == 1
+    assert m.replay_ok == 1
+    assert m.reception_ok == 1
+    assert m.deliver_ok == 1

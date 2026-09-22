@@ -1,4 +1,6 @@
 #include "denm_v3_sign_service.h"
+#include "vanetza_integration/context/tx_bridge/tx_bridge_context.h"
+#include "vanetza_integration/core/v2x_log.h"
 
 
 #include <boost/variant/get.hpp>
@@ -106,6 +108,32 @@ namespace ns3 {
     {
         if (request.its_aid == vanetza::aid::DEN)
         {
+            // -----------------------------------------------------------------
+            // Logical SIGN stage for the common V2X taxonomy.
+            //
+            // DENM signing is deliberately delegated to the V3 security
+            // service after the application ENCODE stage. The deferred
+            // marker remains in denm_service.cc; here we emit the actual
+            // structured SIGN lifecycle event consumed by v2x_analyzer.
+            // -----------------------------------------------------------------
+            auto txContext = TxBridgeContext::Current();
+
+            if (txContext)
+            {
+                PacketContext logCtx = *txContext;
+                logCtx.pipelineStage = PipelineStage::SIGN;
+                logCtx.pipelineStep = 3;
+                logCtx.pipelineTotal = 8;
+                logCtx.pipelineResult = PipelineResult::BEGIN;
+
+                V2XWriteLog(
+                    logCtx,
+                    V2XLogLevel::DEBUG,
+                    "SECURITY",
+                    "SIGN_BEGIN",
+                    "DENM_V3 signing");
+            }
+
             auto confirm = m_denmSigner.sign(std::move(request));
 
             if (confirm.secured_message)
@@ -116,6 +144,31 @@ namespace ns3 {
 
                 if (v3Message != nullptr)
                 {
+                    if (txContext)
+                    {
+                        PacketContext logCtx = *txContext;
+                        logCtx.pipelineStage = PipelineStage::SIGN;
+                        logCtx.pipelineStep = 3;
+                        logCtx.pipelineTotal = 8;
+                        logCtx.pipelineResult = PipelineResult::OK;
+
+                        V2XWriteLog(
+                            logCtx,
+                            V2XLogLevel::DEBUG,
+                            "SECURITY",
+                            "SIGN_OK",
+                            "DENM_V3 signed "
+                            "protocol_version=" +
+                            std::to_string(
+                                static_cast<unsigned>(
+                                    v3Message->protocol_version())) +
+                            " aid=" +
+                            std::to_string(v3Message->its_aid()) +
+                            " signed=" +
+                            std::to_string(
+                                v3Message->is_signed() ? 1 : 0));
+                    }
+
                     NS_LOG_UNCOND(
                         "[DENM_V3_SIGN] "
                         "protocol_version=" << static_cast<unsigned>(
@@ -125,12 +178,46 @@ namespace ns3 {
                 }
                 else
                 {
+                    if (txContext)
+                    {
+                        PacketContext logCtx = *txContext;
+                        logCtx.pipelineStage = PipelineStage::SIGN;
+                        logCtx.pipelineStep = 3;
+                        logCtx.pipelineTotal = 8;
+                        logCtx.pipelineResult = PipelineResult::FAIL;
+
+                        V2XWriteLog(
+                            logCtx,
+                            V2XLogLevel::ERROR,
+                            "SECURITY",
+                            "SIGN_FAIL",
+                            "DENM_V3 unexpected_non_v3_secured_message");
+                    }
+
                     NS_LOG_UNCOND(
                         "[DENM_V3_SIGN] ERROR unexpected_non_v3_secured_message");
                 }
             }
             else
             {
+                if (txContext)
+                {
+                    PacketContext logCtx = *txContext;
+                    logCtx.pipelineStage = PipelineStage::SIGN;
+                    logCtx.pipelineStep = 3;
+                    logCtx.pipelineTotal = 8;
+                    logCtx.pipelineResult = PipelineResult::FAIL;
+
+                    V2XWriteLog(
+                        logCtx,
+                        V2XLogLevel::ERROR,
+                        "SECURITY",
+                        "SIGN_FAIL",
+                        "DENM_V3 sign_failed error=" +
+                        std::to_string(
+                            static_cast<int>(confirm.error)));
+                }
+
                 NS_LOG_UNCOND(
                     "[DENM_V3_SIGN] ERROR sign_failed error="
                     << static_cast<int>(confirm.error));

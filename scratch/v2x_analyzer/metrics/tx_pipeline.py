@@ -49,9 +49,11 @@ class TxPipelineMetrics:
 
 _MAP = {
     ("CAM", "GENERATE_OK"): "generate_ok",
+    ("DENM", "GENERATE_OK"): "generate_ok",
 
     ("CAM", "ENCODE_BEGIN"): "encode_begin",
     ("CAM", "ENCODE_OK"): "encode_ok",
+    ("DENM", "ENCODE_OK"): "encode_ok",
     ("CAM", "ENCODE_FAIL"): "encode_fail",
 
     ("SECURITY", "SIGN_BEGIN"): "sign_begin",
