@@ -149,3 +149,39 @@ Relacionado:
 Próxima etapa:
 
 [[scratch/vanetza_integration/docs/ETAPA_8_14_CLOSEOUT]]
+
+## 8.14 — Etapa 8 Closeout
+
+**STATUS:** COMPLETED
+**DATE:** 2026-09-22
+**RESULT:** PASS
+
+O closeout formal da Etapa 8 foi concluído após a reaplicação dos acceptance 8.12 e 8.13 e a execução da suite completa do `v2x_analyzer`.
+
+Evidência:
+
+[[scratch/vanetza_integration/docs/ETAPA_8_14_CLOSEOUT]]
+
+Acceptance 8.12:
+
+[[scratch/vanetza_integration/docs/ETAPA_8_12_E2E_ACCEPTANCE]]
+
+Acceptance 8.13:
+
+[[scratch/vanetza_integration/docs/ETAPA_8_13_CAM_REGRESSION]]
+
+Analyzer:
+
+[[scratch/v2x_analyzer/README]]
+
+Resultado:
+
+```text
+8.12_EXIT=0
+8.13_EXIT=0
+26 passed
+ANALYZER_EXIT=0
+ETAPA_8_BASELINE_ACCEPTANCE=PASS
+```
+
+Próxima fase: desenvolvimento posterior à Etapa 8, sem reabrir os acceptance já aprovados sem uma alteração que afete diretamente o comportamento validado.

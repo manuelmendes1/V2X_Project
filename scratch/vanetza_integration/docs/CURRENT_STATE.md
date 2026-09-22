@@ -255,7 +255,7 @@ Estado atual:
 8.11 = COMPLETE
 8.12 = COMPLETE / PASS
 8.13 = COMPLETE / PASS
-8.14 = PENDING
+8.14 = COMPLETE / PASS
 ```
 
 Relacionado:
@@ -307,3 +307,35 @@ Relacionado:
 Próxima etapa:
 
 [[scratch/vanetza_integration/docs/ETAPA_8_14_CLOSEOUT]]
+
+### Etapa 8.14 — Closeout
+
+**STATUS:** COMPLETE / PASS
+**DATE:** 2026-09-22
+
+O closeout formal da Etapa 8 foi concluído após validação independente das aceitações 8.12 e 8.13 e da suite completa do `v2x_analyzer`.
+
+Evidência:
+
+[[scratch/vanetza_integration/docs/ETAPA_8_14_CLOSEOUT]]
+
+8.12:
+
+[[scratch/vanetza_integration/docs/ETAPA_8_12_E2E_ACCEPTANCE]]
+
+8.13:
+
+[[scratch/vanetza_integration/docs/ETAPA_8_13_CAM_REGRESSION]]
+
+Analyzer:
+
+[[scratch/v2x_analyzer/README]]
+
+Resultado consolidado:
+
+```text
+8.12 = PASS
+8.13 = PASS
+v2x_analyzer = 26 passed
+ETAPA 8.14 = PASS
+```
