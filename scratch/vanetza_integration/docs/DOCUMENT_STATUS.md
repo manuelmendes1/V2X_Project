@@ -119,7 +119,7 @@ Teste:
 
 Commit:
 
-`PENDING`
+`4e98cab`
 
 Resultado:
 
