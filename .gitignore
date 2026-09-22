@@ -18,6 +18,8 @@
 
 !/scratch/denm_trigger_test/
 !/scratch/denm_trigger_test/**
+!/scratch/denm_lifecycle_trigger_test/
+!/scratch/denm_lifecycle_trigger_test/**
 !/scratch/vanetza_integration/
 !/scratch/vanetza_integration/**
 !/scratch/v2x/

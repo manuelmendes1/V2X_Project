@@ -24,6 +24,8 @@ int main()
     DenmTriggerRequest valid;
     valid.source = DenmTriggerSource::TEST;
     valid.eventType = DenmTriggerEventType::HAZARD_DETECTED;
+    valid.vehicleId = "veh0";
+    valid.eventId = "event-A";
     valid.x = 10.0;
     valid.y = 20.0;
     valid.causeCode = 94;
@@ -36,6 +38,8 @@ int main()
     assert(callbackCount == 1);
     assert(received.source == valid.source);
     assert(received.eventType == valid.eventType);
+    assert(received.vehicleId == valid.vehicleId);
+    assert(received.eventId == valid.eventId);
     assert(received.x == valid.x);
     assert(received.y == valid.y);
     assert(received.causeCode == valid.causeCode);
@@ -53,6 +57,23 @@ int main()
     assert(callbackCount == 1);
 
     std::cout << "PASS missing_cause_rejected\n";
+
+    DenmTriggerRequest missingVehicle = valid;
+    missingVehicle.vehicleId.clear();
+
+    assert(!trigger.Submit(missingVehicle));
+    assert(callbackCount == 1);
+
+    std::cout << "PASS missing_vehicle_id_rejected\n";
+
+    DenmTriggerRequest missingEvent = valid;
+    missingEvent.eventId.clear();
+
+    assert(!trigger.Submit(missingEvent));
+    assert(callbackCount == 1);
+
+    std::cout << "PASS missing_event_id_rejected\n";
+
 
     DenmTriggerRequest missingTimestamp = valid;
     missingTimestamp.triggerTimestampUs = 0;

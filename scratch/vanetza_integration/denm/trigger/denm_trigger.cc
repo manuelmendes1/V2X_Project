@@ -33,6 +33,18 @@ DenmTrigger::Submit(const DenmTriggerRequest& request)
 bool
 DenmTrigger::Validate(const DenmTriggerRequest& request, std::string& error)
 {
+    if (request.vehicleId.empty())
+    {
+        error = "missing_vehicle_id";
+        return false;
+    }
+
+    if (request.eventId.empty())
+    {
+        error = "missing_event_id";
+        return false;
+    }
+
     if (!std::isfinite(request.x) || !std::isfinite(request.y))
     {
         error = "invalid_event_position";

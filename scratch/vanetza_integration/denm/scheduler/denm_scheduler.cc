@@ -3,6 +3,8 @@
 #include "vanetza_integration/context/vehicle_dispatcher/vehicle_dispatcher.h"
 #include "vanetza_integration/core/v2x_log.h"
 #include "vanetza_integration/denm/action/denm_action_id_manager.h"
+#include "vanetza_integration/denm/lifecycle/denm_lifecycle_manager.h"
+#include "vanetza_integration/denm/trigger/denm_trigger.h"
 #include "vanetza_integration/denm/builder/denm_builder.h"
 #include "vanetza_integration/denm/service/denm_service.h"
 #include "vanetza_integration/denm/sender/denm_sender.h"
@@ -19,6 +21,8 @@ namespace
 constexpr double DENM_FIRST_EVENT_TIME_SEC = 1.0;
 
 std::unordered_set<uint32_t> g_sentStations;
+
+DenmLifecycleManager g_lifecycle;
 
 } // namespace
 
@@ -69,12 +73,75 @@ DenmScheduler::Run(
                 return;
             }
 
+            DenmTriggerRequest triggerRequest;
+
+            triggerRequest.source =
+                DenmTriggerSource::SCENARIO;
+
+            triggerRequest.eventType =
+                DenmTriggerEventType::HAZARD_DETECTED;
+
+            triggerRequest.vehicleId =
+                vehicle.identity.vehId;
+
+            triggerRequest.eventId =
+                "baseline-event";
+
+            triggerRequest.x =
+                vehicle.mobility.position.x;
+
+            triggerRequest.y =
+                vehicle.mobility.position.y;
+
+            triggerRequest.causeCode =
+                94;
+
+            triggerRequest.relevanceDistanceMeters =
+                disseminationRadiusMeters;
+
+            triggerRequest.validityDurationMs =
+                5000;
+
+            triggerRequest.triggerTimestampUs =
+                Simulator::Now().GetMicroSeconds();
+
+            triggerRequest.reason =
+                "BASELINE_NEW";
+
+            DenmLifecycleResult lifecycleResult;
+
+            bool lifecycleAccepted =
+                false;
+
+            DenmTrigger trigger(
+                [&](const DenmTriggerRequest& request)
+                {
+                    lifecycleAccepted =
+                        g_lifecycle.Process(
+                            vehicle,
+                            request,
+                            lifecycleResult);
+                });
+
+            if (!trigger.Submit(triggerRequest) ||
+                !lifecycleAccepted)
+            {
+                return;
+            }
+
             DenmGenerationContext generation =
-                DenmBuilder::Build(vehicle);
+                DenmBuilder::Build(
+                    vehicle,
+                    triggerRequest,
+                    lifecycleResult);
 
             if (!generation.packetContext ||
                 generation.denmInput.actionId.sequenceNumber == 0)
             {
+                g_lifecycle.Abort(
+                    triggerRequest.vehicleId,
+                    triggerRequest.eventId);
+
                 return;
             }
 
@@ -108,9 +175,9 @@ DenmScheduler::Run(
 
             if (rawPayload.empty())
             {
-                DenmActionIdManager::Instance().Apply(
-                    generation.denmInput.actionId,
-                    DenmManagementAction::CANCELLATION);
+                g_lifecycle.Abort(
+                    triggerRequest.vehicleId,
+                    triggerRequest.eventId);
 
                 return;
             }
@@ -129,6 +196,12 @@ DenmScheduler::Run(
                 g_sentStations.insert(
                     stationId);
             }
+            else
+            {
+                g_lifecycle.Abort(
+                    triggerRequest.vehicleId,
+                    triggerRequest.eventId);
+            }
         });
 }
 
@@ -142,6 +215,8 @@ void
 DenmScheduler::Reset()
 {
     g_sentStations.clear();
+    g_lifecycle.Reset();
+    DenmActionIdManager::Instance().Reset();
 }
 
 } // namespace ns3

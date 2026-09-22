@@ -28,6 +28,11 @@ struct DenmTriggerRequest
     DenmTriggerSource source = DenmTriggerSource::TEST;
     DenmTriggerEventType eventType = DenmTriggerEventType::HAZARD_DETECTED;
 
+    // Application-level originator and event identity.
+    // These are independent from ActionID and ns-3 packet metadata.
+    std::string vehicleId;
+    std::string eventId;
+
     double x = 0.0;
     double y = 0.0;
 

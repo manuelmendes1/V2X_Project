@@ -138,6 +138,7 @@ target_link_libraries(vanetza_cam_encoder_obj
 
 add_library(vanetza_denm_obj OBJECT
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/denm/action/denm_action_id_manager.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/denm/lifecycle/denm_lifecycle_manager.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/denm/trigger/denm_trigger.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/denm/builder/denm_builder.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/denm/service/denm_service.cc
