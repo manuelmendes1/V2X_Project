@@ -223,3 +223,42 @@ Commit message:
 - [[scratch/vanetza_integration/docs/vanetza_architecture]]
 - [[scratch/v2x_analyzer/README]]
 - [[scratch/vanetza_integration/docs/historical/project_snapshots/code_analyzer]]
+
+## 9. Etapa 8.12 — Formal E2E Acceptance
+
+A fase 8.12 foi formalmente aceite em 2026-09-22 através de uma execução runtime real.
+
+Resultado:
+
+```text
+RESULTADO 8.12: PASS
+ACCEPTANCE_EXIT=0
+```
+
+Teste formal:
+
+[[scratch/vanetza_integration/tests/test_denm_e2e_acceptance.sh]]
+
+Documento de evidência:
+
+[[scratch/vanetza_integration/docs/ETAPA_8_12_E2E_ACCEPTANCE]]
+
+Commit do teste:
+
+`78cd7a4`
+
+A validação demonstrou uma cadeia DENM completa entre `origin_station=2` e `receiver_station=1`, atravessando BTP port 2002, GeoNetworking GBC, TX completion, RX, verificação, decode, replay, reception e delivery.
+
+Estado atual:
+
+```text
+8.11 = COMPLETE
+8.12 = COMPLETE / PASS
+8.13 = TO CONSOLIDATE
+8.14 = PENDING
+```
+
+Relacionado:
+
+[[scratch/vanetza_integration/docs/DOCUMENT_STATUS]]
+[[scratch/v2x_analyzer/README]]

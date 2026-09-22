@@ -65,3 +65,38 @@ The analyzer is validated against the current TX/RX taxonomy with DENM events no
 Implementation commit: `658c53c713fadda05be3e817e3147461e9b0b463`
 
 Validation: `26/26` analyzer tests, real-log `RESULTADO P3: PASS`, analyzer exit code `0`.
+
+## 8.12 — DENM E2E Acceptance
+
+**STATUS:** COMPLETED  
+**DATE:** 2026-09-22  
+**RESULT:** PASS
+
+A aceitação formal E2E da fase 8.12 foi concluída com uma execução runtime real.
+
+Evidência:
+
+[[scratch/vanetza_integration/docs/ETAPA_8_12_E2E_ACCEPTANCE]]
+
+Teste:
+
+[[scratch/vanetza_integration/tests/test_denm_e2e_acceptance.sh]]
+
+Commit:
+
+`78cd7a4`
+
+Resultado:
+
+```text
+RESULTADO 8.12: PASS
+ACCEPTANCE_EXIT=0
+```
+
+O caso aceite demonstrou uma cadeia DENM `origin_station=2` → `receiver_station=1`, com `action_seq=1`, passando por BTP-B port 2002, GeoNetworking GBC, TX completion, RX, verificação criptográfica, decode, replay, reception e delivery.
+
+Relacionado:
+
+[[scratch/vanetza_integration/docs/CURRENT_STATE]]
+
+[[scratch/v2x_analyzer/README]]
