@@ -113,6 +113,14 @@ struct PacketContext
     PacketPayload payload;
 
     //=========================================================================
+    // TX security identity
+    //=========================================================================
+
+    // HashedId8 da credencial V3 efetivamente usada para assinar este pacote,
+    // representado em hexadecimal para observabilidade e testes.
+    std::string signerCertificateIdHex;
+
+    //=========================================================================
     // BTP RX context
     //=========================================================================
 

@@ -1,6 +1,7 @@
 #include "sumo_adapter.h"
 
 #include "sumo_parser.h"
+#include "vanetza_integration/denm/scenario/sumo_denm_event_parser.h"
 #include "sumo_serializer.h"
 #include "sumo_socket.h"
 
@@ -24,6 +25,9 @@ sockaddr_in SumoAdapter::m_sumoAddr{};
 
 SumoAdapter::VehicleUpdateCallback
 SumoAdapter::m_vehicleCallback = nullptr;
+
+SumoAdapter::DenmEventCallback
+SumoAdapter::m_denmEventCallback = nullptr;
 
 // ============================================================================
 // Init
@@ -77,6 +81,26 @@ SumoAdapter::Poll()
         }
 
         buffer[bytes] = '\0';
+
+        const std::string message(buffer, bytes);
+
+        if (message.rfind("DENM_EVENT,", 0) == 0)
+        {
+            const auto event =
+                ns3::SumoDenmEventParser::Parse(message);
+
+            if (!event)
+            {
+                continue;
+            }
+
+            if (m_denmEventCallback)
+            {
+                m_denmEventCallback(*event);
+            }
+
+            continue;
+        }
 
         auto vehicle =
             ns3::SumoParser::Parse(buffer);
@@ -161,6 +185,14 @@ SumoAdapter::SendToSumo(
 // ============================================================================
 // Callback
 // ============================================================================
+
+void
+SumoAdapter::SetDenmEventCallback(
+    DenmEventCallback callback)
+{
+    m_denmEventCallback =
+        std::move(callback);
+}
 
 void
 SumoAdapter::SetVehicleUpdateCallback(

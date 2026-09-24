@@ -29,6 +29,8 @@ int main(int argc, char* argv[]) {
 
     double denmRadiusMeters = 1000.0;
 
+    std::string denmPkiDir;
+
     CommandLine cmd;
 
     cmd.AddValue(
@@ -46,6 +48,11 @@ int main(int argc, char* argv[]) {
         "Raio GBC do baseline DENM em metros",
         denmRadiusMeters);
 
+    cmd.AddValue(
+        "denmPkiDir",
+        "Diretorio contendo os certificados e chaves ETSI ITS Security V3 para DENM",
+        denmPkiDir);
+
     cmd.Parse(argc, argv);
 
     YansWifiChannelHelper ch;
@@ -62,11 +69,13 @@ int main(int argc, char* argv[]) {
 
     SumoAdapter::Init(7400,"127.0.0.1",7000);
 
-    SumoAdapter::SetVehicleUpdateCallback(&SimulationController::HandleVehicleUpdateFromSumo);
+    SimulationController::ConfigureSumoAdapterCallbacks();
 
     SimulationController::SetDenmEnabled(enableDenm);
 
     SimulationController::SetDenmRadiusMeters(denmRadiusMeters);
+
+    SimulationController::SetDenmPkiDirectory(denmPkiDir);
 
     SimulationController::Start(MilliSeconds(100));
 

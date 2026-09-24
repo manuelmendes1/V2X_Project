@@ -12,6 +12,8 @@
 #include <ns3/log.h>
 
 #include <fstream>
+#include <iomanip>
+#include <sstream>
 #include <stdexcept>
 #include <utility>
 
@@ -54,39 +56,19 @@ namespace ns3 {
         m_backend(
             vanetza::security::create_backend("default")),
 
-        m_certificateProvider(
-            vanetza::security::v3::
-                load_certificate_from_file(certificateFile),
-            LoadPrivateKey(privateKeyFile)),
-
-        m_signHeaderPolicy(
-            runtime,
-            position,
-            m_certificateProvider),
-
+        m_certificateProvider(nullptr),
+        m_signHeaderPolicy(nullptr),
         m_certificateValidator(),
-
-        m_denmSigner(
-            m_certificateProvider,
-            *m_backend,
-            m_signHeaderPolicy,
-            m_certificateValidator),
-
-        m_camFallback(runtime)
+        m_denmSigner(nullptr),
+        m_camFallback(runtime),
+        m_runtime(runtime),
+        m_position(position)
     {
         if (!m_backend)
         {
             throw std::runtime_error(
                 "Unable to create Vanetza crypto backend");
         }
-
-        RequireFile(
-            certificateFile,
-            "certificate file");
-
-        RequireFile(
-            privateKeyFile,
-            "private key file");
 
         // ----------------------------------------------------------------------
         // Current ns-3 simulation time starts at zero, while the external
@@ -99,8 +81,84 @@ namespace ns3 {
 
         // DENM location restriction is not used by this local ECC test PKI.
         m_certificateValidator.disable_location_checks(true);
+
+        if (!SetActiveCredential(
+                DenmCredential{
+                    certificateFile,
+                    privateKeyFile}))
+        {
+            throw std::runtime_error(
+                "Unable to initialize DENM V3 signer credential");
+        }
     }
 
+
+    bool
+    DenmV3SignService::SetActiveCredential(
+        const DenmCredential& credential)
+    {
+        if (credential.certFile.empty() ||
+            credential.keyFile.empty())
+        {
+            return false;
+        }
+
+        try
+        {
+            RequireFile(
+                credential.certFile,
+                "certificate file");
+
+            RequireFile(
+                credential.keyFile,
+                "private key file");
+
+            auto newCertificateProvider =
+                std::make_unique<
+                    vanetza::security::v3::
+                        StaticCertificateProvider>(
+                    vanetza::security::v3::
+                        load_certificate_from_file(
+                            credential.certFile),
+                    LoadPrivateKey(
+                        credential.keyFile));
+
+            auto newSignHeaderPolicy =
+                std::make_unique<
+                    vanetza::security::v3::
+                        DefaultSignHeaderPolicy>(
+                    m_runtime,
+                    m_position,
+                    *newCertificateProvider);
+
+            auto newDenmSigner =
+                std::make_unique<
+                    vanetza::security::v3::
+                        StraightSignService>(
+                    *newCertificateProvider,
+                    *m_backend,
+                    *newSignHeaderPolicy,
+                    m_certificateValidator);
+
+            // All replacement objects are valid before touching the
+            // currently active signer. This leaves the old credential
+            // intact if loading or construction fails.
+            m_certificateProvider =
+                std::move(newCertificateProvider);
+
+            m_signHeaderPolicy =
+                std::move(newSignHeaderPolicy);
+
+            m_denmSigner =
+                std::move(newDenmSigner);
+
+            return true;
+        }
+        catch (const std::exception&)
+        {
+            return false;
+        }
+    }
 
     vanetza::security::SignConfirm
     DenmV3SignService::sign(
@@ -134,7 +192,7 @@ namespace ns3 {
                     "DENM_V3 signing");
             }
 
-            auto confirm = m_denmSigner.sign(std::move(request));
+            auto confirm = m_denmSigner->sign(std::move(request));
 
             if (confirm.secured_message)
             {
@@ -144,6 +202,50 @@ namespace ns3 {
 
                 if (v3Message != nullptr)
                 {
+                    const auto signerIdentifier =
+                        v3Message->signer_identifier();
+
+                    const bool hasCertificate =
+                        vanetza::security::v3::contains_certificate(
+                            signerIdentifier);
+
+                    const auto certificateId =
+                        vanetza::security::v3::get_certificate_id(
+                            signerIdentifier);
+
+                    std::string certificateIdHex;
+
+                    if (certificateId)
+                    {
+                        std::ostringstream certificateIdStream;
+
+                        for (const auto byte : *certificateId)
+                        {
+                            certificateIdStream
+                                << std::hex
+                                << std::setw(2)
+                                << std::setfill('0')
+                                << static_cast<unsigned int>(
+                                       static_cast<unsigned char>(byte));
+                        }
+
+                        certificateIdHex = certificateIdStream.str();
+                    }
+
+                    if (txContext && !certificateIdHex.empty())
+                    {
+                        txContext->signerCertificateIdHex =
+                            certificateIdHex;
+                    }
+
+                    NS_LOG_UNCOND(
+                        "[DENM_V3_SIGNER_TX] "
+                        "contains_certificate="
+                        << (hasCertificate ? 1 : 0)
+                        << " "
+                        "certificate_id="
+                        << (certificateId ? 1 : 0));
+
                     if (txContext)
                     {
                         PacketContext logCtx = *txContext;

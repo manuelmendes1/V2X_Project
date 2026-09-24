@@ -1,11 +1,13 @@
 #pragma once
 
+#include <cstddef>
 #include <string>
 #include <vector>
 
 #include <openssl/evp.h>
 #include <openssl/x509.h>
 
+#include "vanetza_integration/context/vehicle_security/denm_credential.h"
 #include "vanetza_integration/context/vehicle_security/replay/replay_context.h"
 #include "vanetza_integration/denm/replay/denm_replay_context.h"
 
@@ -42,6 +44,12 @@ struct VehicleSecurityContext
     std::string certFile;
     std::string keyFile;
 
+    // DENM credential pool discovered for this vehicle.
+    std::vector<DenmCredential> denmCredentials;
+
+    // Initial/active credential used by the current DENM signer.
+    std::size_t activeDenmCredentialIndex = 0;
+
     // ------------------------------------------------------------------------
     // Cryptographic material
     // ------------------------------------------------------------------------
@@ -74,6 +82,15 @@ struct VehicleSecurityContext
 
     VehicleSecurityContext(VehicleSecurityContext&&) = delete;
     VehicleSecurityContext& operator=(VehicleSecurityContext&&) = delete;
+
+    // ------------------------------------------------------------------------
+    // DENM credential selection
+    // ------------------------------------------------------------------------
+
+    bool SetActiveDenmCredential(
+        std::size_t index);
+
+    bool RotateToNextDenmCredential();
 
     // ------------------------------------------------------------------------
     // Cleanup

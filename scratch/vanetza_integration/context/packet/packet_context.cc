@@ -220,7 +220,8 @@ namespace ns3 {
                pipelineResult == PipelineResult::NONE &&
                reason.empty() &&
                durationUs == 0 &&
-               payload.Empty();
+               payload.Empty() &&
+               signerCertificateIdHex.empty();
     }
 
     // ============================================================================
@@ -275,6 +276,7 @@ namespace ns3 {
         durationUs = 0;
 
         payload.Clear();
+        signerCertificateIdHex.clear();
 
         geonet = GeoNetRxContext{};
 

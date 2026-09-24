@@ -6,6 +6,7 @@
 
 #include "vanetza_integration/context/vehicle_state.h"
 #include "vanetza_integration/denm/trigger/denm_trigger.h"
+#include "vanetza_integration/denm/types/denm_event_id.h"
 #include "vanetza_integration/denm/types/denm_input.h"
 
 namespace ns3
@@ -48,24 +49,6 @@ public:
     void Reset();
 
 private:
-    struct EventKey
-    {
-        std::string vehicleId;
-        std::string eventId;
-
-        bool operator==(const EventKey& other) const noexcept
-        {
-            return vehicleId == other.vehicleId &&
-                   eventId == other.eventId;
-        }
-    };
-
-    struct EventKeyHash
-    {
-        std::size_t operator()(
-            const EventKey& key) const noexcept;
-    };
-
     struct EventState
     {
         DenmActionId actionId;
@@ -75,9 +58,9 @@ private:
     };
 
     std::unordered_map<
-        EventKey,
+        DenmEventId,
         EventState,
-        EventKeyHash>
+        DenmEventIdHash>
         m_events;
 };
 

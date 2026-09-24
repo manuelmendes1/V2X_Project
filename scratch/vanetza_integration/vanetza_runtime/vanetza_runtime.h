@@ -60,6 +60,11 @@ public:
 
     bool PrepareTx();
 
+    // Rotate the active DENM credential for this vehicle.
+    // Returns false when the runtime is not initialized or when rotation
+    // cannot be applied.
+    bool RotateDenmCredential();
+
     void ReceivePacket(
         Ptr<Packet> packet,
         const Address& from);

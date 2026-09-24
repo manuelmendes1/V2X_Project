@@ -1,6 +1,8 @@
 #include "denm_scheduler.h"
 
+#include "vanetza_integration/context/packet/packet_context.h"
 #include "vanetza_integration/context/vehicle_dispatcher/vehicle_dispatcher.h"
+#include "vanetza_integration/context/vehicle_registry/vehicle_registry.h"
 #include "vanetza_integration/core/v2x_log.h"
 #include "vanetza_integration/denm/lifecycle/denm_lifecycle_manager.h"
 #include "vanetza_integration/denm/trigger/denm_trigger.h"
@@ -8,14 +10,16 @@
 #include "vanetza_integration/denm/service/denm_service.h"
 #include "vanetza_integration/denm/sender/denm_sender.h"
 #include "vanetza_integration/denm/scheduler/denm_repetition_policy.h"
+#include "vanetza_integration/denm/scheduler/denm_scheduler_event_store.h"
 
 #include "ns3/simulator.h"
 
 #include <cmath>
 #include <cstdint>
 #include <string>
-#include <unordered_map>
 #include <utility>
+#include <vector>
+
 
 namespace
 {
@@ -28,20 +32,145 @@ constexpr uint64_t DENM_REPETITION_INTERVAL_US =
 constexpr uint32_t DENM_MAX_REPETITIONS =
     3;
 
-struct DenmScheduledEvent
-{
-    ns3::DenmTriggerRequest triggerRequest;
-    ns3::DenmRepetitionPolicy repetitionPolicy;
-};
+bool g_compatibilityFallbackEnabled = true;
 
-std::unordered_map<uint32_t, DenmScheduledEvent> g_events;
+ns3::DenmScheduledEventStore g_events;
 
 ns3::DenmLifecycleManager g_lifecycle;
+
+ns3::DenmScheduler::TransmissionContextObserver
+    g_transmissionContextObserver;
+
+void
+NotifyTransmissionContext(
+    const std::shared_ptr<ns3::PacketContext>& context)
+{
+    if (g_transmissionContextObserver && context)
+    {
+        g_transmissionContextObserver(context);
+    }
+}
 
 } // namespace
 
 namespace ns3
 {
+
+bool
+DenmScheduler::Submit(
+    const DenmTriggerRequest& request)
+{
+    VehicleState* vehicle =
+        VehicleRegistry::Instance().GetByVehId(
+            request.vehicleId);
+
+    if (vehicle == nullptr)
+    {
+        return false;
+    }
+
+    bool callbackInvoked = false;
+
+    DenmTrigger trigger(
+        [&](const DenmTriggerRequest&)
+        {
+            callbackInvoked = true;
+        });
+
+    if (!trigger.Submit(request) ||
+        !callbackInvoked)
+    {
+        return false;
+    }
+
+    const DenmEventId eventKey{
+        request.vehicleId,
+        request.eventId};
+
+    DenmScheduledEvent* existing =
+        g_events.Find(eventKey);
+
+    if (existing == nullptr)
+    {
+        if (request.eventType !=
+            DenmTriggerEventType::HAZARD_DETECTED)
+        {
+            return false;
+        }
+
+        DenmScheduledEvent scheduledEvent;
+        scheduledEvent.triggerRequest =
+            request;
+
+        return g_events.Insert(
+            eventKey,
+            scheduledEvent);
+    }
+
+    //
+    // An active logical event already exists.
+    //
+    // A second HAZARD_DETECTED is invalid because it would attempt
+    // to create a second NEW lifecycle for the same EventID.
+    //
+    if (request.eventType ==
+        DenmTriggerEventType::HAZARD_DETECTED)
+    {
+        return false;
+    }
+
+    //
+    // UPDATE/CLEAR are lifecycle transitions of the existing EventID.
+    // Do not call DenmLifecycleManager here. The scheduler records the
+    // new trigger and Run() materializes the lifecycle transition.
+    //
+    if (existing->initialTransmissionPending)
+    {
+        return false;
+    }
+
+    return g_events.UpdateTriggerRequest(
+        eventKey,
+        request);
+}
+
+void
+DenmScheduler::SetTransmissionContextObserver(
+    TransmissionContextObserver observer)
+{
+    g_transmissionContextObserver =
+        std::move(observer);
+}
+
+std::size_t
+DenmScheduler::ScheduledEventCount()
+{
+    return g_events.Size();
+}
+
+std::size_t
+DenmScheduler::PendingInitialTransmissionCount()
+{
+    return g_events.PendingInitialTransmissionCount();
+}
+
+std::size_t
+DenmScheduler::RepetitionCount(
+    const DenmEventId& eventId)
+{
+    return g_events.RepetitionCount(eventId);
+}
+
+bool
+DenmScheduler::GetTriggerRequest(
+    const DenmEventId& eventId,
+    DenmTriggerRequest& request)
+{
+    return g_events.GetTriggerRequest(
+        eventId,
+        request);
+}
+
 
 void
 DenmScheduler::Run(
@@ -76,15 +205,27 @@ DenmScheduler::Run(
             }
 
             //------------------------------------------------------------------
-            // No active scheduler state:
-            // generate the baseline NEW DENM.
+            // Events explicitly submitted through DenmScheduler::Submit()
+            // are the authoritative scheduler state for this vehicle.
             //------------------------------------------------------------------
 
-            auto eventIt =
-                g_events.find(stationId);
+            const auto eventIds =
+                g_events.GetEventIdsForVehicle(
+                    vehicle.identity.vehId);
 
-            if (eventIt == g_events.end())
+            //------------------------------------------------------------------
+            // Compatibility fallback:
+            // create the historical baseline event only when the vehicle has
+            // no externally submitted scheduler events.
+            //------------------------------------------------------------------
+
+            if (eventIds.empty() &&
+                g_compatibilityFallbackEnabled)
             {
+                const DenmEventId eventKey{
+                    vehicle.identity.vehId,
+                    "baseline-event"};
+
                 DenmTriggerRequest triggerRequest;
 
                 triggerRequest.source =
@@ -212,24 +353,33 @@ DenmScheduler::Run(
                     return;
                 }
 
-                //------------------------------------------------------------------
-                // Only after a successful NEW transmission do we create
-                // scheduler repetition state.
-                //------------------------------------------------------------------
+                NotifyTransmissionContext(
+                    generation.packetContext);
 
                 DenmScheduledEvent scheduledEvent;
 
-                scheduledEvent.triggerRequest =
-                    triggerRequest;
+                scheduledEvent.triggerRequest = triggerRequest;
+
+                scheduledEvent.initialTransmissionPending = false;
 
                 scheduledEvent.repetitionPolicy.Start(
                     nowUs,
                     DENM_REPETITION_INTERVAL_US,
                     DENM_MAX_REPETITIONS);
 
-                g_events.emplace(
-                    stationId,
-                    std::move(scheduledEvent));
+                const bool inserted =
+                    g_events.Insert(
+                        eventKey,
+                        scheduledEvent);
+
+                if (!inserted)
+                {
+                    g_lifecycle.Abort(
+                        triggerRequest.vehicleId,
+                        triggerRequest.eventId);
+
+                    return;
+                }
 
                 V2XWriteLog(
                     ctx,
@@ -247,145 +397,430 @@ DenmScheduler::Run(
             }
 
             //------------------------------------------------------------------
-            // Existing event:
-            // scheduler only considers a repetition when the temporal
-            // policy says it is due.
+            // Process all scheduler events belonging to this vehicle.
+            //
+            // A vehicle may have multiple independent logical DENM events.
+            // Each event owns its own lifecycle state and repetition policy.
             //------------------------------------------------------------------
 
-            DenmScheduledEvent& scheduledEvent =
-                eventIt->second;
-
-            if (!scheduledEvent.repetitionPolicy.ShouldRepeat(nowUs))
+            for (const DenmEventId& eventKey : eventIds)
             {
-                return;
-            }
+                DenmScheduledEvent* scheduledEvent =
+                    g_events.Find(eventKey);
 
-            DenmLifecycleResult lifecycleResult;
+                if (scheduledEvent == nullptr)
+                {
+                    continue;
+                }
 
-            if (!g_lifecycle.Repeat(
-                    vehicle,
-                    scheduledEvent.triggerRequest.eventId,
-                    lifecycleResult))
-            {
+                if (scheduledEvent->lifecycleTransitionPending)
+                {
+                    const DenmTriggerRequest& triggerRequest =
+                        scheduledEvent->triggerRequest;
+
+                    DenmLifecycleResult lifecycleResult;
+
+                    bool lifecycleAccepted =
+                        false;
+
+                    DenmTrigger trigger(
+                        [&](const DenmTriggerRequest& request)
+                        {
+                            lifecycleAccepted =
+                                g_lifecycle.Process(
+                                    vehicle,
+                                    request,
+                                    lifecycleResult);
+                        });
+
+                    if (!trigger.Submit(triggerRequest) ||
+                        !lifecycleAccepted)
+                    {
+                        continue;
+                    }
+
+                    DenmGenerationContext generation =
+                        DenmBuilder::Build(
+                            vehicle,
+                            triggerRequest,
+                            lifecycleResult);
+
+                    if (!generation.packetContext ||
+                        generation.denmInput.actionId.sequenceNumber == 0)
+                    {
+                        continue;
+                    }
+
+                    PacketContext& ctx =
+                        *generation.packetContext;
+
+                    const std::string txReason =
+                        triggerRequest.reason.empty()
+                            ? "DENM_LIFECYCLE"
+                            : triggerRequest.reason;
+
+                    V2XWriteLog(
+                        ctx,
+                        V2XLogLevel::INFO,
+                        "DENM",
+                        "LIFECYCLE_REQUEST",
+                        "action=" +
+                        std::to_string(
+                            static_cast<unsigned>(
+                                lifecycleResult.action)) +
+                        " station=" +
+                        std::to_string(
+                            generation.denmInput.actionId
+                                .originatingStationId) +
+                        " action_seq=" +
+                        std::to_string(
+                            generation.denmInput.actionId
+                                .sequenceNumber) +
+                        " event_id=" +
+                        triggerRequest.eventId);
+
+                    const auto rawPayload =
+                        DenmService::GenerateRawPayload(
+                            generation,
+                            txReason);
+
+                    if (rawPayload.empty())
+                    {
+                        continue;
+                    }
+
+                    const bool sent =
+                        DenmSender::SendRaw(
+                            generation.packetContext,
+                            vehicle,
+                            generation.denmInput,
+                            rawPayload,
+                            disseminationRadiusMeters,
+                            txReason);
+
+                    if (!sent)
+                    {
+                        continue;
+                    }
+
+                    NotifyTransmissionContext(
+                        generation.packetContext);
+
+                    if (lifecycleResult.action ==
+                        DenmManagementAction::CANCELLATION)
+                    {
+                        g_events.Erase(eventKey);
+                    }
+                    else
+                    {
+                        scheduledEvent =
+                            g_events.Find(eventKey);
+
+                        if (scheduledEvent != nullptr)
+                        {
+                            scheduledEvent->repetitionPolicy.Start(
+                                nowUs,
+                                DENM_REPETITION_INTERVAL_US,
+                                DENM_MAX_REPETITIONS);
+
+                            g_events.MarkLifecycleTransitionComplete(
+                                eventKey);
+                        }
+                    }
+
+                    continue;
+                }
+
                 //----------------------------------------------------------------
-                // Lifecycle state no longer exists or is no longer active.
-                // Scheduler state is stale and must not generate anything.
+                // Initial transmission of an externally submitted event.
                 //----------------------------------------------------------------
 
-                g_events.erase(eventIt);
-                return;
-            }
+                if (scheduledEvent->initialTransmissionPending)
+                {
+                    const DenmTriggerRequest& triggerRequest =
+                        scheduledEvent->triggerRequest;
 
-            DenmGenerationContext generation =
-                DenmBuilder::Build(
-                    vehicle,
-                    scheduledEvent.triggerRequest,
-                    lifecycleResult);
+                    DenmLifecycleResult lifecycleResult;
 
-            if (!generation.packetContext ||
-                generation.denmInput.actionId.sequenceNumber == 0)
-            {
-                if (generation.packetContext)
+                    bool lifecycleAccepted =
+                        false;
+
+                    DenmTrigger trigger(
+                        [&](const DenmTriggerRequest& request)
+                        {
+                            lifecycleAccepted =
+                                g_lifecycle.Process(
+                                    vehicle,
+                                    request,
+                                    lifecycleResult);
+                        });
+
+                    if (!trigger.Submit(triggerRequest) ||
+                        !lifecycleAccepted)
+                    {
+                        continue;
+                    }
+
+                    DenmGenerationContext generation =
+                        DenmBuilder::Build(
+                            vehicle,
+                            triggerRequest,
+                            lifecycleResult);
+
+                    if (!generation.packetContext ||
+                        generation.denmInput.actionId.sequenceNumber == 0)
+                    {
+                        g_lifecycle.Abort(
+                            triggerRequest.vehicleId,
+                            triggerRequest.eventId);
+
+                        continue;
+                    }
+
+                    PacketContext& ctx =
+                        *generation.packetContext;
+
+                    const std::string txReason =
+                        triggerRequest.reason.empty()
+                            ? "DENM_NEW"
+                            : triggerRequest.reason;
+
+                    V2XWriteLog(
+                        ctx,
+                        V2XLogLevel::INFO,
+                        "DENM",
+                        "REQUEST",
+                        "action=NEW"
+                        " station=" +
+                        std::to_string(
+                            generation.denmInput
+                                .actionId
+                                .originatingStationId) +
+                        " action_seq=" +
+                        std::to_string(
+                            generation.denmInput
+                                .actionId
+                                .sequenceNumber) +
+                        " radius_m=" +
+                        std::to_string(
+                            disseminationRadiusMeters) +
+                        " event_id=" +
+                        triggerRequest.eventId);
+
+                    const auto rawPayload =
+                        DenmService::GenerateRawPayload(
+                            generation,
+                            txReason);
+
+                    if (rawPayload.empty())
+                    {
+                        g_lifecycle.Abort(
+                            triggerRequest.vehicleId,
+                            triggerRequest.eventId);
+
+                        continue;
+                    }
+
+                    const bool sent =
+                        DenmSender::SendRaw(
+                            generation.packetContext,
+                            vehicle,
+                            generation.denmInput,
+                            rawPayload,
+                            disseminationRadiusMeters,
+                            txReason);
+
+                    if (!sent)
+                    {
+                        g_lifecycle.Abort(
+                            triggerRequest.vehicleId,
+                            triggerRequest.eventId);
+
+                        continue;
+                    }
+
+                    NotifyTransmissionContext(
+                        generation.packetContext);
+
+                    scheduledEvent->repetitionPolicy.Start(
+                        nowUs,
+                        DENM_REPETITION_INTERVAL_US,
+                        DENM_MAX_REPETITIONS);
+
+                    const bool markedComplete =
+                        g_events.MarkInitialTransmissionComplete(
+                            eventKey);
+
+                    if (!markedComplete)
+                    {
+                        V2XWriteLog(
+                            ctx,
+                            V2XLogLevel::ERROR,
+                            "DENM",
+                            "INITIAL_STATE_UPDATE_FAIL",
+                            "successful NEW transmission but scheduler state "
+                            "could not be marked complete");
+
+                        continue;
+                    }
+
+                    V2XWriteLog(
+                        ctx,
+                        V2XLogLevel::INFO,
+                        "DENM",
+                        "REPETITION_POLICY_START",
+                        "interval_us=" +
+                        std::to_string(
+                            DENM_REPETITION_INTERVAL_US) +
+                        " max_repetitions=" +
+                        std::to_string(
+                            DENM_MAX_REPETITIONS) +
+                        " event_id=" +
+                        triggerRequest.eventId);
+
+                    continue;
+                }
+
+                //----------------------------------------------------------------
+                // Existing active event:
+                // only transmit repetition when its policy says it is due.
+                //----------------------------------------------------------------
+
+                if (!scheduledEvent->repetitionPolicy.ShouldRepeat(nowUs))
+                {
+                    continue;
+                }
+
+                DenmLifecycleResult lifecycleResult;
+
+                if (!g_lifecycle.Repeat(
+                        vehicle,
+                        scheduledEvent->triggerRequest.eventId,
+                        lifecycleResult))
+                {
+                    g_events.Erase(eventKey);
+                    continue;
+                }
+
+                DenmGenerationContext generation =
+                    DenmBuilder::Build(
+                        vehicle,
+                        scheduledEvent->triggerRequest,
+                        lifecycleResult);
+
+                if (!generation.packetContext ||
+                    generation.denmInput.actionId.sequenceNumber == 0)
+                {
+                    if (generation.packetContext)
+                    {
+                        V2XWriteLog(
+                            *generation.packetContext,
+                            V2XLogLevel::ERROR,
+                            "DENM",
+                            "REPETITION_GENERATE_FAIL",
+                            "repetition generation failed");
+                    }
+
+                    continue;
+                }
+
+                PacketContext& ctx =
+                    *generation.packetContext;
+
+                const std::string repetitionReason =
+                    scheduledEvent->triggerRequest.reason.empty()
+                        ? "DENM_REPETITION"
+                        : scheduledEvent->triggerRequest.reason +
+                              "_REPETITION";
+
+                V2XWriteLog(
+                    ctx,
+                    V2XLogLevel::INFO,
+                    "DENM",
+                    "REPETITION_REQUEST",
+                    "action=REPETITION"
+                    " semantic_action=" +
+                    std::to_string(
+                        static_cast<unsigned>(
+                            lifecycleResult.action)) +
+                    " station=" +
+                    std::to_string(
+                        generation.denmInput
+                            .actionId
+                            .originatingStationId) +
+                    " action_seq=" +
+                    std::to_string(
+                        generation.denmInput
+                            .actionId
+                            .sequenceNumber) +
+                    " repetition_index=" +
+                    std::to_string(
+                        scheduledEvent->repetitionPolicy
+                            .RepetitionCount() + 1) +
+                    " event_id=" +
+                    scheduledEvent->triggerRequest.eventId);
+
+                const auto rawPayload =
+                    DenmService::GenerateRawPayload(
+                        generation,
+                        repetitionReason);
+
+                if (rawPayload.empty())
                 {
                     V2XWriteLog(
-                        *generation.packetContext,
+                        ctx,
                         V2XLogLevel::ERROR,
                         "DENM",
                         "REPETITION_GENERATE_FAIL",
-                        "repetition generation failed");
+                        "DENM repetition encoding failed");
+
+                    continue;
                 }
 
-                return;
-            }
+                const bool sent =
+                    DenmSender::SendRaw(
+                        generation.packetContext,
+                        vehicle,
+                        generation.denmInput,
+                        rawPayload,
+                        disseminationRadiusMeters,
+                        repetitionReason);
 
-            PacketContext& ctx =
-                *generation.packetContext;
+                if (!sent)
+                {
+                    V2XWriteLog(
+                        ctx,
+                        V2XLogLevel::ERROR,
+                        "DENM",
+                        "REPETITION_TX_FAIL",
+                        "repetition transmission failed");
 
-            V2XWriteLog(
-                ctx,
-                V2XLogLevel::INFO,
-                "DENM",
-                "REPETITION_REQUEST",
-                "action=REPETITION"
-                " semantic_action=" +
-                std::to_string(
-                    static_cast<unsigned>(
-                        lifecycleResult.action)) +
-                " station=" +
-                std::to_string(
-                    generation.denmInput
-                        .actionId
-                        .originatingStationId) +
-                " action_seq=" +
-                std::to_string(
-                    generation.denmInput
-                        .actionId
-                        .sequenceNumber) +
-                " repetition_index=" +
-                std::to_string(
-                    scheduledEvent.repetitionPolicy
-                        .RepetitionCount() + 1));
+                    continue;
+                }
 
-            const auto rawPayload =
-                DenmService::GenerateRawPayload(
-                    generation,
-                    "BASELINE_REPETITION");
+                NotifyTransmissionContext(
+                    generation.packetContext);
 
-            if (rawPayload.empty())
-            {
-                V2XWriteLog(
-                    ctx,
-                    V2XLogLevel::ERROR,
-                    "DENM",
-                    "REPETITION_GENERATE_FAIL",
-                    "DENM repetition encoding failed");
-
-                return;
-            }
-
-            const bool sent =
-                DenmSender::SendRaw(
-                    generation.packetContext,
-                    vehicle,
-                    generation.denmInput,
-                    rawPayload,
-                    disseminationRadiusMeters,
-                    "BASELINE_REPETITION");
-
-            if (!sent)
-            {
-                //----------------------------------------------------------------
-                // Important:
-                // a failed repetition does NOT abort the active DENM event.
-                //----------------------------------------------------------------
+                scheduledEvent->repetitionPolicy.Consume(
+                    nowUs);
 
                 V2XWriteLog(
                     ctx,
-                    V2XLogLevel::ERROR,
+                    V2XLogLevel::INFO,
                     "DENM",
-                    "REPETITION_TX_FAIL",
-                    "repetition transmission failed");
-
-                return;
+                    "REPETITION_OK",
+                    "action_seq=" +
+                    std::to_string(
+                        generation.denmInput
+                            .actionId
+                            .sequenceNumber) +
+                    " repetition_index=" +
+                    std::to_string(
+                        scheduledEvent->repetitionPolicy
+                            .RepetitionCount()) +
+                    " event_id=" +
+                    scheduledEvent->triggerRequest.eventId);
             }
-
-            scheduledEvent.repetitionPolicy.Consume(
-                nowUs);
-
-            V2XWriteLog(
-                ctx,
-                V2XLogLevel::INFO,
-                "DENM",
-                "REPETITION_OK",
-                "action_seq=" +
-                std::to_string(
-                    generation.denmInput
-                        .actionId
-                        .sequenceNumber) +
-                " repetition_index=" +
-                std::to_string(
-                    scheduledEvent.repetitionPolicy
-                        .RepetitionCount()));
         });
 }
 
@@ -398,8 +833,17 @@ DenmScheduler::RunInterval()
 void
 DenmScheduler::Reset()
 {
-    g_events.clear();
+    g_events.Clear();
     g_lifecycle.Reset();
+    g_transmissionContextObserver =
+        TransmissionContextObserver{};
+}
+
+void
+DenmScheduler::SetCompatibilityFallbackEnabled(
+    bool enabled)
+{
+    g_compatibilityFallbackEnabled = enabled;
 }
 
 } // namespace ns3

@@ -144,6 +144,9 @@ add_library(vanetza_denm_obj OBJECT
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/denm/service/denm_service.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/denm/sender/denm_sender.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/denm/scheduler/denm_scheduler.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/denm/scenario/denm_scenario_event_source.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/denm/scenario/sumo_denm_event_parser.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/denm/scenario/denm_scenario_event_source.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/denm/scheduler/denm_repetition_policy.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/denm/rx/denm_rx_pipeline.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/denm/replay/denm_replay_protection.cc
@@ -184,7 +187,7 @@ function(create_scratch source_files)
     foreach(source_file ${source_files})
         file(READ ${source_file} content)
 
-        if(content MATCHES "int[ \t]*main[ \t]*\\(")
+        if(content MATCHES "int[ \t\r\n]*main[ \t\r\n]*\\(")
             list(APPEND valid_sources ${source_file})
         endif()
     endforeach()

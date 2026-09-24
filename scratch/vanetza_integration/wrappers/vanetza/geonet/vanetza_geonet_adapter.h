@@ -85,6 +85,9 @@ namespace ns3 {
 
             bool SynchronizeTimeAndPosition();
 
+            // Rotate the active DENM credential of the vehicle.
+            bool RotateDenmCredential();
+
             const GeoNetMid& LocalMid() const;
 
         private:

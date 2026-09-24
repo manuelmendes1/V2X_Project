@@ -6,12 +6,14 @@
 #include <netinet/in.h>
 
 #include "vanetza_integration/context/vehicle_state.h"
+#include "vanetza_integration/denm/scenario/denm_scenario_event_source.h"
 
 class SumoAdapter{
 
 public:
 
     using VehicleUpdateCallback = std::function<void(const ns3::VehicleState&)>;
+    using DenmEventCallback = std::function<void(const ns3::DenmScenarioEvent&)>;
 
     // =====================================================
     // Lifecycle
@@ -30,6 +32,7 @@ public:
     static void SendToSumo(const ns3::VehicleState& vehicle);
 
     static void SetVehicleUpdateCallback(VehicleUpdateCallback callback);
+    static void SetDenmEventCallback(DenmEventCallback callback);
 
 private:
 
@@ -44,6 +47,7 @@ private:
     static sockaddr_in m_sumoAddr;
 
     static VehicleUpdateCallback m_vehicleCallback;
+    static DenmEventCallback m_denmEventCallback;
 
 
 };

@@ -84,6 +84,22 @@ VanetzaRuntime::~VanetzaRuntime()
 
 
 //=============================================================================
+// DENM credential rotation
+//=============================================================================
+
+bool
+VanetzaRuntime::RotateDenmCredential()
+{
+    if (!m_initialized || !m_geonet)
+    {
+        return false;
+    }
+
+    return m_geonet->RotateDenmCredential();
+}
+
+
+//=============================================================================
 // Initialize
 //=============================================================================
 

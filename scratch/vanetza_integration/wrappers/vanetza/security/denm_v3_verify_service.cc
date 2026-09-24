@@ -8,6 +8,7 @@
 #include <vanetza/security/verify_service.hpp>
 #include <vanetza/security/v3/certificate_cache.hpp>
 #include <vanetza/security/v3/certificate_validator.hpp>
+#include <vanetza/security/v3/secured_message.hpp>
 
 #include <ns3/log.h>
 
@@ -156,9 +157,49 @@ DenmV3VerifyService::verify(
     // Real ETSI Security V3 verification.
     //----------------------------------------------------------------------
     if (aid == 37)
+{
+    struct SignerDiagnosticVisitor
     {
-        auto confirm =
-            m_impl->realVerifier->verify(request);
+        using result_type = void;
+
+        void operator()(
+            const vanetza::security::v2::SecuredMessage&) const
+        {
+            NS_LOG_UNCOND(
+                "[DENM_V3_SIGNER] ERROR unexpected_v2_message");
+        }
+
+        void operator()(
+            const vanetza::security::v3::SecuredMessage& message) const
+        {
+            const auto signer_identifier =
+                message.signer_identifier();
+
+            const bool hasCertificate =
+                vanetza::security::v3::contains_certificate(
+                    signer_identifier);
+
+            const auto certificateId =
+                vanetza::security::v3::get_certificate_id(
+                    signer_identifier);
+
+            NS_LOG_UNCOND(
+                "[DENM_V3_SIGNER] "
+                "contains_certificate="
+                << (hasCertificate ? 1 : 0)
+                << " "
+                "certificate_id="
+                << (certificateId ? 1 : 0));
+        }
+    };
+
+    SignerDiagnosticVisitor signerVisitor;
+    request.secured_message.apply_visitor(signerVisitor);
+
+    auto confirm =
+        m_impl->realVerifier->verify(request);
+
+    // resto do código permanece igual
 
         PacketContext* ctx =
             RxBridgeContext::Current();

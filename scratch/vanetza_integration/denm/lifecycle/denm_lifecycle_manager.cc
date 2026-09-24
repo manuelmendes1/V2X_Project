@@ -2,26 +2,9 @@
 
 #include "vanetza_integration/denm/action/denm_action_id_manager.h"
 
-#include <functional>
 
 namespace ns3
 {
-
-std::size_t
-DenmLifecycleManager::EventKeyHash::operator()(
-    const EventKey& key) const noexcept
-{
-    const std::size_t vehicleHash =
-        std::hash<std::string>{}(key.vehicleId);
-
-    const std::size_t eventHash =
-        std::hash<std::string>{}(key.eventId);
-
-    return vehicleHash ^
-           (eventHash + 0x9e3779b9u +
-            (vehicleHash << 6) +
-            (vehicleHash >> 2));
-}
 
 bool
 DenmLifecycleManager::Process(
@@ -56,7 +39,7 @@ DenmLifecycleManager::Process(
         return false;
     }
 
-    const EventKey key{
+    const DenmEventId key{
         request.vehicleId,
         request.eventId};
 
@@ -206,7 +189,7 @@ DenmLifecycleManager::Repeat(
         return false;
     }
 
-    const EventKey key{
+    const DenmEventId key{
         vehicleId,
         eventId};
 
@@ -247,7 +230,7 @@ DenmLifecycleManager::Abort(
     const std::string& vehicleId,
     const std::string& eventId)
 {
-    const EventKey key{
+    const DenmEventId key{
         vehicleId,
         eventId};
 
@@ -280,7 +263,7 @@ DenmLifecycleManager::GetActionId(
     const std::string& eventId,
     DenmActionId& actionId) const
 {
-    const EventKey key{
+    const DenmEventId key{
         vehicleId,
         eventId};
 

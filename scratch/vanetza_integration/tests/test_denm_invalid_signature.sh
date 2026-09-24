@@ -9,9 +9,11 @@ BRIDGE_SCRIPT="v2x_bridge_15.py"
 
 cd "$ROOT" || exit 1
 
-export V2X_DENM_PKI_DIR="$HOME/vanetza-pki-lab/validation-denm-pki"
+unset V2X_DENM_PKI_DIR
 export V2X_DENM_TAMPER=1
 unset V2X_DENM_DUPLICATE
+
+DENM_PKI_DIR="$HOME/vanetza-pki-lab/validation-denm-pki"
 
 if ! command -v python3 >/dev/null 2>&1; then
     echo "FAIL: python3 is not available"
@@ -36,6 +38,7 @@ fi
 ./build/scratch_v2x_sumo \
     --enableDenm=1 \
     --denmRadius=1000 \
+    --denmPkiDir="$DENM_PKI_DIR" \
     --simDuration="${V2X_TEST_SIM_DURATION:-60}" \
     > "$LOG" 2>&1 &
 

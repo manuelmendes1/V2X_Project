@@ -46,6 +46,11 @@ namespace ns3 {
 
         std::unique_ptr<vanetza::ManualRuntime> runtime;
         std::unique_ptr<vanetza::security::SecurityEntity> securityEntity;
+
+        // Non-owning pointer to the real DENM signer. Ownership remains with
+        // DelegatingSecurityEntity after the SignService unique_ptr is moved.
+        DenmV3SignService* denmSigner = nullptr;
+
         std::unique_ptr<vanetza::geonet::MIB> mib;
         std::unique_ptr<vanetza::geonet::Router> router;
 
@@ -97,17 +102,44 @@ namespace ns3 {
 
         std::unique_ptr<vanetza::security::SignService> signService;
 
-        if (!m_impl->vehicle.security.certFile.empty() && !m_impl->vehicle.security.keyFile.empty()){
+        if (!m_impl->vehicle.security.certFile.empty() &&
+            !m_impl->vehicle.security.keyFile.empty())
+        {
+            auto realDenmSigner =
+                std::make_unique<DenmV3SignService>(
+                    *m_impl->runtime,
+                    *m_impl->position,
+                    m_impl->vehicle.security.certFile,
+                    m_impl->vehicle.security.keyFile);
 
-            signService = std::make_unique<DenmV3SignService>(*m_impl->runtime, *m_impl->position, m_impl->vehicle.security.certFile, m_impl->vehicle.security.keyFile);
+            // Keep a non-owning reference before transferring ownership to
+            // DelegatingSecurityEntity.
+            m_impl->denmSigner =
+                realDenmSigner.get();
 
-            NS_LOG_UNCOND("[SECURITY] DENM V3 signer=REAL " << "veh=" << m_impl->vehicle.identity.vehId << " cert=" << m_impl->vehicle.security.certFile);
-        
-        }else{
+            signService =
+                std::move(realDenmSigner);
 
-            signService = std::make_unique<vanetza::security::v3::DummySignService>(*m_impl->runtime);
+            NS_LOG_UNCOND(
+                "[SECURITY] DENM V3 signer=REAL "
+                << "veh="
+                << m_impl->vehicle.identity.vehId
+                << " cert="
+                << m_impl->vehicle.security.certFile);
+        }
+        else
+        {
+            m_impl->denmSigner = nullptr;
 
-            NS_LOG_UNCOND("[SECURITY] DENM V3 signer=DUMMY " << "veh=" << m_impl->vehicle.identity.vehId);
+            signService =
+                std::make_unique<
+                    vanetza::security::v3::DummySignService>(
+                    *m_impl->runtime);
+
+            NS_LOG_UNCOND(
+                "[SECURITY] DENM V3 signer=DUMMY "
+                << "veh="
+                << m_impl->vehicle.identity.vehId);
         }
 
         auto verifyService =
@@ -234,6 +266,11 @@ namespace ns3 {
         m_impl->access.reset();
         m_impl->router.reset();
         m_impl->securityEntity.reset();
+
+        // DelegatingSecurityEntity owns the real DENM signer.
+        // The cached pointer is therefore invalid after securityEntity.reset().
+        m_impl->denmSigner = nullptr;
+
         m_impl->position.reset();
         m_impl->mib.reset();
         m_impl->runtime.reset();
@@ -741,6 +778,44 @@ const GeoNetMid&
 VanetzaGeoNetAdapter::LocalMid() const
 {
     return m_impl->localMid;
+}
+
+bool
+VanetzaGeoNetAdapter::RotateDenmCredential()
+{
+    if (!m_impl || !m_impl->initialized || !m_impl->denmSigner)
+    {
+        return false;
+    }
+
+    auto& security =
+        m_impl->vehicle.security;
+
+    if (security.denmCredentials.empty())
+    {
+        return false;
+    }
+
+    const std::size_t nextIndex =
+        security.activeDenmCredentialIndex + 1;
+
+    if (nextIndex >= security.denmCredentials.size())
+    {
+        return false;
+    }
+
+    const DenmCredential& nextCredential =
+        security.denmCredentials[nextIndex];
+
+    // Apply the cryptographic credential first. The context index is changed
+    // only after the signer has accepted the new certificate/key pair.
+    if (!m_impl->denmSigner->SetActiveCredential(nextCredential))
+    {
+        return false;
+    }
+
+    return security.SetActiveDenmCredential(
+        nextIndex);
 }
 
 bool
