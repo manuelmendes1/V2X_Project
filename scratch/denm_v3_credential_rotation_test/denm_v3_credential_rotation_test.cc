@@ -1,4 +1,4 @@
-#include "vanetza_integration/context/vehicle_security/denm_credential.h"
+#include "vanetza_integration/context/vehicle_security/vehicle_credential.h"
 #include "vanetza_integration/wrappers/vanetza/security/denm_v3_sign_service.h"
 
 #include <vanetza/common/manual_runtime.hpp>
@@ -85,11 +85,11 @@ main()
         return 1;
     }
 
-    const ns3::DenmCredential credential000{
+    const ns3::VehicleCredential credential000{
         pkiDir + "/veh0-ticket-000.cert",
         pkiDir + "/veh0-ticket-000.pem"};
 
-    const ns3::DenmCredential credential001{
+    const ns3::VehicleCredential credential001{
         pkiDir + "/veh0-ticket-001.cert",
         pkiDir + "/veh0-ticket-001.pem"};
 
@@ -99,8 +99,7 @@ main()
     ns3::DenmV3SignService signer(
         runtime,
         position,
-        credential000.certFile,
-        credential000.keyFile);
+        credential000);
 
     bool ok = true;
 

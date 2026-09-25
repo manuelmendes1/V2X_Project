@@ -3,7 +3,7 @@
 #include <memory>
 #include <string>
 
-#include "vanetza_integration/context/vehicle_security/denm_credential.h"
+#include "vanetza_integration/context/vehicle_security/vehicle_credential.h"
 
 #include <vanetza/common/manual_runtime.hpp>
 #include <vanetza/common/position_provider.hpp>
@@ -26,11 +26,10 @@ public:
     DenmV3SignService(
         vanetza::ManualRuntime& runtime,
         vanetza::PositionProvider& position,
-        const std::string& certificateFile,
-        const std::string& privateKeyFile);
+        const VehicleCredential& credential);
 
     bool SetActiveCredential(
-        const DenmCredential& credential);
+        const VehicleCredential& credential);
 
     vanetza::security::SignConfirm sign(
         vanetza::security::SignRequest&& request) override;

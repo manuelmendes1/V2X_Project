@@ -339,3 +339,7 @@ Resultado consolidado:
 v2x_analyzer = 26 passed
 ETAPA 8.14 = PASS
 ```
+
+## P1 — Modelo Explícito VehicleCredential
+
+[[P1_Modelo_Explicito_VehicleCredential]]

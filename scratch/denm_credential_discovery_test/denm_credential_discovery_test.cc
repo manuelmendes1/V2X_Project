@@ -105,6 +105,42 @@ main()
         ok &= Check(
             credentials[2].keyFile.ends_with("veh0-ticket-002.pem"),
             "credential 002 uses matching private key");
+
+        ok &= Check(
+            credentials[0].credentialId == "veh0-ticket-000",
+            "credential 000 has explicit logical identifier");
+
+        ok &= Check(
+            credentials[1].credentialId == "veh0-ticket-001",
+            "credential 001 has explicit logical identifier");
+
+        ok &= Check(
+            credentials[2].credentialId == "veh0-ticket-002",
+            "credential 002 has explicit logical identifier");
+
+        ok &= Check(
+            credentials[0].vehicleId == "veh0",
+            "credential 000 is explicitly bound to veh0");
+
+        ok &= Check(
+            credentials[1].vehicleId == "veh0",
+            "credential 001 is explicitly bound to veh0");
+
+        ok &= Check(
+            credentials[2].vehicleId == "veh0",
+            "credential 002 is explicitly bound to veh0");
+
+        ok &= Check(
+            credentials[0].sequence == 0,
+            "credential 000 carries sequence 0");
+
+        ok &= Check(
+            credentials[1].sequence == 1,
+            "credential 001 carries sequence 1");
+
+        ok &= Check(
+            credentials[2].sequence == 2,
+            "credential 002 carries sequence 2");
     }
 
 

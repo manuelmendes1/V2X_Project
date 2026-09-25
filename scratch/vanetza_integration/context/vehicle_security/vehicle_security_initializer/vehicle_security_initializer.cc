@@ -20,7 +20,7 @@ std::string g_denmPkiDirectory;
 struct CredentialCandidate
 {
     uint64_t sequence = 0;
-    DenmCredential credential;
+    VehicleCredential credential;
 };
 
 bool
@@ -40,7 +40,7 @@ VehicleSecurityInitializer::SetDenmPkiDirectory(
     g_denmPkiDirectory = directory;
 }
 
-std::vector<DenmCredential>
+std::vector<VehicleCredential>
 VehicleSecurityInitializer::DiscoverDenmCredentials(
     const std::string& directory,
     const std::string& vehId)
@@ -109,7 +109,10 @@ VehicleSecurityInitializer::DiscoverDenmCredentials(
         candidates.push_back(
             {
                 sequence,
-                {
+                VehicleCredential{
+                    vehId + "-ticket-" + match[1].str(),
+                    vehId,
+                    sequence,
                     certPath.string(),
                     keyPath.string()
                 }
@@ -133,7 +136,7 @@ VehicleSecurityInitializer::DiscoverDenmCredentials(
 
     if (!candidates.empty())
     {
-        std::vector<DenmCredential> credentials;
+        std::vector<VehicleCredential> credentials;
 
         credentials.reserve(candidates.size());
 
@@ -157,7 +160,10 @@ VehicleSecurityInitializer::DiscoverDenmCredentials(
         IsRegularFile(legacyKey))
     {
         return {
-            {
+            VehicleCredential{
+                vehId + "-ticket",
+                vehId,
+                0,
                 legacyCert.string(),
                 legacyKey.string()
             }

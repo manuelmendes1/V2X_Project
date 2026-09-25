@@ -105,12 +105,28 @@ namespace ns3 {
         if (!m_impl->vehicle.security.certFile.empty() &&
             !m_impl->vehicle.security.keyFile.empty())
         {
+            const auto& security =
+                m_impl->vehicle.security;
+
+            if (security.denmCredentials.empty() ||
+                security.activeDenmCredentialIndex >=
+                    security.denmCredentials.size())
+            {
+                NS_LOG_UNCOND(
+                    "[SECURITY] DENM V3 signer unavailable "
+                    "due to missing active credential");
+                return false;
+            }
+
+            const VehicleCredential& activeCredential =
+                security.denmCredentials[
+                    security.activeDenmCredentialIndex];
+
             auto realDenmSigner =
                 std::make_unique<DenmV3SignService>(
                     *m_impl->runtime,
                     *m_impl->position,
-                    m_impl->vehicle.security.certFile,
-                    m_impl->vehicle.security.keyFile);
+                    activeCredential);
 
             // Keep a non-owning reference before transferring ownership to
             // DelegatingSecurityEntity.
@@ -804,7 +820,7 @@ VanetzaGeoNetAdapter::RotateDenmCredential()
         return false;
     }
 
-    const DenmCredential& nextCredential =
+    const VehicleCredential& nextCredential =
         security.denmCredentials[nextIndex];
 
     // Apply the cryptographic credential first. The context index is changed

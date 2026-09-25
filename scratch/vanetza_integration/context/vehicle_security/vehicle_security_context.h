@@ -7,7 +7,7 @@
 #include <openssl/evp.h>
 #include <openssl/x509.h>
 
-#include "vanetza_integration/context/vehicle_security/denm_credential.h"
+#include "vanetza_integration/context/vehicle_security/vehicle_credential.h"
 #include "vanetza_integration/context/vehicle_security/replay/replay_context.h"
 #include "vanetza_integration/denm/replay/denm_replay_context.h"
 
@@ -45,7 +45,7 @@ struct VehicleSecurityContext
     std::string keyFile;
 
     // DENM credential pool discovered for this vehicle.
-    std::vector<DenmCredential> denmCredentials;
+    std::vector<VehicleCredential> denmCredentials;
 
     // Initial/active credential used by the current DENM signer.
     std::size_t activeDenmCredentialIndex = 0;

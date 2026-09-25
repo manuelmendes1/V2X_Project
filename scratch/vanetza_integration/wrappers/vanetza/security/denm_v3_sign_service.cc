@@ -50,8 +50,7 @@ namespace ns3 {
     DenmV3SignService::DenmV3SignService(
         vanetza::ManualRuntime& runtime,
         vanetza::PositionProvider& position,
-        const std::string& certificateFile,
-        const std::string& privateKeyFile)
+        const VehicleCredential& credential)
     :
         m_backend(
             vanetza::security::create_backend("default")),
@@ -82,10 +81,7 @@ namespace ns3 {
         // DENM location restriction is not used by this local ECC test PKI.
         m_certificateValidator.disable_location_checks(true);
 
-        if (!SetActiveCredential(
-                DenmCredential{
-                    certificateFile,
-                    privateKeyFile}))
+        if (!SetActiveCredential(credential))
         {
             throw std::runtime_error(
                 "Unable to initialize DENM V3 signer credential");
@@ -95,7 +91,7 @@ namespace ns3 {
 
     bool
     DenmV3SignService::SetActiveCredential(
-        const DenmCredential& credential)
+        const VehicleCredential& credential)
     {
         if (credential.certFile.empty() ||
             credential.keyFile.empty())

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vanetza_integration/context/vehicle_security/denm_credential.h"
+#include "vanetza_integration/context/vehicle_security/vehicle_credential.h"
 #include "vanetza_integration/context/vehicle_state.h"
 
 #include <string>
@@ -14,7 +14,7 @@ class VehicleSecurityInitializer
 public:
     static void SetDenmPkiDirectory(const std::string& directory);
 
-    static std::vector<DenmCredential>
+    static std::vector<VehicleCredential>
     DiscoverDenmCredentials(
         const std::string& directory,
         const std::string& vehId);
