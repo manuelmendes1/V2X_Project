@@ -97,7 +97,13 @@ main()
         pkiDir + "/veh0-ticket-000.cert",
         pkiDir + "/veh0-ticket-001.pem"};
 
-    vanetza::ManualRuntime runtime;
+    // The DENM test PKI starts at 2026-09-24 10:01:32 UTC.
+    // The signer now enforces certificate temporal validity, so the
+    // test runtime must start inside the credential validity window.
+    const auto itsStartTime =
+        vanetza::Clock::at("2026-09-24 10:01:32");
+
+    vanetza::ManualRuntime runtime(itsStartTime);
     TestPositionProvider position;
 
     ns3::DenmV3SignService signer(

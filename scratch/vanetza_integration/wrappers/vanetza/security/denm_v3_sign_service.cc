@@ -70,14 +70,9 @@ namespace ns3 {
                 "Unable to create Vanetza crypto backend");
         }
 
-        // ----------------------------------------------------------------------
-        // Current ns-3 simulation time starts at zero, while the external
-        // certificate has real-world validity dates.
-        //
-        // Do not disable this permanently. This is only the first integration
-        // stage; simulation-time ↔ ITS certificate time mapping comes later.
-        // ----------------------------------------------------------------------
-        m_certificateValidator.disable_time_checks(true);
+        // Certificate temporal validity is evaluated against the same
+        // deterministic Vanetza ManualRuntime used by the DENM signer.
+        m_certificateValidator.use_runtime(&m_runtime);
 
         // DENM location restriction is not used by this local ECC test PKI.
         m_certificateValidator.disable_location_checks(true);

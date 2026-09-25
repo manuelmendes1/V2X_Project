@@ -9,6 +9,7 @@
 
 #include "vanetza_integration/rx/rx_callback/rx_callback.h"
 #include "vanetza_integration/context/simulation_controller/simulation_controller.h"
+#include "vanetza_integration/context/simulation_context/simulation_context.h"
 #include "vanetza_integration/context/vehicle_factory/vehicle_factory.h"
 #include "vanetza_integration/sumo_adapter/sumo_adapter.h"
 
@@ -30,6 +31,8 @@ int main(int argc, char* argv[]) {
     double denmRadiusMeters = 1000.0;
 
     std::string denmPkiDir;
+
+    std::string itsStartTime;
 
     CommandLine cmd;
 
@@ -53,7 +56,15 @@ int main(int argc, char* argv[]) {
         "Diretorio contendo os certificados e chaves ETSI ITS Security V3 para DENM",
         denmPkiDir);
 
+    cmd.AddValue(
+        "itsStartTime",
+        "Tempo absoluto inicial do dominio temporal ITS "
+        "(ISO-8601, por exemplo 2026-09-24T10:01:32)",
+        itsStartTime);
+
     cmd.Parse(argc, argv);
+
+    SimulationContext::itsStartTime = itsStartTime;
 
     YansWifiChannelHelper ch;
 

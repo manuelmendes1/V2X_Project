@@ -33,6 +33,8 @@
 #include <ns3/log.h>
 #include <ns3/simulator.h>
 
+#include "vanetza_integration/context/simulation_context/simulation_context.h"
+
 #include <chrono>
 #include <stdexcept>
 #include <utility>
@@ -45,6 +47,7 @@ namespace ns3 {
         VehicleState& vehicle;
 
         std::unique_ptr<vanetza::ManualRuntime> runtime;
+        vanetza::Clock::time_point itsStartTime{};
         std::unique_ptr<vanetza::security::SecurityEntity> securityEntity;
 
         // Non-owning pointer to the real DENM signer. Ownership remains with
@@ -80,9 +83,62 @@ namespace ns3 {
 
         //=====================================================================
         // Manual runtime
+        //
+        // The Vanetza clock is an absolute ITS time domain. ns-3 time is
+        // relative to simulation start, therefore the configured ITS start
+        // time must be the runtime epoch.
         //=====================================================================
 
-        m_impl->runtime = std::make_unique<vanetza::ManualRuntime>();
+        const bool hasRealDenmCredential =
+            !m_impl->vehicle.security.certFile.empty() &&
+            !m_impl->vehicle.security.keyFile.empty();
+
+        if (hasRealDenmCredential &&
+            SimulationContext::itsStartTime.empty())
+        {
+            NS_LOG_UNCOND(
+                "[SECURITY] DENM V3 signer requires "
+                "--itsStartTime to enable certificate time validation");
+            return false;
+        }
+
+        if (!SimulationContext::itsStartTime.empty())
+        {
+            try
+            {
+                std::string normalizedItsStartTime = SimulationContext::itsStartTime;
+
+                const auto separator = normalizedItsStartTime.find('T');
+                if (separator != std::string::npos)
+                {
+                    normalizedItsStartTime[separator] = ' ';
+                }
+
+                try
+                {
+                    m_impl->itsStartTime =
+                        vanetza::Clock::at(normalizedItsStartTime);
+                }
+                catch (...)
+                {
+                    NS_LOG_UNCOND(
+                        "[SECURITY] invalid ITS start time: "
+                        << SimulationContext::itsStartTime);
+                    return false;
+                }
+            }
+            catch (...)
+            {
+                NS_LOG_UNCOND(
+                    "[SECURITY] invalid ITS start time: "
+                    << SimulationContext::itsStartTime);
+                return false;
+            }
+        }
+
+        m_impl->runtime =
+            std::make_unique<vanetza::ManualRuntime>(
+                m_impl->itsStartTime);
 
         //=====================================================================
         // Position provider
@@ -861,11 +917,13 @@ VanetzaGeoNetAdapter::SynchronizeTimeAndPosition()
         return false;
     }
 
+    const auto simulationOffset =
+        std::chrono::microseconds(
+            static_cast<vanetza::Clock::rep>(
+                Simulator::Now().GetMicroSeconds()));
+
     const auto now =
-        vanetza::Clock::time_point(
-            std::chrono::microseconds(
-                static_cast<vanetza::Clock::rep>(
-                    Simulator::Now().GetMicroSeconds())));
+        m_impl->itsStartTime + simulationOffset;
 
     if (now > m_impl->runtime->now())
     {

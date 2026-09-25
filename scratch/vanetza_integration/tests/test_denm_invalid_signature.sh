@@ -14,6 +14,7 @@ export V2X_DENM_TAMPER=1
 unset V2X_DENM_DUPLICATE
 
 DENM_PKI_DIR="$HOME/vanetza-pki-lab/validation-denm-pki"
+DENM_ITS_START_TIME="${V2X_TEST_ITS_START_TIME:-2026-09-24T13:38:21}"
 
 if ! command -v python3 >/dev/null 2>&1; then
     echo "FAIL: python3 is not available"
@@ -39,6 +40,7 @@ fi
     --enableDenm=1 \
     --denmRadius=1000 \
     --denmPkiDir="$DENM_PKI_DIR" \
+    --itsStartTime="$DENM_ITS_START_TIME" \
     --simDuration="${V2X_TEST_SIM_DURATION:-60}" \
     > "$LOG" 2>&1 &
 
