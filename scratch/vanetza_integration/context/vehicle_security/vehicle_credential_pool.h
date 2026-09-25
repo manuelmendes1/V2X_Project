@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vanetza_integration/context/vehicle_security/vehicle_credential.h"
+#include "vanetza_integration/context/vehicle_security/active_credential_provider.h"
 
 #include <cstddef>
 #include <utility>
@@ -19,7 +19,7 @@ namespace ns3
 // objects. Credential discovery and cryptographic material remain outside this
 // type.
 // ============================================================================
-class VehicleCredentialPool
+class VehicleCredentialPool : public ActiveCredentialProvider
 {
 public:
     VehicleCredentialPool() = default;
@@ -34,7 +34,7 @@ public:
         return m_credentials.size();
     }
 
-    const VehicleCredential* GetActiveCredential() const
+    const VehicleCredential* GetActiveCredential() const override
     {
         if (m_credentials.empty() ||
             m_activeIndex >= m_credentials.size())
