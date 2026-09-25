@@ -71,7 +71,7 @@ int
 main()
 {
     std::cout
-        << "===== DENM V3 CREDENTIAL ROTATION RED TEST =====\n";
+        << "===== DENM V3 CREDENTIAL ROTATION TEST =====\n";
 
     const std::string pkiDir =
         ns3::denm_test::ResolveDenmPkiDirectory();
@@ -91,6 +91,10 @@ main()
 
     const ns3::VehicleCredential credential001{
         pkiDir + "/veh0-ticket-001.cert",
+        pkiDir + "/veh0-ticket-001.pem"};
+
+    const ns3::VehicleCredential credentialMismatch{
+        pkiDir + "/veh0-ticket-000.cert",
         pkiDir + "/veh0-ticket-001.pem"};
 
     vanetza::ManualRuntime runtime;
@@ -136,6 +140,53 @@ main()
                 static_cast<bool>(firstCertificateId),
                 "first signature exposes certificate identity");
         }
+    }
+
+    // ------------------------------------------------------------
+    // Invalid binding must be rejected without replacing the
+    // currently active signer.
+    // ------------------------------------------------------------
+    ok &= Check(
+        !signer.SetActiveCredential(credentialMismatch),
+        "certificate/private key mismatch is rejected");
+
+    auto preservedConfirm =
+        signer.sign(MakeDenmSignRequest());
+
+    ok &= Check(
+        static_cast<bool>(preservedConfirm.secured_message),
+        "DENM signature still succeeds after rejected credential");
+
+    boost::optional<vanetza::security::HashedId8>
+        preservedCertificateId;
+
+    if (preservedConfirm.secured_message)
+    {
+        const auto* preservedV3Message =
+            boost::get<vanetza::security::v3::SecuredMessage>(
+                &*preservedConfirm.secured_message);
+
+        ok &= Check(
+            preservedV3Message != nullptr,
+            "rejected credential leaves a V3 signer active");
+
+        if (preservedV3Message != nullptr)
+        {
+            preservedCertificateId =
+                vanetza::security::v3::get_certificate_id(
+                    preservedV3Message->signer_identifier());
+
+            ok &= Check(
+                static_cast<bool>(preservedCertificateId),
+                "preserved signature exposes certificate identity");
+        }
+    }
+
+    if (firstCertificateId && preservedCertificateId)
+    {
+        ok &= Check(
+            *firstCertificateId == *preservedCertificateId,
+            "rejected credential preserves the previous signer certificate");
     }
 
     // ------------------------------------------------------------

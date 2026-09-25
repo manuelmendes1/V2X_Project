@@ -1,4 +1,5 @@
 #include "denm_v3_sign_service.h"
+#include "vanetza_integration/context/vehicle_security/vehicle_credential_binding_validator.h"
 #include "vanetza_integration/context/tx_bridge/tx_bridge_context.h"
 #include "vanetza_integration/core/v2x_log.h"
 
@@ -93,8 +94,7 @@ namespace ns3 {
     DenmV3SignService::SetActiveCredential(
         const VehicleCredential& credential)
     {
-        if (credential.certFile.empty() ||
-            credential.keyFile.empty())
+        if (!VehicleCredentialBindingValidator::Validate(credential))
         {
             return false;
         }
