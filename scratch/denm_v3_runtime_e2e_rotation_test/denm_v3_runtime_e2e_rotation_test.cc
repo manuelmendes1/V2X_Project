@@ -19,6 +19,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include "vanetza_integration/tests/denm_test_pki.h"
 
 namespace
 {
@@ -167,21 +168,22 @@ main()
     std::cout
         << "===== DENM V3 RUNTIME E2E CREDENTIAL ROTATION TEST =====\n";
 
-    const char* pkiEnv =
-        std::getenv("DENM_TEST_PKI_DIR");
+    const std::string pkiDir =
+        ns3::denm_test::ResolveDenmPkiDirectory();
 
-    if (pkiEnv == nullptr ||
-        std::string(pkiEnv).empty())
+    if (pkiDir.empty())
     {
         std::cerr
-            << "FAIL DENM_TEST_PKI_DIR is not set\n";
+            << "FAIL DENM test PKI directory is unavailable; "
+               "set DENM_TEST_PKI_DIR or provide "
+               "$HOME/vanetza-pki-lab/validation-denm-pki\n";
         return 1;
     }
 
     bool ok = true;
 
     ns3::VehicleSecurityInitializer::SetDenmPkiDirectory(
-        pkiEnv);
+        pkiDir);
 
     ns3::DenmLifecycleManager lifecycle;
 

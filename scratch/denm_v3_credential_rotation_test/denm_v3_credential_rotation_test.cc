@@ -12,6 +12,7 @@
 
 #include <iostream>
 #include <string>
+#include "vanetza_integration/tests/denm_test_pki.h"
 
 namespace
 {
@@ -72,23 +73,25 @@ main()
     std::cout
         << "===== DENM V3 CREDENTIAL ROTATION RED TEST =====\n";
 
-    const char* pkiEnv =
-        std::getenv("DENM_TEST_PKI_DIR");
+    const std::string pkiDir =
+        ns3::denm_test::ResolveDenmPkiDirectory();
 
-    if (pkiEnv == nullptr || std::string(pkiEnv).empty())
+    if (pkiDir.empty())
     {
         std::cerr
-            << "FAIL DENM_TEST_PKI_DIR is not set\n";
+            << "FAIL DENM test PKI directory is unavailable; "
+               "set DENM_TEST_PKI_DIR or provide "
+               "$HOME/vanetza-pki-lab/validation-denm-pki\n";
         return 1;
     }
 
     const ns3::DenmCredential credential000{
-        pkiEnv + "/veh0-ticket-000.cert",
-        pkiEnv + "/veh0-ticket-000.pem"};
+        pkiDir + "/veh0-ticket-000.cert",
+        pkiDir + "/veh0-ticket-000.pem"};
 
     const ns3::DenmCredential credential001{
-        pkiEnv + "/veh0-ticket-001.cert",
-        pkiEnv + "/veh0-ticket-001.pem"};
+        pkiDir + "/veh0-ticket-001.cert",
+        pkiDir + "/veh0-ticket-001.pem"};
 
     vanetza::ManualRuntime runtime;
     TestPositionProvider position;
