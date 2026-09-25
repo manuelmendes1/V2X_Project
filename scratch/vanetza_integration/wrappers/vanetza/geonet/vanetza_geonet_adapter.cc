@@ -108,9 +108,10 @@ namespace ns3 {
             const auto& security =
                 m_impl->vehicle.security;
 
-            if (security.denmCredentials.empty() ||
-                security.activeDenmCredentialIndex >=
-                    security.denmCredentials.size())
+            const VehicleCredential* activeCredential =
+                security.denmCredentialPool.GetActiveCredential();
+
+            if (activeCredential == nullptr)
             {
                 NS_LOG_UNCOND(
                     "[SECURITY] DENM V3 signer unavailable "
@@ -118,15 +119,11 @@ namespace ns3 {
                 return false;
             }
 
-            const VehicleCredential& activeCredential =
-                security.denmCredentials[
-                    security.activeDenmCredentialIndex];
-
             auto realDenmSigner =
                 std::make_unique<DenmV3SignService>(
                     *m_impl->runtime,
                     *m_impl->position,
-                    activeCredential);
+                    *activeCredential);
 
             // Keep a non-owning reference before transferring ownership to
             // DelegatingSecurityEntity.
@@ -799,39 +796,58 @@ VanetzaGeoNetAdapter::LocalMid() const
 bool
 VanetzaGeoNetAdapter::RotateDenmCredential()
 {
-    if (!m_impl || !m_impl->initialized || !m_impl->denmSigner)
-    {
-        return false;
-    }
-
     auto& security =
         m_impl->vehicle.security;
 
-    if (security.denmCredentials.empty())
+    if (m_impl->denmSigner == nullptr)
     {
         return false;
     }
+
+    if (security.denmCredentialPool.Empty())
+    {
+        return false;
+    }
+
+    const std::size_t currentIndex =
+        security.denmCredentialPool.GetActiveCredentialIndex();
 
     const std::size_t nextIndex =
-        security.activeDenmCredentialIndex + 1;
+        currentIndex + 1;
 
-    if (nextIndex >= security.denmCredentials.size())
+    const VehicleCredential* currentCredential =
+        security.denmCredentialPool.GetCredential(currentIndex);
+
+    const VehicleCredential* nextCredential =
+        security.denmCredentialPool.GetCredential(nextIndex);
+
+    if (currentCredential == nullptr ||
+        nextCredential == nullptr)
     {
         return false;
     }
 
-    const VehicleCredential& nextCredential =
-        security.denmCredentials[nextIndex];
-
-    // Apply the cryptographic credential first. The context index is changed
-    // only after the signer has accepted the new certificate/key pair.
-    if (!m_impl->denmSigner->SetActiveCredential(nextCredential))
+    // Update the real V3 signer first. The signer implementation builds and
+    // validates all replacement cryptographic objects before replacing the
+    // currently active signer.
+    if (!m_impl->denmSigner->SetActiveCredential(
+            *nextCredential))
     {
         return false;
     }
 
-    return security.SetActiveDenmCredential(
-        nextIndex);
+    // The index is already validated against the same pool above, so this
+    // should succeed. Keep an explicit rollback in case the context rejects
+    // the transition for any future reason.
+    if (!security.SetActiveDenmCredential(nextIndex))
+    {
+        m_impl->denmSigner->SetActiveCredential(
+            *currentCredential);
+
+        return false;
+    }
+
+    return true;
 }
 
 bool

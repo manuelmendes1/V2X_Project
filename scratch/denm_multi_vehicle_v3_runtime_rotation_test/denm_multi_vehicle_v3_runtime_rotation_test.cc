@@ -241,11 +241,11 @@ main()
             vehicleId + " runtime initialized");
 
         ok &= Check(
-            vehicle->security.denmCredentials.size() == 3,
+            vehicle->security.denmCredentialPool.Size() == 3,
             vehicleId + " owns exactly three DENM credentials");
 
         ok &= Check(
-            vehicle->security.activeDenmCredentialIndex == 0,
+            vehicle->security.denmCredentialPool.GetActiveCredentialIndex() == 0,
             vehicleId + " starts at credential 000");
 
         ok &= Check(
@@ -306,7 +306,7 @@ main()
                         " rotates 000 -> 001");
 
                 ok &= Check(
-                    vehicles[i]->security.activeDenmCredentialIndex == 1,
+                    vehicles[i]->security.denmCredentialPool.GetActiveCredentialIndex() == 1,
                     vehicleIds[i] +
                         " active credential index is 001");
 
@@ -363,7 +363,7 @@ main()
                         " rotates 001 -> 002");
 
                 ok &= Check(
-                    vehicles[i]->security.activeDenmCredentialIndex == 2,
+                    vehicles[i]->security.denmCredentialPool.GetActiveCredentialIndex() == 2,
                     vehicleIds[i] +
                         " active credential index is 002");
 

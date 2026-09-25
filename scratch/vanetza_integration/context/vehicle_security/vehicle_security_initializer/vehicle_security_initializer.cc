@@ -191,8 +191,7 @@ VehicleSecurityInitializer::Initialize(
 
     // Reset the DENM credential selection state so initialization is
     // deterministic even if a VehicleState is initialized again.
-    state.security.denmCredentials.clear();
-    state.security.activeDenmCredentialIndex = 0;
+    state.security.denmCredentialPool.SetCredentials({});
 
     // ----------------------------------------------------------------------
     // Real ETSI ITS Security V3 credential paths for DENM.
@@ -223,15 +222,15 @@ VehicleSecurityInitializer::Initialize(
 
         if (!credentials.empty())
         {
-            state.security.denmCredentials =
-                credentials;
+            state.security.denmCredentialPool.SetCredentials(
+                credentials);
 
             if (state.security.SetActiveDenmCredential(0))
             {
                 return;
             }
 
-            state.security.denmCredentials.clear();
+            state.security.denmCredentialPool.SetCredentials({});
         }
 
         // Preserve the previous explicit path contract even when

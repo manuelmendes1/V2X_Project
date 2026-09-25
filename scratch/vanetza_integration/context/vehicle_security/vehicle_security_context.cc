@@ -7,18 +7,21 @@ bool
 VehicleSecurityContext::SetActiveDenmCredential(
     std::size_t index)
 {
-    if (index >= denmCredentials.size())
+    if (!denmCredentialPool.Select(index))
     {
         return false;
     }
 
-    const auto& credential =
-        denmCredentials[index];
+    const auto* credential =
+        denmCredentialPool.GetActiveCredential();
 
-    activeDenmCredentialIndex = index;
+    if (credential == nullptr)
+    {
+        return false;
+    }
 
-    certFile = credential.certFile;
-    keyFile = credential.keyFile;
+    certFile = credential->certFile;
+    keyFile = credential->keyFile;
 
     return true;
 }
@@ -26,18 +29,23 @@ VehicleSecurityContext::SetActiveDenmCredential(
 bool
 VehicleSecurityContext::RotateToNextDenmCredential()
 {
-    if (denmCredentials.empty())
+    if (!denmCredentialPool.SelectNext())
     {
         return false;
     }
 
-    if (activeDenmCredentialIndex + 1 >= denmCredentials.size())
+    const auto* credential =
+        denmCredentialPool.GetActiveCredential();
+
+    if (credential == nullptr)
     {
         return false;
     }
 
-    return SetActiveDenmCredential(
-        activeDenmCredentialIndex + 1);
+    certFile = credential->certFile;
+    keyFile = credential->keyFile;
+
+    return true;
 }
 
 VehicleSecurityContext::~VehicleSecurityContext()

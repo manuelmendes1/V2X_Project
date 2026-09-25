@@ -77,11 +77,11 @@ main()
     bool ok = true;
 
     ok &= Check(
-        state.security.denmCredentials.size() == 3,
+        state.security.denmCredentialPool.Size() == 3,
         "three DENM credentials are available");
 
     ok &= Check(
-        state.security.activeDenmCredentialIndex == 0,
+        state.security.denmCredentialPool.GetActiveCredentialIndex() == 0,
         "credential 000 is active initially");
 
     ok &= Check(
@@ -93,7 +93,7 @@ main()
         "rotation from credential 000 to 001 succeeds");
 
     ok &= Check(
-        state.security.activeDenmCredentialIndex == 1,
+        state.security.denmCredentialPool.GetActiveCredentialIndex() == 1,
         "credential 001 becomes active");
 
     ok &= Check(
@@ -105,7 +105,7 @@ main()
         "rotation from credential 001 to 002 succeeds");
 
     ok &= Check(
-        state.security.activeDenmCredentialIndex == 2,
+        state.security.denmCredentialPool.GetActiveCredentialIndex() == 2,
         "credential 002 becomes active");
 
     ok &= Check(
@@ -117,7 +117,7 @@ main()
         "rotation beyond the credential pool is rejected");
 
     ok &= Check(
-        state.security.activeDenmCredentialIndex == 2,
+        state.security.denmCredentialPool.GetActiveCredentialIndex() == 2,
         "rejected rotation preserves the last active credential");
 
     ok &= Check(

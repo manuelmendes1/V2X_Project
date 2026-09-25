@@ -156,33 +156,33 @@ main()
     ns3::VehicleSecurityInitializer::Initialize(state);
 
     ok &= Check(
-        state.security.denmCredentials.size() == 3,
+        state.security.denmCredentialPool.Size() == 3,
         "VehicleSecurityContext stores the three discovered credentials");
 
     ok &= Check(
-        state.security.activeDenmCredentialIndex == 0,
+        state.security.denmCredentialPool.GetActiveCredentialIndex() == 0,
         "initial active DENM credential is sequence 000");
 
-    if (state.security.denmCredentials.size() == 3)
+    if (state.security.denmCredentialPool.Size() == 3)
     {
         ok &= Check(
-            state.security.denmCredentials[0].certFile.ends_with(
+            state.security.denmCredentialPool.GetCredential(0)->certFile.ends_with(
                 "veh0-ticket-000.cert"),
             "context credential 000 certificate is correct");
 
         ok &= Check(
-            state.security.denmCredentials[0].keyFile.ends_with(
+            state.security.denmCredentialPool.GetCredential(0)->keyFile.ends_with(
                 "veh0-ticket-000.pem"),
             "context credential 000 private key is correct");
 
         ok &= Check(
             state.security.certFile ==
-                state.security.denmCredentials[0].certFile,
+                state.security.denmCredentialPool.GetCredential(0)->certFile,
             "active certFile matches selected credential");
 
         ok &= Check(
             state.security.keyFile ==
-                state.security.denmCredentials[0].keyFile,
+                state.security.denmCredentialPool.GetCredential(0)->keyFile,
             "active keyFile matches selected credential");
     }
 
@@ -204,7 +204,7 @@ main()
         "second DENM credential can be selected");
 
     ok &= Check(
-        selectionState.security.activeDenmCredentialIndex == 1,
+        selectionState.security.denmCredentialPool.GetActiveCredentialIndex() == 1,
         "active DENM credential index changes to sequence 001");
 
     ok &= Check(
@@ -222,7 +222,7 @@ main()
         "out-of-range DENM credential selection is rejected");
 
     ok &= Check(
-        selectionState.security.activeDenmCredentialIndex == 1,
+        selectionState.security.denmCredentialPool.GetActiveCredentialIndex() == 1,
         "rejected selection preserves the active credential");
 
     ok &= Check(

@@ -180,13 +180,13 @@ main()
     Expect(
         vehicle != nullptr &&
         vehicle->security
-            .denmCredentials.size() >= 2,
+            .denmCredentialPool.Size() >= 2,
         "veh0 has at least two DENM credentials");
 
     Expect(
         vehicle != nullptr &&
         vehicle->security
-            .activeDenmCredentialIndex == 0,
+            .denmCredentialPool.GetActiveCredentialIndex() == 0,
         "credential 000 is active before scheduler transmission");
 
     std::vector<std::shared_ptr<const ns3::PacketContext>>
@@ -274,7 +274,7 @@ main()
             Expect(
                 vehicle != nullptr &&
                 vehicle->security
-                    .activeDenmCredentialIndex == 1,
+                    .denmCredentialPool.GetActiveCredentialIndex() == 1,
                 "credential 001 is active before second scheduler DENM");
 
             Expect(
