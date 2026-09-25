@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 set -u
 
-LOG="${1:-output_log_etapa_8_10.txt}"
+if [ "$#" -ne 1 ]; then
+    echo "USAGE: $0 <log_file>"
+    exit 2
+fi
+
+LOG="$1"
 
 fail=0
 
