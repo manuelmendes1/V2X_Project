@@ -2,6 +2,7 @@
 
 #include "vanetza_integration/context/vehicle_state.h"
 #include "vanetza_integration/context/vehicle_registry/vehicle_registry.h"
+#include "vanetza_integration/context/vehicle_security/file_credential_material_resolver.h"
 #include "vanetza_integration/context/rx_bridge/rx_bridge_context.h"
 #include "vanetza_integration/wrappers/vanetza/geonet_mid_adapter.h"
 #include "vanetza_integration/wrappers/vanetza/position/ns3_position_provider.h"
@@ -53,6 +54,10 @@ namespace ns3 {
         // Non-owning pointer to the real DENM signer. Ownership remains with
         // DelegatingSecurityEntity after the SignService unique_ptr is moved.
         DenmV3SignService* denmSigner = nullptr;
+
+        // Credential material resolution is deliberately owned outside the
+        // DENM signer so filesystem access remains outside the signer layer.
+        FileCredentialMaterialResolver denmCredentialMaterialResolver;
 
         std::unique_ptr<vanetza::geonet::MIB> mib;
         std::unique_ptr<vanetza::geonet::Router> router;
@@ -158,8 +163,7 @@ namespace ns3 {
 
         std::unique_ptr<vanetza::security::SignService> signService;
 
-        if (!m_impl->vehicle.security.certFile.empty() &&
-            !m_impl->vehicle.security.keyFile.empty())
+        if (hasRealDenmCredential)
         {
             const auto& security =
                 m_impl->vehicle.security;
@@ -179,7 +183,8 @@ namespace ns3 {
                 std::make_unique<DenmV3SignService>(
                     *m_impl->runtime,
                     *m_impl->position,
-                    *activeCredential);
+                    security.denmCredentialPool,
+                    m_impl->denmCredentialMaterialResolver);
 
             // Keep a non-owning reference before transferring ownership to
             // DelegatingSecurityEntity.
@@ -871,35 +876,27 @@ VanetzaGeoNetAdapter::RotateDenmCredential()
     const std::size_t nextIndex =
         currentIndex + 1;
 
-    const VehicleCredential* currentCredential =
-        security.denmCredentialPool.GetCredential(currentIndex);
-
     const VehicleCredential* nextCredential =
         security.denmCredentialPool.GetCredential(nextIndex);
 
-    if (currentCredential == nullptr ||
-        nextCredential == nullptr)
+    if (nextCredential == nullptr)
     {
         return false;
     }
 
-    // Update the real V3 signer first. The signer implementation builds and
-    // validates all replacement cryptographic objects before replacing the
-    // currently active signer.
-    if (!m_impl->denmSigner->SetActiveCredential(
-            *nextCredential))
-    {
-        return false;
-    }
-
-    // The index is already validated against the same pool above, so this
-    // should succeed. Keep an explicit rollback in case the context rejects
-    // the transition for any future reason.
+    // Select the new active credential in the context first. The signer
+    // observes that selection only through ActiveCredentialProvider.
     if (!security.SetActiveDenmCredential(nextIndex))
     {
-        m_impl->denmSigner->SetActiveCredential(
-            *currentCredential);
+        return false;
+    }
 
+    // Reloading the signer is transactional: failure leaves its previous
+    // cryptographic objects intact. Roll the pool back if material loading
+    // or signer construction fails.
+    if (!m_impl->denmSigner->ReloadActiveCredential())
+    {
+        security.SetActiveDenmCredential(currentIndex);
         return false;
     }
 

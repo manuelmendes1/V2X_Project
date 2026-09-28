@@ -1,4 +1,6 @@
 #include "vanetza_integration/context/vehicle_security/vehicle_credential.h"
+#include "vanetza_integration/context/vehicle_security/vehicle_credential_pool.h"
+#include "vanetza_integration/context/vehicle_security/file_credential_material_resolver.h"
 #include "vanetza_integration/wrappers/vanetza/security/denm_v3_sign_service.h"
 
 #include <vanetza/common/manual_runtime.hpp>
@@ -86,14 +88,23 @@ main()
     }
 
     const ns3::VehicleCredential credential000{
+        "veh0-ticket-000",
+        "veh0",
+        0,
         pkiDir + "/veh0-ticket-000.cert",
         pkiDir + "/veh0-ticket-000.pem"};
 
     const ns3::VehicleCredential credential001{
+        "veh0-ticket-001",
+        "veh0",
+        1,
         pkiDir + "/veh0-ticket-001.cert",
         pkiDir + "/veh0-ticket-001.pem"};
 
     const ns3::VehicleCredential credentialMismatch{
+        "veh0-ticket-mismatch",
+        "veh0",
+        1,
         pkiDir + "/veh0-ticket-000.cert",
         pkiDir + "/veh0-ticket-001.pem"};
 
@@ -106,10 +117,26 @@ main()
     vanetza::ManualRuntime runtime(itsStartTime);
     TestPositionProvider position;
 
+    ns3::VehicleCredentialPool credentialPool;
+
+    credentialPool.SetCredentials({
+        credential000,
+        credentialMismatch,
+        credential001});
+
+    if (!credentialPool.Select(0))
+    {
+        std::cerr << "FAIL initial credential selection\n";
+        return 1;
+    }
+
+    ns3::FileCredentialMaterialResolver materialResolver;
+
     ns3::DenmV3SignService signer(
         runtime,
         position,
-        credential000);
+        credentialPool,
+        materialResolver);
 
     bool ok = true;
 
@@ -153,7 +180,11 @@ main()
     // currently active signer.
     // ------------------------------------------------------------
     ok &= Check(
-        !signer.SetActiveCredential(credentialMismatch),
+        credentialPool.Select(1),
+        "mismatched credential can be selected for reload");
+
+    ok &= Check(
+        !signer.ReloadActiveCredential(),
         "certificate/private key mismatch is rejected");
 
     auto preservedConfirm =
@@ -199,7 +230,11 @@ main()
     // Rotation
     // ------------------------------------------------------------
     ok &= Check(
-        signer.SetActiveCredential(credential001),
+        credentialPool.Select(2),
+        "second DENM credential can be selected");
+
+    ok &= Check(
+        signer.ReloadActiveCredential(),
         "second DENM credential can be applied to signer");
 
     auto secondConfirm =

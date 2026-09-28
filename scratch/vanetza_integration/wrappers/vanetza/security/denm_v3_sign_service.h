@@ -3,7 +3,8 @@
 #include <memory>
 #include <string>
 
-#include "vanetza_integration/context/vehicle_security/vehicle_credential.h"
+#include "vanetza_integration/context/vehicle_security/active_credential_provider.h"
+#include "vanetza_integration/context/vehicle_security/credential_material_resolver.h"
 
 #include <vanetza/common/manual_runtime.hpp>
 #include <vanetza/common/position_provider.hpp>
@@ -26,10 +27,10 @@ public:
     DenmV3SignService(
         vanetza::ManualRuntime& runtime,
         vanetza::PositionProvider& position,
-        const VehicleCredential& credential);
+        const ActiveCredentialProvider& credentialProvider,
+        CredentialMaterialResolver& materialResolver);
 
-    bool SetActiveCredential(
-        const VehicleCredential& credential);
+    bool ReloadActiveCredential();
 
     vanetza::security::SignConfirm sign(
         vanetza::security::SignRequest&& request) override;
@@ -53,6 +54,9 @@ private:
         m_denmSigner;
 
     vanetza::security::v3::DummySignService m_camFallback;
+
+    const ActiveCredentialProvider& m_credentialProvider;
+    CredentialMaterialResolver& m_materialResolver;
 
     vanetza::ManualRuntime& m_runtime;
     vanetza::PositionProvider& m_position;

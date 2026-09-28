@@ -113,6 +113,7 @@ add_library(vanetza_cam_encoder_obj OBJECT
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/access/ns3_dcc_adapter.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/dcc/ns3_channel_load_probe.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/security/denm_v3_sign_service.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/vehicle_security/file_credential_material_resolver.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/security/denm_v3_verify_service.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/vanetza_runtime/vanetza_runtime.cc
 

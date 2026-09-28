@@ -1,5 +1,4 @@
 #include "denm_v3_sign_service.h"
-#include "vanetza_integration/context/vehicle_security/vehicle_credential_binding_validator.h"
 #include "vanetza_integration/context/tx_bridge/tx_bridge_context.h"
 #include "vanetza_integration/core/v2x_log.h"
 
@@ -12,7 +11,6 @@
 
 #include <ns3/log.h>
 
-#include <fstream>
 #include <iomanip>
 #include <sstream>
 #include <stdexcept>
@@ -20,38 +18,14 @@
 
 namespace ns3 {
 
-    namespace {
 
-        vanetza::security::PrivateKey LoadPrivateKey(const std::string& path){
-
-            const auto keyPair = vanetza::security::v3::load_private_key_from_file(path);
-
-            vanetza::security::PrivateKey key;
-
-            key.type = vanetza::security::KeyType::NistP256;
-
-            key.key.assign(keyPair.private_key.key.begin(), keyPair.private_key.key.end());
-
-            return key;
-        }
-
-        void RequireFile(const std::string& path, const char* description){
-
-            std::ifstream input(path, std::ios::binary);
-
-            if (!input.good()){
-
-                throw std::runtime_error(std::string("DENM V3 ") + description + " not accessible: " + path);
-            }
-        }
-
-    } // anonymous namespace
 
 
     DenmV3SignService::DenmV3SignService(
         vanetza::ManualRuntime& runtime,
         vanetza::PositionProvider& position,
-        const VehicleCredential& credential)
+        const ActiveCredentialProvider& credentialProvider,
+        CredentialMaterialResolver& materialResolver)
     :
         m_backend(
             vanetza::security::create_backend("default")),
@@ -61,6 +35,10 @@ namespace ns3 {
         m_certificateValidator(),
         m_denmSigner(nullptr),
         m_camFallback(runtime),
+
+        m_credentialProvider(credentialProvider),
+        m_materialResolver(materialResolver),
+
         m_runtime(runtime),
         m_position(position)
     {
@@ -77,7 +55,7 @@ namespace ns3 {
         // DENM location restriction is not used by this local ECC test PKI.
         m_certificateValidator.disable_location_checks(true);
 
-        if (!SetActiveCredential(credential))
+        if (!ReloadActiveCredential())
         {
             throw std::runtime_error(
                 "Unable to initialize DENM V3 signer credential");
@@ -85,34 +63,43 @@ namespace ns3 {
     }
 
 
+
     bool
-    DenmV3SignService::SetActiveCredential(
-        const VehicleCredential& credential)
+    DenmV3SignService::ReloadActiveCredential()
     {
-        if (!VehicleCredentialBindingValidator::Validate(credential))
+        const VehicleCredential* credential =
+            m_credentialProvider.GetActiveCredential();
+
+        if (credential == nullptr)
+        {
+            return false;
+        }
+
+        std::unique_ptr<DenmV3CredentialMaterial> material;
+
+        try
+        {
+            material =
+                m_materialResolver.Resolve(*credential);
+        }
+        catch (...)
+        {
+            return false;
+        }
+
+        if (!material)
         {
             return false;
         }
 
         try
         {
-            RequireFile(
-                credential.certFile,
-                "certificate file");
-
-            RequireFile(
-                credential.keyFile,
-                "private key file");
-
             auto newCertificateProvider =
                 std::make_unique<
                     vanetza::security::v3::
                         StaticCertificateProvider>(
-                    vanetza::security::v3::
-                        load_certificate_from_file(
-                            credential.certFile),
-                    LoadPrivateKey(
-                        credential.keyFile));
+                    material->certificate,
+                    material->privateKey);
 
             auto newSignHeaderPolicy =
                 std::make_unique<
@@ -132,8 +119,7 @@ namespace ns3 {
                     m_certificateValidator);
 
             // All replacement objects are valid before touching the
-            // currently active signer. This leaves the old credential
-            // intact if loading or construction fails.
+            // currently active signer.
             m_certificateProvider =
                 std::move(newCertificateProvider);
 
@@ -145,11 +131,12 @@ namespace ns3 {
 
             return true;
         }
-        catch (const std::exception&)
+        catch (...)
         {
             return false;
         }
     }
+
 
     vanetza::security::SignConfirm
     DenmV3SignService::sign(
