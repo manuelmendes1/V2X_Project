@@ -177,26 +177,16 @@ void
 VehicleSecurityInitializer::Initialize(
     VehicleState& state)
 {
-    // ----------------------------------------------------------------------
-    // Legacy/local OpenSSL material.
-    //
-    // Mantido para não alterar o mecanismo CAM existente nesta fase.
-    // ----------------------------------------------------------------------
-    auto [key, cert] =
-        GenerateEcdsaKeyAndCert(
-            state.identity.vehId);
-
-    state.security.privateKey = key;
-    state.security.certificate = cert;
-
-    // Reset the DENM credential selection state so initialization is
+    // Reset the credential selection state so initialization is
     // deterministic even if a VehicleState is initialized again.
     state.security.denmCredentialPool.SetCredentials({});
 
     // ----------------------------------------------------------------------
-    // Real ETSI ITS Security V3 credential paths for DENM.
+    // Real ETSI ITS Security V3 credential paths.
     //
-    // Explicit configuration has precedence over the environment variable.
+    // The active VehicleCredential is the common credential source for
+    // DENM and CAM. DENM consumes the ETSI V3 material through its resolver;
+    // CAM consumes the same credential's private key through OpenSSL.
     // ----------------------------------------------------------------------
     std::string pkiDir =
         g_denmPkiDirectory;
@@ -227,7 +217,26 @@ VehicleSecurityInitializer::Initialize(
 
             if (state.security.SetActiveDenmCredential(0))
             {
-                return;
+                const auto* activeCredential =
+                    state.security.denmCredentialPool
+                        .GetActiveCredential();
+
+                if (activeCredential != nullptr)
+                {
+                    auto [key, cert] =
+                        LoadEcdsaKeyAndCert(
+                            activeCredential->keyFile,
+                            state.identity.vehId);
+
+                    if (key != nullptr &&
+                        cert != nullptr)
+                    {
+                        state.security.privateKey = key;
+                        state.security.certificate = cert;
+                    }
+
+                    return;
+                }
             }
 
             state.security.denmCredentialPool.SetCredentials({});
@@ -245,6 +254,15 @@ VehicleSecurityInitializer::Initialize(
             state.identity.vehId +
             "-ticket.pem";
     }
+
+    // No usable PKI credential was selected. Preserve the legacy CAM
+    // generation path for simulations without a discovered credential.
+    auto [key, cert] =
+        GenerateEcdsaKeyAndCert(
+            state.identity.vehId);
+
+    state.security.privateKey = key;
+    state.security.certificate = cert;
 }
 
 } // namespace ns3
