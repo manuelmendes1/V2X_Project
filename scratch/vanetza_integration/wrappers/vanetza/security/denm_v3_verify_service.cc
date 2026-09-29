@@ -99,15 +99,12 @@ struct DenmV3VerifyService::Impl
                 "Unable to create Vanetza default security backend");
         }
 
-        // This stage intentionally isolates cryptographic verification
-        // from certificate time/location policy validation.
-        //
-        // The certificate's ITS-AID permission is still checked by
-        // DefaultCertificateValidator::valid_for_signing().
-        // Cryptographic-validation stage:
-        // keep AID permission validation, but do not bind the
-        // certificate policy validator to ManualRuntime.
-        certificateValidator.disable_time_checks(true);
+        // V3 verification must evaluate certificate validity against
+        // the receiver's runtime. Location validation remains disabled
+        // here because geographic policy is outside this service's
+        // cryptographic verification contract.
+        certificateValidator.use_runtime(&runtime);
+        certificateValidator.disable_time_checks(false);
         certificateValidator.disable_location_checks(true);
 
         realVerifier =

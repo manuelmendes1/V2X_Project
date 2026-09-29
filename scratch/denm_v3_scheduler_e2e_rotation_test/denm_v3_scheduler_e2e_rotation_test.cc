@@ -1,4 +1,5 @@
 #include "vanetza_integration/context/packet/packet_context.h"
+#include "vanetza_integration/context/simulation_context/simulation_context.h"
 #include "vanetza_integration/context/vehicle_factory/vehicle_factory.h"
 #include "vanetza_integration/context/vehicle_registry/vehicle_registry.h"
 #include "vanetza_integration/context/vehicle_security/vehicle_security_initializer/vehicle_security_initializer.h"
@@ -6,6 +7,7 @@
 #include "vanetza_integration/denm/scheduler/denm_scheduler.h"
 #include "vanetza_integration/denm/trigger/denm_trigger.h"
 
+#include "ns3/command-line.h"
 #include "ns3/ipv4-address-helper.h"
 #include "ns3/simulator.h"
 #include "ns3/wifi-module.h"
@@ -80,10 +82,36 @@ MakeRequest(
 } // namespace
 
 int
-main()
+main(int argc, char* argv[])
 {
     std::cout
         << "===== DENM V3 SCHEDULER E2E CREDENTIAL ROTATION TEST ====="
+        << std::endl;
+
+    std::string itsStartTime;
+
+    ns3::CommandLine cmd;
+
+    cmd.AddValue(
+        "itsStartTime",
+        "Explicit ITS start time for V3 certificate validation",
+        itsStartTime);
+
+    cmd.Parse(argc, argv);
+
+    if (itsStartTime.empty())
+    {
+        std::cerr
+            << "FAIL --itsStartTime is required for DENM V3 scheduler E2E test"
+            << std::endl;
+        return 1;
+    }
+
+    SimulationContext::itsStartTime = itsStartTime;
+
+    std::cout
+        << "ITS_START_TIME="
+        << SimulationContext::itsStartTime
         << std::endl;
 
     auto& registry =
