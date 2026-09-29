@@ -92,6 +92,26 @@ namespace ns3 {
             return false;
         }
 
+        /*
+         * P11 rotation policy:
+         * a credential candidate must already be valid for DENM signing
+         * at the current simulation time before it can replace the
+         * currently active signer.
+         *
+         * This keeps temporal/policy failures at rotation time instead
+         * of allowing an unusable signer to become active.
+         */
+        const auto credentialVerdict =
+            m_certificateValidator.valid_for_signing(
+                material->certificate,
+                vanetza::aid::DEN);
+
+        if (credentialVerdict !=
+            vanetza::security::v3::CertificateValidator::Verdict::Valid)
+        {
+            return false;
+        }
+
         try
         {
             auto newCertificateProvider =
