@@ -884,6 +884,13 @@ VanetzaGeoNetAdapter::RotateDenmCredential()
         return false;
     }
 
+    // Credential ownership is bound to the vehicle logical identity.
+    // Rotation must never activate material provisioned for another vehicle.
+    if (nextCredential->vehicleId != m_impl->vehicle.identity.vehId)
+    {
+        return false;
+    }
+
     // Select the new active credential in the context first. The signer
     // observes that selection only through ActiveCredentialProvider.
     if (!security.SetActiveDenmCredential(nextIndex))
