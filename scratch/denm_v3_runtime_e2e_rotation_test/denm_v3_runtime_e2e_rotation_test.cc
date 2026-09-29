@@ -2,9 +2,11 @@
 #include "vanetza_integration/context/vehicle_registry/vehicle_registry.h"
 #include "vanetza_integration/context/vehicle_security/vehicle_security_initializer/vehicle_security_initializer.h"
 #include "vanetza_integration/context/vehicle_state.h"
+#include "vanetza_integration/context/simulation_context/simulation_context.h"
 
 #include "vanetza_integration/denm/builder/denm_builder.h"
 #include "vanetza_integration/denm/lifecycle/denm_lifecycle_manager.h"
+#include "vanetza_integration/denm/types/denm_input.h"
 #include "vanetza_integration/denm/sender/denm_sender.h"
 #include "vanetza_integration/denm/service/denm_service.h"
 #include "vanetza_integration/denm/trigger/denm_trigger.h"
@@ -87,7 +89,8 @@ GenerateAndSend(
     ns3::VehicleState& vehicle,
     ns3::DenmLifecycleManager& lifecycle,
     const ns3::DenmTriggerRequest& request,
-    std::shared_ptr<ns3::PacketContext>& outContext)
+    std::shared_ptr<ns3::PacketContext>& outContext,
+    ns3::DenmLifecycleResult& outLifecycleResult)
 {
     ns3::DenmLifecycleResult lifecycleResult;
 
@@ -108,6 +111,9 @@ GenerateAndSend(
     {
         return false;
     }
+
+    outLifecycleResult =
+        lifecycleResult;
 
     auto generation =
         ns3::DenmBuilder::Build(
@@ -189,6 +195,9 @@ main()
 
     lifecycle.Reset();
 
+    SimulationContext::itsStartTime =
+        "2026-09-24T13:38:21";
+
     auto& registry =
         ns3::VehicleRegistry::Instance();
 
@@ -241,15 +250,25 @@ main()
     std::shared_ptr<ns3::PacketContext> firstContext;
     std::shared_ptr<ns3::PacketContext> secondContext;
 
+    ns3::DenmLifecycleResult firstLifecycleResult{};
+    ns3::DenmLifecycleResult secondLifecycleResult{};
+
     ns3::DenmTriggerRequest firstRequest =
         MakeRequest(
             "e2e-rotation-000",
             "E2E_ROTATION_FIRST");
 
     ns3::DenmTriggerRequest secondRequest =
-        MakeRequest(
-            "e2e-rotation-001",
-            "E2E_ROTATION_SECOND");
+        firstRequest;
+
+    secondRequest.eventType =
+        ns3::DenmTriggerEventType::HAZARD_UPDATED;
+
+    secondRequest.triggerTimestampUs =
+        1200000;
+
+    secondRequest.reason =
+        "E2E_ROTATION_SECOND";
 
     ns3::Simulator::Schedule(
         ns3::Seconds(1.0),
@@ -260,7 +279,8 @@ main()
                     *vehicle,
                     lifecycle,
                     firstRequest,
-                    firstContext),
+                    firstContext,
+                    firstLifecycleResult),
                 "first DENM traverses trigger -> lifecycle -> builder -> service -> sender");
 
             ok &= Check(
@@ -308,7 +328,8 @@ main()
                     *vehicle,
                     lifecycle,
                     secondRequest,
-                    secondContext),
+                    secondContext,
+                    secondLifecycleResult),
                 "second DENM traverses trigger -> lifecycle -> builder -> service -> sender");
 
             ok &= Check(
@@ -321,6 +342,25 @@ main()
                     !secondContext->signerCertificateIdHex.empty(),
                     "second DENM exposes the real V3 signer certificate identity");
             }
+
+            ok &= Check(
+                secondLifecycleResult.action ==
+                    DenmManagementAction::UPDATE,
+                "second DENM is an UPDATE of the existing lifecycle event");
+
+            ok &= Check(
+                firstLifecycleResult.actionId.originatingStationId ==
+                    secondLifecycleResult.actionId.originatingStationId &&
+                    firstLifecycleResult.actionId.sequenceNumber ==
+                    secondLifecycleResult.actionId.sequenceNumber,
+                "DENM UPDATE preserves the same ActionID");
+
+            ok &= Check(
+                firstContext != nullptr &&
+                    secondContext != nullptr &&
+                    firstContext->senderStationId ==
+                    secondContext->senderStationId,
+                "DENM lifecycle preserves stationID across credential rotation");
         });
 
     ns3::Simulator::Schedule(
