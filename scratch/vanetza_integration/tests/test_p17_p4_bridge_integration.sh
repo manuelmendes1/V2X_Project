@@ -12,7 +12,7 @@ BRIDGE_SCRIPT="p4_bridge_high_density.py"
 cd "$ROOT" || exit 1
 
 DENM_PKI_DIR="$HOME/vanetza-pki-lab/validation-denm-pki"
-DENM_ITS_START_TIME="${V2X_TEST_ITS_START_TIME:-2026-09-24T13:38:21}"
+DENM_ITS_START_TIME="${V2X_TEST_ITS_START_TIME:-2026-09-24T14:01:04}"
 SIM_DURATION="${V2X_TEST_SIM_DURATION:-60}"
 
 rm -f "$LOG" "$BRIDGE_LOG"
@@ -109,6 +109,7 @@ if [ "$port_ready" -ne 1 ]; then
 fi
 
 (
+    trap - INT
     cd "$BRIDGE_DIR" || exit 1
     exec python3 "$BRIDGE_SCRIPT"
 ) > "$BRIDGE_LOG" 2>&1 &
