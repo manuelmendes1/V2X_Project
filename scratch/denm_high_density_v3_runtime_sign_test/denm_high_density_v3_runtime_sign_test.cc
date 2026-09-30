@@ -1,7 +1,9 @@
+#include "vanetza_integration/context/simulation_context/simulation_context.h"
 #include "vanetza_integration/context/vehicle_factory/vehicle_factory.h"
 #include "vanetza_integration/context/vehicle_registry/vehicle_registry.h"
 #include "vanetza_integration/context/vehicle_security/vehicle_security_initializer/vehicle_security_initializer.h"
 #include "vanetza_integration/context/vehicle_state.h"
+
 
 #include "vanetza_integration/denm/builder/denm_builder.h"
 #include "vanetza_integration/denm/lifecycle/denm_lifecycle_manager.h"
@@ -221,6 +223,15 @@ main()
 
     ns3::VehicleSecurityInitializer::SetDenmPkiDirectory(
         pkiDir);
+
+    const char* itsStartTimeEnv =
+    std::getenv("V2X_TEST_ITS_START_TIME");
+
+    SimulationContext::itsStartTime =
+    itsStartTimeEnv != nullptr &&
+            !std::string(itsStartTimeEnv).empty()
+        ? itsStartTimeEnv
+        : "2026-09-24T14:01:04";
 
     ns3::DenmLifecycleManager lifecycle;
     lifecycle.Reset();
