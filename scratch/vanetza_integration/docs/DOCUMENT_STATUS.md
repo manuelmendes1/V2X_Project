@@ -185,3 +185,36 @@ ETAPA_8_BASELINE_ACCEPTANCE=PASS
 ```
 
 Próxima fase: desenvolvimento posterior à Etapa 8, sem reabrir os acceptance já aprovados sem uma alteração que afete diretamente o comportamento validado.
+
+
+## P15 — Certificate Temporal Validity
+
+**STATUS:** VALIDATED  
+**DATE:** 2026-09-30  
+**RESULT:** PASS
+
+Evidência:
+
+[[scratch/vanetza_integration/docs/P15_Certificate_Temporal_Validity_Validation]]
+
+O P15 foi fechado como validação da validade temporal dos certificados V3. O commit de closeout é d13f005.
+
+## P16 — High-Density DENM Provisioning
+
+**STATUS:** VALIDATED  
+**DATE:** 2026-09-30  
+**RESULT:** PASS
+
+Evidência:
+
+[[scratch/vanetza_integration/docs/P16_High_Density_DENM_Provisioning]]
+
+A validação foi executada no repositório PKI externo vanetza-pki-lab, com 100 veículos, 3 credenciais por veículo e 300 pares certificado/chave, incluindo verificação de idempotência e exclusão de veh100.
+
+Commit da evidência no repositório PKI:
+
+08eff6ae
+
+Escopo ainda não coberto:
+
+[[scratch/vanetza_integration/docs/P17_P4_Bridge_Integration]]

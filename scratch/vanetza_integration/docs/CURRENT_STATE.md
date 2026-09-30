@@ -343,3 +343,29 @@ ETAPA 8.14 = PASS
 ## P1 — Modelo Explícito VehicleCredential
 
 [[P1_Modelo_Explicito_VehicleCredential]]
+
+
+## P16 — High-Density DENM Provisioning
+
+**STATUS:** VALIDATED  
+**DATE:** 2026-09-30
+
+O provisioning PKI DENM foi validado independentemente do runtime ns-3/SUMO para 100 veículos com três credenciais por veículo, totalizando 300 pares certificado/chave.
+
+A evidência operacional pertence ao repositório:
+
+~~~
+/home/mmendes/vanetza-pki-lab
+~~~
+
+Commit de evidência:
+
+~~~
+08eff6ae test(p16): validate high-density DENM provisioning
+~~~
+
+O resultado valida a capacidade de provisionamento e a idempotência do conjunto. Não valida ainda a integração automática entre p4_bridge_high_density.py, SUMO e a criação dos veículos no runtime ns-3.
+
+Próxima etapa:
+
+[[scratch/vanetza_integration/docs/P17_P4_Bridge_Integration]]
