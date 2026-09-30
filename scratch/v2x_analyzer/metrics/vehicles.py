@@ -37,7 +37,10 @@ def compute(
             if entry.veh:
                 metrics.tx_by_vehicle[entry.veh] += 1
 
-        elif entry.is_("RX", "DELIVER_OK"):
+        elif (
+            entry.is_("RX", "DELIVER_OK")
+            or entry.is_("DENM", "DENM_DELIVER_OK")
+        ):
             sender, receiver = resolve_sender_receiver(entry, identity)
 
             if sender:

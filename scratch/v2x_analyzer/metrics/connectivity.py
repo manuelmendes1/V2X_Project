@@ -76,12 +76,39 @@ def compute(
     metrics._identity = identity
 
     for entry in entries:
-        if not entry.is_("RX", "DELIVER_OK"):
+        is_cam_delivery = entry.is_("RX", "DELIVER_OK")
+        is_denm_delivery = entry.is_("DENM", "DENM_DELIVER_OK")
+
+        if not (is_cam_delivery or is_denm_delivery):
             continue
 
         metrics.deliver_ok += 1
 
         sender, receiver = resolve_sender_receiver(entry, identity)
+
+        # DENM delivery logs identify the logical origin through
+        # origin_station=... rather than the CAM sender convention.
+        if is_denm_delivery and sender is None:
+            origin_station = entry.kv().get("origin_station")
+            if origin_station is not None:
+                try:
+                    station = int(origin_station)
+                except ValueError:
+                    station = None
+
+                if station is not None:
+                    sender = next(
+                        (
+                            veh
+                            for veh, veh_station
+                            in identity.veh_to_station.items()
+                            if veh_station == station
+                        ),
+                        None,
+                    )
+
+            if receiver is None and entry.veh != "-":
+                receiver = entry.veh
 
         if (
             sender is not None

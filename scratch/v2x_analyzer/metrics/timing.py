@@ -12,8 +12,10 @@ from ..parser import LogEntry
 
 _DURATION_EVENTS = {
     ("CAM", "ENCODE_OK"): "encode",
+    ("DENM", "DENM_ENCODE_OK"): "encode",
     ("SECURITY", "SIGN_OK"): "sign",
     ("CAM", "DECODE_OK"): "decode",
+    ("DENM", "DENM_DECODE_OK"): "decode",
 }
 
 

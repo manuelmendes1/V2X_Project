@@ -327,3 +327,143 @@ def test_denm_rx_events_follow_current_rx_taxonomy():
     assert m.replay_ok == 1
     assert m.reception_ok == 1
     assert m.deliver_ok == 1
+
+
+def test_p18_mixed_cam_denm_runtime_semantics():
+    from v2x_analyzer.metrics import errors, exit_criteria
+    from v2x_analyzer.metrics.connectivity import ConnectivityMetrics
+    from v2x_analyzer.metrics.duplicates import DuplicateMetrics
+    from v2x_analyzer.metrics.rx_pipeline import RxPipelineMetrics
+    from v2x_analyzer.metrics.tx_pipeline import TxPipelineMetrics
+
+    tx = TxPipelineMetrics(
+        generate_ok=2,
+        encode_begin=1,
+        encode_ok=2,
+        sign_begin=2,
+        sign_ok=2,
+        btp_tx_begin=2,
+        btp_tx_ok=2,
+        geonet_tx_begin=2,
+        geonet_tx_ok=2,
+        access_tx_begin=2,
+        access_tx_ok=1,
+        send_begin=1,
+        send_ok=1,
+        tx_complete=1,
+    )
+
+    rx = RxPipelineMetrics(
+        raw_rx=4,
+        access_rx_ok=4,
+        geonet_rx_ok=4,
+        btp_rx_ok=4,
+        verify_ok=4,
+        decode_ok=3,
+        replay_ok=2,
+        replay_drop=1,
+        reception_ok=2,
+        deliver_ok=2,
+    )
+
+    conn = ConnectivityMetrics(
+        n_vehicles=3,
+        max_pairs=6,
+        tx_complete=1,
+        deliver_ok=2,
+    )
+
+    result = exit_criteria.compute(
+        conn,
+        tx,
+        rx,
+        DuplicateMetrics(),
+    )
+
+    assert result.all_pass
+    assert errors.compute([
+        mk(
+            "DENM",
+            "DENM_REPLAY_DROP",
+            veh="veh1",
+            node=1,
+            station=2,
+        )
+    ]).total == 0
+
+
+def test_p18_denm_replay_drop_is_counted_as_pipeline_filter():
+    from v2x_analyzer.metrics import rx_pipeline
+
+    m = rx_pipeline.compute([
+        mk(
+            "DENM",
+            "DENM_REPLAY_DROP",
+            veh="veh1",
+            node=1,
+            station=2,
+        )
+    ])
+
+    assert m.replay_drop == 1
+
+
+def test_p18_connectivity_counts_denm_delivery():
+    from v2x_analyzer.metrics import connectivity
+
+    entry = mk(
+        "DENM",
+        "DENM_DELIVER_OK",
+        veh="veh1",
+        node=1,
+        station=2,
+        msg="origin_station=1 action_seq=1",
+    )
+
+    identity = current_identity()
+
+    conn = connectivity.compute(
+        [entry],
+        identity,
+        tx_complete=1,
+    )
+
+    assert conn.deliver_ok == 1
+    assert conn.active_pairs == {("veh0", "veh1")}
+
+
+def test_p18_vehicle_metrics_count_denm_delivery():
+    from v2x_analyzer.metrics import vehicles
+
+    entry = mk(
+        "DENM",
+        "DENM_DELIVER_OK",
+        veh="veh1",
+        node=1,
+        station=2,
+        msg="origin_station=1 action_seq=1",
+    )
+
+    metrics = vehicles.compute(
+        [entry],
+        current_identity(),
+    )
+
+    assert metrics.rx_by_vehicle["veh1"] == 1
+
+
+def test_p18_denm_decode_timing_uses_current_event():
+    from v2x_analyzer.metrics import timing
+
+    entry = mk(
+        "DENM",
+        "DENM_DECODE_OK",
+        veh="veh1",
+        node=1,
+        station=2,
+        duration=55,
+    )
+
+    metrics = timing.compute([entry])
+
+    assert metrics.operations["decode"].samples == [55]

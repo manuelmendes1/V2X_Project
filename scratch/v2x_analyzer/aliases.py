@@ -13,8 +13,20 @@ TX_TERMINAL = frozenset({
 
 RX_TERMINAL = frozenset({
     ("RX", "DELIVER_OK"),
+    ("DENM", "DENM_DELIVER_OK"),
 })
 
 RX_RECEPTION = frozenset({
     ("CAM_RX", "RECEPTION_OK"),
+    ("DENM", "DENM_RECEPTION_OK"),
+})
+
+RX_REPLAY_OK = frozenset({
+    ("REPLAY", "REPLAY_OK"),
+    ("DENM", "DENM_REPLAY_OK"),
+})
+
+RX_REPLAY_DROP = frozenset({
+    ("REPLAY", "REPLAY_DROP"),
+    ("DENM", "DENM_REPLAY_DROP"),
 })

@@ -62,6 +62,7 @@ _MAP = {
     ("REPLAY", "REPLAY_OK"): "replay_ok",
     ("DENM", "DENM_REPLAY_OK"): "replay_ok",
     ("REPLAY", "REPLAY_DROP"): "replay_drop",
+    ("DENM", "DENM_REPLAY_DROP"): "replay_drop",
 
     ("CAM_RX", "RECEPTION_BEGIN"): "reception_begin",
     ("CAM_RX", "RECEPTION_OK"): "reception_ok",
