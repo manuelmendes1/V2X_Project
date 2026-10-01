@@ -2,6 +2,7 @@
 set -u
 
 ROOT="$HOME/final/ns-3.47"
+BIN="$ROOT/build/scratch/ns3.47-v2x_sumo-default"
 LOG="$ROOT/output_log_denm_replay_protection_test.txt"
 BRIDGE_LOG="$ROOT/output_log_denm_replay_protection_bridge.txt"
 BRIDGE_DIR="$ROOT/../v2x_sumo/integration"
@@ -36,7 +37,7 @@ if ss -lun 2>/dev/null | grep -qE '(:|\.)7400[[:space:]]'; then
     exit 1
 fi
 
-./build/scratch_v2x_sumo \
+"$BIN" \
     --enableDenm=1 \
     --denmRadius=1000 \
     --denmPkiDir="$DENM_PKI_DIR" \

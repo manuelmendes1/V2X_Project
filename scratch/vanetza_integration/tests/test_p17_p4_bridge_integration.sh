@@ -2,6 +2,7 @@
 set -u
 
 ROOT="$HOME/final/ns-3.47"
+BIN="$ROOT/build/scratch/ns3.47-v2x_sumo-default"
 
 LOG="$ROOT/test-results/p17/p17_ns3.log"
 BRIDGE_LOG="$ROOT/test-results/p17/p17_p4_bridge.log"
@@ -41,8 +42,8 @@ if [ ! -f "$BRIDGE_DIR/$BRIDGE_SCRIPT" ]; then
     exit 1
 fi
 
-if [ ! -x "$ROOT/build/scratch_v2x_sumo" ]; then
-    echo "FAIL: ns-3 simulator not found: $ROOT/build/scratch_v2x_sumo"
+if [ ! -x "$BIN" ]; then
+    echo "FAIL: ns-3 simulator not found: $BIN"
     echo "P17_P4_BRIDGE_INTEGRATION_EXIT=1"
     exit 1
 fi
@@ -68,7 +69,7 @@ cleanup()
 
 trap cleanup EXIT INT TERM
 
-./build/scratch_v2x_sumo \
+"$BIN" \
     --enableDenm=1 \
     --denmRadius=1000 \
     --denmPkiDir="$DENM_PKI_DIR" \
