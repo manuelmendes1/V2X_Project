@@ -1,0 +1,33 @@
+--- a/integration/v2x_bridge_15.py
++++ b/integration/v2x_bridge_15.py
+@@ -1,4 +1,5 @@
+ #!/usr/bin/env python3
++import os
+ import traci
+ import socket
+ from datetime import datetime
+@@ -7,6 +8,7 @@
+ # CONFIGURAÇÃO
+ # ===============================
+ SUMO_CFG = "../scenario/simple.sumocfg"
++SUMO_BINARY = os.environ.get("V2X_SUMO_BINARY", "sumo")
+ STEP_LENGTH = 0.1        # em segundos
+ SIM_TIME = 300
+ NS3_UDP_IP = "127.0.0.1"
+@@ -61,7 +63,15 @@
+     log("Starting SUMO bridge...")
+
+     # Inicia SUMO
+-    traci.start(["sumo-gui", "-c", SUMO_CFG, "--step-length", str(STEP_LENGTH)])
++    traci.start(
++        [
++            SUMO_BINARY,
++            "-c",
++            SUMO_CFG,
++            "--step-length",
++            str(STEP_LENGTH),
++        ]
++    )
+
+     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
