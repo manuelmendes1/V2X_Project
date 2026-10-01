@@ -231,7 +231,7 @@ main()
     itsStartTimeEnv != nullptr &&
             !std::string(itsStartTimeEnv).empty()
         ? itsStartTimeEnv
-        : "2026-09-24T14:01:04";
+        : "2026-09-24T14:05:00";
 
     ns3::DenmLifecycleManager lifecycle;
     lifecycle.Reset();
