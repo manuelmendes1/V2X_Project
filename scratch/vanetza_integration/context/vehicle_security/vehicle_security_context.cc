@@ -10,7 +10,7 @@ VehicleSecurityContext::SetActiveDenmCredential(
     std::size_t index)
 {
     const VehicleCredential* credential =
-        denmCredentialPool.GetCredential(index);
+        credentialPool.GetCredential(index);
 
     if (credential == nullptr ||
         credential->vehicleId.empty() ||
@@ -50,7 +50,7 @@ VehicleSecurityContext::SetActiveDenmCredential(
      * The index is known to be valid, so this should succeed. Do not commit
      * any other state until selection has succeeded.
      */
-    if (!denmCredentialPool.Select(index))
+    if (!credentialPool.Select(index))
     {
         EVP_PKEY_free(newPrivateKey);
         X509_free(newCertificate);
@@ -91,15 +91,15 @@ VehicleSecurityContext::SetActiveDenmCredential(
 bool
 VehicleSecurityContext::RotateToNextDenmCredential()
 {
-    if (denmCredentialPool.Empty())
+    if (credentialPool.Empty())
     {
         return false;
     }
 
     const std::size_t currentIndex =
-        denmCredentialPool.GetActiveCredentialIndex();
+        credentialPool.GetActiveCredentialIndex();
 
-    if (currentIndex + 1 >= denmCredentialPool.Size())
+    if (currentIndex + 1 >= credentialPool.Size())
     {
         return false;
     }

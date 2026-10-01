@@ -179,7 +179,7 @@ VehicleSecurityInitializer::Initialize(
 {
     // Reset the credential selection state so initialization is
     // deterministic even if a VehicleState is initialized again.
-    state.security.denmCredentialPool.SetCredentials({});
+    state.security.credentialPool.SetCredentials({});
 
     // ----------------------------------------------------------------------
     // Real ETSI ITS Security V3 credential paths.
@@ -212,7 +212,7 @@ VehicleSecurityInitializer::Initialize(
 
         if (!credentials.empty())
         {
-            state.security.denmCredentialPool.SetCredentials(
+            state.security.credentialPool.SetCredentials(
                 credentials);
 
             if (state.security.SetActiveDenmCredential(0))
@@ -220,7 +220,7 @@ VehicleSecurityInitializer::Initialize(
                 return;
             }
 
-            state.security.denmCredentialPool.SetCredentials({});
+            state.security.credentialPool.SetCredentials({});
         }
 
         // Preserve the previous explicit path contract even when

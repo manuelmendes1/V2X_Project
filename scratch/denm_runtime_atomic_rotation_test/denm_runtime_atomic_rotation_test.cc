@@ -193,11 +193,11 @@ main()
         "VanetzaRuntime is initialized");
 
     ok &= Check(
-        vehicle->security.denmCredentialPool.Size() >= 2,
+        vehicle->security.credentialPool.Size() >= 2,
         "veh0 exposes at least two credentials");
 
     ok &= Check(
-        vehicle->security.denmCredentialPool.GetActiveCredentialIndex() == 0,
+        vehicle->security.credentialPool.GetActiveCredentialIndex() == 0,
         "credential 000 is initially active");
 
     ok &= Check(
@@ -238,7 +238,7 @@ main()
         "runtime rotation to invalid credential is rejected");
 
     ok &= Check(
-        vehicle->security.denmCredentialPool.GetActiveCredentialIndex() == 0,
+        vehicle->security.credentialPool.GetActiveCredentialIndex() == 0,
         "failed rotation preserves active credential index");
 
     ok &= Check(

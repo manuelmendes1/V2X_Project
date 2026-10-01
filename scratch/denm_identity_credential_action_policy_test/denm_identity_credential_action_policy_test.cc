@@ -123,8 +123,8 @@ main()
         "veh0 has a valid authoritative stationID");
 
     ok &= Check(
-        vehicle->security.denmCredentialPool.GetActiveCredential() != nullptr &&
-            vehicle->security.denmCredentialPool.GetActiveCredential()->vehicleId ==
+        vehicle->security.credentialPool.GetActiveCredential() != nullptr &&
+            vehicle->security.credentialPool.GetActiveCredential()->vehicleId ==
                 "veh0",
         "initial active credential belongs to veh0");
 
@@ -148,17 +148,17 @@ main()
         pkiDir + "/veh1-ticket-000.cert",
         pkiDir + "/veh1-ticket-000.pem"};
 
-    vehicle->security.denmCredentialPool.SetCredentials({
+    vehicle->security.credentialPool.SetCredentials({
         veh0Credential,
         foreignCredential});
 
     ok &= Check(
-        vehicle->security.denmCredentialPool.Select(0),
+        vehicle->security.credentialPool.Select(0),
         "veh0 credential is restored as active before contamination test");
 
     ok &= Check(
-        vehicle->security.denmCredentialPool.GetCredential(1) != nullptr &&
-            vehicle->security.denmCredentialPool.GetCredential(1)->vehicleId ==
+        vehicle->security.credentialPool.GetCredential(1) != nullptr &&
+            vehicle->security.credentialPool.GetCredential(1)->vehicleId ==
                 "veh1",
         "foreign credential explicitly identifies veh1");
 
@@ -171,12 +171,12 @@ main()
         "rotation rejects a credential belonging to another vehicle");
 
     ok &= Check(
-        vehicle->security.denmCredentialPool.GetActiveCredentialIndex() == 0,
+        vehicle->security.credentialPool.GetActiveCredentialIndex() == 0,
         "rejected foreign credential preserves active credential index");
 
     ok &= Check(
-        vehicle->security.denmCredentialPool.GetActiveCredential() != nullptr &&
-            vehicle->security.denmCredentialPool.GetActiveCredential()->vehicleId ==
+        vehicle->security.credentialPool.GetActiveCredential() != nullptr &&
+            vehicle->security.credentialPool.GetActiveCredential()->vehicleId ==
                 vehicle->identity.vehId,
         "active credential still belongs to veh0 after rejection");
 
@@ -196,7 +196,7 @@ main()
         pkiDir + "/veh0-ticket-001.cert",
         pkiDir + "/veh0-ticket-001.pem"};
 
-    vehicle->security.denmCredentialPool.SetCredentials({
+    vehicle->security.credentialPool.SetCredentials({
         veh0Credential,
         veh0Credential001});
 
@@ -206,12 +206,12 @@ main()
         "legitimate veh0 credential rotation succeeds");
 
     ok &= Check(
-        vehicle->security.denmCredentialPool.GetActiveCredentialIndex() == 1,
+        vehicle->security.credentialPool.GetActiveCredentialIndex() == 1,
         "credential sequence 001 becomes active");
 
     ok &= Check(
-        vehicle->security.denmCredentialPool.GetActiveCredential() != nullptr &&
-            vehicle->security.denmCredentialPool.GetActiveCredential()->vehicleId ==
+        vehicle->security.credentialPool.GetActiveCredential() != nullptr &&
+            vehicle->security.credentialPool.GetActiveCredential()->vehicleId ==
                 vehicle->identity.vehId,
         "rotated active credential still belongs to veh0");
 

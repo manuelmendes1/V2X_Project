@@ -169,7 +169,7 @@ namespace ns3 {
                 m_impl->vehicle.security;
 
             const VehicleCredential* activeCredential =
-                security.denmCredentialPool.GetActiveCredential();
+                security.credentialPool.GetActiveCredential();
 
             if (activeCredential == nullptr)
             {
@@ -183,7 +183,7 @@ namespace ns3 {
                 std::make_unique<DenmV3SignService>(
                     *m_impl->runtime,
                     *m_impl->position,
-                    security.denmCredentialPool,
+                    security.credentialPool,
                     m_impl->denmCredentialMaterialResolver);
 
             // Keep a non-owning reference before transferring ownership to

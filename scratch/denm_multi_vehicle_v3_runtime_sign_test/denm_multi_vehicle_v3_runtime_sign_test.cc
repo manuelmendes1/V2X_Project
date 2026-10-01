@@ -240,11 +240,11 @@ main()
             vehicleId + " VanetzaRuntime is initialized");
 
         ok &= Check(
-            vehicle->security.denmCredentialPool.Size() >= 3,
+            vehicle->security.credentialPool.Size() >= 3,
             vehicleId + " has at least three DENM credentials");
 
         ok &= Check(
-            vehicle->security.denmCredentialPool.GetActiveCredentialIndex() == 0,
+            vehicle->security.credentialPool.GetActiveCredentialIndex() == 0,
             vehicleId + " starts with credential 000 active");
 
         ok &= Check(

@@ -96,7 +96,7 @@ main()
         vehicle);
 
     const auto* activeCredential =
-        vehicle.security.denmCredentialPool.GetActiveCredential();
+        vehicle.security.credentialPool.GetActiveCredential();
 
     Expect(
         activeCredential != nullptr,
@@ -242,7 +242,7 @@ main()
         "credential rotation to ticket-001 succeeds");
 
     const auto* rotatedCredential =
-        vehicle.security.denmCredentialPool.GetActiveCredential();
+        vehicle.security.credentialPool.GetActiveCredential();
 
     Expect(
         rotatedCredential != nullptr &&

@@ -44,8 +44,9 @@ struct VehicleSecurityContext
     std::string certFile;
     std::string keyFile;
 
-    // DENM credential pool discovered for this vehicle.
-    VehicleCredentialPool denmCredentialPool;
+    // Common credential pool discovered for this vehicle.
+    // The active credential is shared by CAM and DENM security consumers.
+    VehicleCredentialPool credentialPool;
 
     // ------------------------------------------------------------------------
     // Cryptographic material

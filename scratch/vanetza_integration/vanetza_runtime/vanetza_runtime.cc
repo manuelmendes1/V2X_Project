@@ -98,19 +98,19 @@ VanetzaRuntime::RotateDenmCredential()
     auto& security =
         m_vehicle.security;
 
-    if (security.denmCredentialPool.Empty())
+    if (security.credentialPool.Empty())
     {
         return false;
     }
 
     const std::size_t currentIndex =
-        security.denmCredentialPool.GetActiveCredentialIndex();
+        security.credentialPool.GetActiveCredentialIndex();
 
     const std::size_t nextIndex =
         currentIndex + 1;
 
     const VehicleCredential* nextCredential =
-        security.denmCredentialPool.GetCredential(nextIndex);
+        security.credentialPool.GetCredential(nextIndex);
 
     if (nextCredential == nullptr)
     {

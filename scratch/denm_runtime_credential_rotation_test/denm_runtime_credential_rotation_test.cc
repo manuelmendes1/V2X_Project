@@ -154,11 +154,11 @@ main()
         "VanetzaRuntime is initialized");
 
     ok &= Check(
-        vehicle->security.denmCredentialPool.Size() >= 2,
+        vehicle->security.credentialPool.Size() >= 2,
         "veh0 has at least two DENM credentials");
 
     ok &= Check(
-        vehicle->security.denmCredentialPool.GetActiveCredentialIndex() == 0,
+        vehicle->security.credentialPool.GetActiveCredentialIndex() == 0,
         "credential 000 is active before runtime rotation");
 
     ok &= Check(
@@ -167,7 +167,7 @@ main()
         "credential 000 certificate is active before rotation");
 
     const std::size_t credentialCount =
-        vehicle->security.denmCredentialPool.Size();
+        vehicle->security.credentialPool.Size();
 
     ok &= Check(
         credentialCount >= 2,
@@ -184,7 +184,7 @@ main()
                 std::to_string(expectedIndex));
 
         ok &= Check(
-            vehicle->security.denmCredentialPool.GetActiveCredentialIndex() ==
+            vehicle->security.credentialPool.GetActiveCredentialIndex() ==
                 expectedIndex,
             "credential " +
                 std::to_string(expectedIndex) +
@@ -194,7 +194,7 @@ main()
         {
             ok &= Check(
                 vehicle->security.certFile ==
-                    vehicle->security.denmCredentialPool.GetCredential(expectedIndex)->certFile,
+                    vehicle->security.credentialPool.GetCredential(expectedIndex)->certFile,
                 "active certificate matches credential " +
                     std::to_string(expectedIndex));
         }
@@ -209,7 +209,7 @@ main()
         "rotation beyond the available credential pool is rejected");
 
     ok &= Check(
-        vehicle->security.denmCredentialPool.GetActiveCredentialIndex() ==
+        vehicle->security.credentialPool.GetActiveCredentialIndex() ==
             lastCredentialIndex,
         "rejected runtime rotation preserves the last active credential");
 

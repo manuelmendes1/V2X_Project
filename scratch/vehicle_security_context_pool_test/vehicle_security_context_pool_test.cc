@@ -2,10 +2,39 @@
 
 #include <iostream>
 #include <string>
+#include <type_traits>
+#include <utility>
 #include <vector>
 
 namespace
 {
+
+template <typename T, typename = void>
+struct HasCredentialPool : std::false_type
+{
+};
+
+template <typename T>
+struct HasCredentialPool<
+    T,
+    std::void_t<decltype(std::declval<T&>().credentialPool)>>
+    : std::true_type
+{
+};
+
+template <typename T, typename = void>
+struct HasDenmCredentialPool : std::false_type
+{
+};
+
+template <typename T>
+struct HasDenmCredentialPool<
+    T,
+    std::void_t<decltype(std::declval<T&>().denmCredentialPool)>>
+    : std::true_type
+{
+};
+
 
 bool
 Check(bool condition, const std::string& message)
@@ -52,22 +81,32 @@ main()
     ns3::VehicleSecurityContext security;
     bool ok = true;
 
-    ok &= Check(
-        security.denmCredentialPool.Empty(),
-        "security context starts with an empty DENM credential pool");
+    static_assert(
+        HasCredentialPool<
+            ns3::VehicleSecurityContext>::value,
+        "VehicleSecurityContext must expose the common credential pool as credentialPool");
 
-    security.denmCredentialPool.SetCredentials({
+    static_assert(
+        !HasDenmCredentialPool<
+            ns3::VehicleSecurityContext>::value,
+        "VehicleSecurityContext must not expose a DENM-specific credential pool name");
+
+    ok &= Check(
+        security.credentialPool.Empty(),
+        "security context starts with an empty common credential pool");
+
+    security.credentialPool.SetCredentials({
         credential000,
         credential001,
         credential002});
 
     ok &= Check(
-        security.denmCredentialPool.Size() == 3,
-        "security context owns three DENM credentials through the pool");
+        security.credentialPool.Size() == 3,
+        "security context owns three credentials through the common pool");
 
     ok &= Check(
-        security.denmCredentialPool.GetActiveCredential() != nullptr &&
-            security.denmCredentialPool.GetActiveCredential()->credentialId ==
+        security.credentialPool.GetActiveCredential() != nullptr &&
+            security.credentialPool.GetActiveCredential()->credentialId ==
                 "veh0-ticket-000",
         "pool exposes credential 000 as the initial active credential");
 
@@ -76,7 +115,7 @@ main()
         "security context selects DENM credential 001");
 
     ok &= Check(
-        security.denmCredentialPool.GetActiveCredentialIndex() == 1,
+        security.credentialPool.GetActiveCredentialIndex() == 1,
         "pool active index changes to credential 001");
 
     ok &= Check(
@@ -92,7 +131,7 @@ main()
         "security context rotates from credential 001 to 002");
 
     ok &= Check(
-        security.denmCredentialPool.GetActiveCredentialIndex() == 2,
+        security.credentialPool.GetActiveCredentialIndex() == 2,
         "pool active index changes to credential 002");
 
     ok &= Check(
@@ -104,7 +143,7 @@ main()
         "rotation beyond the pool is rejected");
 
     ok &= Check(
-        security.denmCredentialPool.GetActiveCredentialIndex() == 2,
+        security.credentialPool.GetActiveCredentialIndex() == 2,
         "rejected rotation preserves pool active index");
 
     ok &= Check(

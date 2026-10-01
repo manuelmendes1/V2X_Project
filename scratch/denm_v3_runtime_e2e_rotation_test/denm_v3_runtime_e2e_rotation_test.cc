@@ -240,11 +240,11 @@ main()
         "VanetzaRuntime is initialized");
 
     ok &= Check(
-        vehicle->security.denmCredentialPool.Size() >= 2,
+        vehicle->security.credentialPool.Size() >= 2,
         "veh0 has at least two DENM credentials");
 
     ok &= Check(
-        vehicle->security.denmCredentialPool.GetActiveCredentialIndex() == 0,
+        vehicle->security.credentialPool.GetActiveCredentialIndex() == 0,
         "credential 000 is active before first DENM");
 
     std::shared_ptr<ns3::PacketContext> firstContext;
@@ -310,7 +310,7 @@ main()
                 "runtime credential rotation succeeds between DENM transmissions");
 
             ok &= Check(
-                vehicle->security.denmCredentialPool.GetActiveCredentialIndex() == 1,
+                vehicle->security.credentialPool.GetActiveCredentialIndex() == 1,
                 "credential 001 is active before second DENM");
 
             ok &= Check(

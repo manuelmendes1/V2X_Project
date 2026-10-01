@@ -64,26 +64,26 @@ main()
         "controller-provided PKI directory selects veh0 credential 000 private key");
 
     Expect(
-        state.security.denmCredentialPool.Size() >= 1,
+        state.security.credentialPool.Size() >= 1,
         "controller-provided PKI directory discovers at least one DENM credential");
 
     Expect(
-        state.security.denmCredentialPool.Empty() ||
-            (state.security.denmCredentialPool.GetCredential(0) != nullptr &&
-             state.security.denmCredentialPool.GetCredential(0)->credentialId ==
+        state.security.credentialPool.Empty() ||
+            (state.security.credentialPool.GetCredential(0) != nullptr &&
+             state.security.credentialPool.GetCredential(0)->credentialId ==
                 "veh0-ticket-000"),
         "selected credential has explicit credential identifier");
 
     Expect(
-        state.security.denmCredentialPool.Empty() ||
-            (state.security.denmCredentialPool.GetCredential(0) != nullptr &&
-             state.security.denmCredentialPool.GetCredential(0)->vehicleId == "veh0"),
+        state.security.credentialPool.Empty() ||
+            (state.security.credentialPool.GetCredential(0) != nullptr &&
+             state.security.credentialPool.GetCredential(0)->vehicleId == "veh0"),
         "selected credential is explicitly bound to veh0");
 
     Expect(
-        state.security.denmCredentialPool.Empty() ||
-            (state.security.denmCredentialPool.GetCredential(0) != nullptr &&
-             state.security.denmCredentialPool.GetCredential(0)->sequence == 0),
+        state.security.credentialPool.Empty() ||
+            (state.security.credentialPool.GetCredential(0) != nullptr &&
+             state.security.credentialPool.GetCredential(0)->sequence == 0),
         "selected credential carries sequence 000");
 
     Expect(
