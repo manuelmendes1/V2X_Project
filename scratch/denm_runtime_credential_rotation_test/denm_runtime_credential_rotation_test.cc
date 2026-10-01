@@ -1,4 +1,5 @@
 #include "vanetza_integration/vanetza_runtime/vanetza_runtime.h"
+#include "vanetza_integration/wrappers/vanetza/geonet/vanetza_geonet_adapter.h"
 #include "vanetza_integration/context/vehicle_factory/vehicle_factory.h"
 #include "vanetza_integration/context/vehicle_registry/vehicle_registry.h"
 #include "vanetza_integration/context/vehicle_security/vehicle_security_initializer/vehicle_security_initializer.h"
@@ -14,10 +15,42 @@
 #include <cstdlib>
 #include <iostream>
 #include <string>
+#include <type_traits>
+#include <utility>
 #include "vanetza_integration/tests/denm_test_pki.h"
 
 namespace
 {
+
+template <typename T, typename = void>
+struct HasRotateDenmCredential : std::false_type
+{
+};
+
+template <typename T>
+struct HasRotateDenmCredential<
+    T,
+    std::void_t<
+        decltype(
+            std::declval<T&>().RotateDenmCredential())>>
+    : std::true_type
+{
+};
+
+template <typename T, typename = void>
+struct HasReloadDenmCredential : std::false_type
+{
+};
+
+template <typename T>
+struct HasReloadDenmCredential<
+    T,
+    std::void_t<
+        decltype(
+            std::declval<T&>().ReloadDenmCredential())>>
+    : std::true_type
+{
+};
 
 bool
 Check(
@@ -55,6 +88,16 @@ main()
     }
 
     bool ok = true;
+
+    static_assert(
+        !HasRotateDenmCredential<
+            ns3::VanetzaGeoNetAdapter>::value,
+        "VanetzaGeoNetAdapter must not own DENM credential rotation");
+
+    static_assert(
+        HasReloadDenmCredential<
+            ns3::VanetzaGeoNetAdapter>::value,
+        "VanetzaGeoNetAdapter must expose DENM signer reload only");
 
     // Configure the same explicit DENM PKI directory used by the
     // VehicleSecurityInitializer. DENM_TEST_PKI_DIR is only the

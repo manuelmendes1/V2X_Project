@@ -95,7 +95,55 @@ VanetzaRuntime::RotateDenmCredential()
         return false;
     }
 
-    return m_geonet->RotateDenmCredential();
+    auto& security =
+        m_vehicle.security;
+
+    if (security.denmCredentialPool.Empty())
+    {
+        return false;
+    }
+
+    const std::size_t currentIndex =
+        security.denmCredentialPool.GetActiveCredentialIndex();
+
+    const std::size_t nextIndex =
+        currentIndex + 1;
+
+    const VehicleCredential* nextCredential =
+        security.denmCredentialPool.GetCredential(nextIndex);
+
+    if (nextCredential == nullptr)
+    {
+        return false;
+    }
+
+    // Credential ownership is bound to the vehicle logical identity.
+    // Rotation must never activate material provisioned for another vehicle.
+    if (nextCredential->vehicleId !=
+        m_vehicle.identity.vehId)
+    {
+        return false;
+    }
+
+    // Select the new active credential in the vehicle security context.
+    // This also refreshes the CAM/OpenSSL material associated with it.
+    if (!security.SetActiveDenmCredential(nextIndex))
+    {
+        return false;
+    }
+
+    // The GeoNetworking wrapper owns the actual Vanetza DENM signer, but
+    // does not own credential-selection policy. Reload only the signer from
+    // the credential already selected by the runtime.
+    if (!m_geonet->ReloadDenmCredential())
+    {
+        // Restore the complete previous security state when signer reload
+        // or credential validation fails.
+        security.SetActiveDenmCredential(currentIndex);
+        return false;
+    }
+
+    return true;
 }
 
 

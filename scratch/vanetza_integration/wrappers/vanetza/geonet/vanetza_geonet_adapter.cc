@@ -855,60 +855,16 @@ VanetzaGeoNetAdapter::LocalMid() const
 }
 
 bool
-VanetzaGeoNetAdapter::RotateDenmCredential()
+VanetzaGeoNetAdapter::ReloadDenmCredential()
 {
-    auto& security =
-        m_impl->vehicle.security;
-
     if (m_impl->denmSigner == nullptr)
     {
         return false;
     }
 
-    if (security.denmCredentialPool.Empty())
-    {
-        return false;
-    }
-
-    const std::size_t currentIndex =
-        security.denmCredentialPool.GetActiveCredentialIndex();
-
-    const std::size_t nextIndex =
-        currentIndex + 1;
-
-    const VehicleCredential* nextCredential =
-        security.denmCredentialPool.GetCredential(nextIndex);
-
-    if (nextCredential == nullptr)
-    {
-        return false;
-    }
-
-    // Credential ownership is bound to the vehicle logical identity.
-    // Rotation must never activate material provisioned for another vehicle.
-    if (nextCredential->vehicleId != m_impl->vehicle.identity.vehId)
-    {
-        return false;
-    }
-
-    // Select the new active credential in the context first. The signer
-    // observes that selection only through ActiveCredentialProvider.
-    if (!security.SetActiveDenmCredential(nextIndex))
-    {
-        return false;
-    }
-
-    // Reloading the signer is transactional: failure leaves its previous
-    // cryptographic objects intact. Roll the pool back if material loading
-    // or signer construction fails.
-    if (!m_impl->denmSigner->ReloadActiveCredential())
-    {
-        security.SetActiveDenmCredential(currentIndex);
-        return false;
-    }
-
-    return true;
+    return m_impl->denmSigner->ReloadActiveCredential();
 }
+
 
 bool
 VanetzaGeoNetAdapter::SynchronizeTimeAndPosition()
