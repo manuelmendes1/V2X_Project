@@ -1,3 +1,6 @@
+#include <openssl/evp.h>
+#include <openssl/x509.h>
+
 #include "vanetza_integration/context/vehicle_factory/vehicle_factory.h"
 #include "vanetza_integration/context/vehicle_registry/vehicle_registry.h"
 #include "vanetza_integration/context/vehicle_security/vehicle_security_initializer/vehicle_security_initializer.h"
@@ -208,6 +211,24 @@ main()
     const std::string originalKey =
         vehicle->security.keyFile;
 
+    EVP_PKEY* originalPrivateKey =
+        vehicle->security.privateKey != nullptr
+            ? EVP_PKEY_dup(vehicle->security.privateKey)
+            : nullptr;
+
+    EVP_PKEY* originalCertificatePublicKey =
+        vehicle->security.certificate != nullptr
+            ? X509_get_pubkey(vehicle->security.certificate)
+            : nullptr;
+
+    ok &= Check(
+        originalPrivateKey != nullptr,
+        "original private key is available for atomic-rollback comparison");
+
+    ok &= Check(
+        originalCertificatePublicKey != nullptr,
+        "original certificate public key is available for atomic-rollback comparison");
+
     /*
      * The core P10 assertion: the runtime rotation must fail atomically
      * and preserve every externally visible security-state field.
@@ -227,6 +248,42 @@ main()
     ok &= Check(
         vehicle->security.keyFile == originalKey,
         "failed rotation preserves private-key path");
+
+    ok &= Check(
+        vehicle->security.privateKey != nullptr &&
+            originalPrivateKey != nullptr &&
+            EVP_PKEY_eq(
+                vehicle->security.privateKey,
+                originalPrivateKey) == 1,
+        "failed rotation preserves private-key cryptographic identity");
+
+    EVP_PKEY* restoredCertificatePublicKey =
+        vehicle->security.certificate != nullptr
+            ? X509_get_pubkey(vehicle->security.certificate)
+            : nullptr;
+
+    ok &= Check(
+        restoredCertificatePublicKey != nullptr &&
+            originalCertificatePublicKey != nullptr &&
+            EVP_PKEY_eq(
+                restoredCertificatePublicKey,
+                originalCertificatePublicKey) == 1,
+        "failed rotation preserves certificate public-key identity");
+
+    if (restoredCertificatePublicKey != nullptr)
+    {
+        EVP_PKEY_free(restoredCertificatePublicKey);
+    }
+
+    if (originalCertificatePublicKey != nullptr)
+    {
+        EVP_PKEY_free(originalCertificatePublicKey);
+    }
+
+    if (originalPrivateKey != nullptr)
+    {
+        EVP_PKEY_free(originalPrivateKey);
+    }
 
     registry.Clear();
 

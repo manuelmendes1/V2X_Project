@@ -217,26 +217,7 @@ VehicleSecurityInitializer::Initialize(
 
             if (state.security.SetActiveDenmCredential(0))
             {
-                const auto* activeCredential =
-                    state.security.denmCredentialPool
-                        .GetActiveCredential();
-
-                if (activeCredential != nullptr)
-                {
-                    auto [key, cert] =
-                        LoadEcdsaKeyAndCert(
-                            activeCredential->keyFile,
-                            state.identity.vehId);
-
-                    if (key != nullptr &&
-                        cert != nullptr)
-                    {
-                        state.security.privateKey = key;
-                        state.security.certificate = cert;
-                    }
-
-                    return;
-                }
+                return;
             }
 
             state.security.denmCredentialPool.SetCredentials({});

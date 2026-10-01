@@ -8,6 +8,10 @@
 #include <openssl/pem.h>
 #include <openssl/x509.h>
 
+#include <vanetza/security/v3/persistence.hpp>
+
+#include "vanetza_integration/context/vehicle_security/vehicle_credential_binding_validator.h"
+
 #include <cstdlib>
 #include <iostream>
 #include <string>
@@ -60,7 +64,7 @@ int
 main()
 {
     std::cout
-        << "===== CAM DENM COMMON CREDENTIAL PATH RED TEST =====\n";
+        << "===== CAM DENM COMMON CREDENTIAL PATH TEST =====\n";
 
     unsetenv("V2X_DENM_PKI_DIR");
 
@@ -72,6 +76,12 @@ main()
 
     const std::string expectedKey =
         pkiDir + "/veh0-ticket-000.pem";
+
+    const std::string expectedCertRotated =
+        pkiDir + "/veh0-ticket-001.cert";
+
+    const std::string expectedKeyRotated =
+        pkiDir + "/veh0-ticket-001.pem";
 
     ns3::SimulationController::SetDenmPkiDirectory(
         pkiDir);
@@ -217,6 +227,144 @@ main()
         Expect(
             verified,
             "CAM signature verifies with its bound certificate");
+    }
+
+    // ---------------------------------------------------------------------
+    // Credential rotation must update the active credential actually
+    // consumed by CAM, including its cached cryptographic material.
+    // ---------------------------------------------------------------------
+
+    const bool rotationSucceeded =
+        vehicle.security.RotateToNextDenmCredential();
+
+    Expect(
+        rotationSucceeded,
+        "credential rotation to ticket-001 succeeds");
+
+    const auto* rotatedCredential =
+        vehicle.security.denmCredentialPool.GetActiveCredential();
+
+    Expect(
+        rotatedCredential != nullptr &&
+            rotatedCredential->credentialId ==
+                "veh0-ticket-001",
+        "ticket-001 becomes the active credential after rotation");
+
+    Expect(
+        vehicle.security.certFile == expectedCertRotated,
+        "VehicleSecurityContext exposes rotated certificate path");
+
+    Expect(
+        vehicle.security.keyFile == expectedKeyRotated,
+        "VehicleSecurityContext exposes rotated private-key path");
+
+    EVP_PKEY* rotatedPrivateKey =
+        LoadPrivateKey(expectedKeyRotated);
+
+    Expect(
+        rotatedPrivateKey != nullptr,
+        "rotated credential private key can be loaded by OpenSSL");
+
+    ns3::CamGenerationContext camAfterRotation =
+        ns3::CamBuilder::Build(vehicle);
+
+    Expect(
+        camAfterRotation.security.privateKey != nullptr,
+        "CAM context has a private key after credential rotation");
+
+    if (rotatedPrivateKey != nullptr &&
+        camAfterRotation.security.privateKey != nullptr)
+    {
+        const int rotatedKeyMatch =
+            EVP_PKEY_eq(
+                camAfterRotation.security.privateKey,
+                rotatedPrivateKey);
+
+        Expect(
+            rotatedKeyMatch == 1,
+            "CAM private key follows the rotated active credential");
+    }
+
+    const ns3::VehicleCredential expectedRotatedCredential{
+        "veh0-ticket-001",
+        "veh0",
+        1,
+        expectedCertRotated,
+        expectedKeyRotated
+    };
+
+    const bool rotatedCredentialBinding =
+        ns3::VehicleCredentialBindingValidator::Validate(
+            expectedRotatedCredential);
+
+    Expect(
+        rotatedCredentialBinding,
+        "rotated credential certificate and private key are cryptographically bound");
+
+    bool rotatedCertificateLoaded = false;
+
+    try
+    {
+        const auto rotatedCertificate =
+            vanetza::security::v3::load_certificate_from_file(
+                expectedCertRotated);
+
+        rotatedCertificateLoaded =
+            rotatedCertificate.content() != nullptr;
+    }
+    catch (...)
+    {
+        rotatedCertificateLoaded = false;
+    }
+
+    Expect(
+        rotatedCertificateLoaded,
+        "rotated V3 credential certificate can be loaded by Vanetza");
+
+    EVP_PKEY* camAfterRotationPublicKey = nullptr;
+
+    if (camAfterRotation.security.certificate != nullptr)
+    {
+        camAfterRotationPublicKey =
+            X509_get_pubkey(
+                camAfterRotation.security.certificate);
+    }
+
+    Expect(
+        camAfterRotationPublicKey != nullptr,
+        "CAM context exposes a certificate public key after rotation");
+
+    if (rotatedPrivateKey != nullptr &&
+        camAfterRotationPublicKey != nullptr)
+    {
+        const int rotatedCertificateMatch =
+            EVP_PKEY_eq(
+                camAfterRotationPublicKey,
+                rotatedPrivateKey);
+
+        Expect(
+            rotatedCertificateMatch == 1,
+            "CAM certificate follows the rotated active credential");
+    }
+
+    const auto rotatedSignature =
+        CamSecurity::Sign(
+            context,
+            payload,
+            camAfterRotation.security.privateKey);
+
+    Expect(
+        !rotatedSignature.empty(),
+        "CAM signing still produces a signature after rotation");
+
+    if (camAfterRotationPublicKey != nullptr)
+    {
+        EVP_PKEY_free(camAfterRotationPublicKey);
+    }
+
+    if (rotatedPrivateKey != nullptr)
+    {
+        EVP_PKEY_free(rotatedPrivateKey);
     }
 
     if (camPublicKey != nullptr)
