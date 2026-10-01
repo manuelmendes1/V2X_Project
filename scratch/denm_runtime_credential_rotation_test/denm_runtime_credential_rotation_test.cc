@@ -3,6 +3,7 @@
 #include "vanetza_integration/context/vehicle_registry/vehicle_registry.h"
 #include "vanetza_integration/context/vehicle_security/vehicle_security_initializer/vehicle_security_initializer.h"
 #include "vanetza_integration/context/vehicle_state.h"
+#include "vanetza_integration/context/simulation_context/simulation_context.h"
 
 #include "ns3/callback.h"
 #include "ns3/ipv4-address-helper.h"
@@ -60,6 +61,11 @@ main()
     // test environment variable; it is not consumed by production code.
     ns3::VehicleSecurityInitializer::SetDenmPkiDirectory(
         pkiDir);
+
+    // The production DENM signer requires an explicit ITS time domain
+    // for certificate temporal validation (P4).
+    SimulationContext::itsStartTime =
+        "2026-09-24T13:38:21";
 
     auto& registry =
         ns3::VehicleRegistry::Instance();
@@ -167,6 +173,7 @@ main()
     registry.Clear();
 
     ns3::VehicleSecurityInitializer::SetDenmPkiDirectory("");
+    SimulationContext::itsStartTime.clear();
 
     std::cout
         << "DENM_RUNTIME_CREDENTIAL_ROTATION_EXIT="
