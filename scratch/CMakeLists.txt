@@ -22,6 +22,29 @@ link_directories(/usr/local/lib)
 find_package(OpenSSL REQUIRED)
 
 # =========================================================
+# GEOGRAPHICLIB (GCC-11 COMPATIBLE)
+# =========================================================
+
+set(V2X_GEOGRAPHICLIB_ROOT
+    "$ENV{HOME}/opt/geographiclib-gcc11"
+    CACHE PATH
+    "Root of the GCC-11-compatible GeographicLib installation"
+)
+
+find_library(V2X_GEOGRAPHICLIB_LIBRARY
+    NAMES GeographicLib
+    PATHS "${V2X_GEOGRAPHICLIB_ROOT}/lib"
+    NO_DEFAULT_PATH
+)
+
+if(NOT V2X_GEOGRAPHICLIB_LIBRARY)
+    message(FATAL_ERROR
+        "GCC-11-compatible GeographicLib not found in "
+        "${V2X_GEOGRAPHICLIB_ROOT}/lib"
+    )
+endif()
+
+# =========================================================
 # VANETZA LIBS
 # =========================================================
 
@@ -207,24 +230,26 @@ function(create_scratch source_files)
 
     get_filename_component(name ${main_file} NAME_WLE)
 
-    add_executable(${target_prefix}${name}
-        ${source_files}
+    build_exec(
+        EXECNAME ${name}
+        SOURCE_FILES ${source_files}
+        LIBRARIES_TO_LINK
+            ${ns3-libs}
+            ${ns3-contrib-libs}
+            ${VANETZA_LIBS}
+            ${V2X_GEOGRAPHICLIB_LIBRARY}
+            OpenSSL::SSL
+            OpenSSL::Crypto
+            $<TARGET_OBJECTS:vanetza_cam_encoder_obj>
+            $<TARGET_OBJECTS:vanetza_denm_obj>
+        EXECUTABLE_DIRECTORY_PATH ${CMAKE_OUTPUT_DIRECTORY}/scratch
+        IGNORE_PCH
     )
 
     target_include_directories(${target_prefix}${name} PRIVATE
         ${CMAKE_SOURCE_DIR}/scratch
         ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration
         /usr/local/include/vanetza
-    )
-
-    target_link_libraries(${target_prefix}${name}
-        ${ns3-libs}
-        ${ns3-contrib-libs}
-        ${VANETZA_LIBS}
-        OpenSSL::SSL
-        OpenSSL::Crypto
-        $<TARGET_OBJECTS:vanetza_cam_encoder_obj>
-        $<TARGET_OBJECTS:vanetza_denm_obj>
     )
 
 endfunction()
