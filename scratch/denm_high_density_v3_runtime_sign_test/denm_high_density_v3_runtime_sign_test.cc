@@ -11,6 +11,7 @@
 #include "vanetza_integration/denm/service/denm_service.h"
 #include "vanetza_integration/denm/trigger/denm_trigger.h"
 
+#include "ns3/command-line.h"
 #include "ns3/ipv4-address-helper.h"
 #include "ns3/simulator.h"
 #include "ns3/yans-wifi-channel.h"
@@ -194,7 +195,7 @@ GenerateAndSend(
 } // namespace
 
 int
-main()
+main(int argc, char* argv[])
 {
     std::cout
         << "===== DENM HIGH-DENSITY V3 RUNTIME SIGN TEST =====\n";
@@ -219,19 +220,37 @@ main()
         << vehicleCount
         << "\n";
 
+    std::string itsStartTime;
+
+    ns3::CommandLine cmd;
+
+    cmd.AddValue(
+        "itsStartTime",
+        "Explicit ITS start time for V3 certificate validation",
+        itsStartTime);
+
+    cmd.Parse(argc, argv);
+
+    if (itsStartTime.empty())
+    {
+        std::cerr
+            << "FAIL --itsStartTime is required for DENM V3 test"
+            << std::endl;
+        return 1;
+    }
+
+    SimulationContext::itsStartTime = itsStartTime;
+
+    std::cout
+        << "ITS_START_TIME="
+        << SimulationContext::itsStartTime
+        << std::endl;
+
+
     bool ok = true;
 
     ns3::VehicleSecurityInitializer::SetDenmPkiDirectory(
         pkiDir);
-
-    const char* itsStartTimeEnv =
-    std::getenv("V2X_TEST_ITS_START_TIME");
-
-    SimulationContext::itsStartTime =
-    itsStartTimeEnv != nullptr &&
-            !std::string(itsStartTimeEnv).empty()
-        ? itsStartTimeEnv
-        : "2026-09-24T14:05:00";
 
     ns3::DenmLifecycleManager lifecycle;
     lifecycle.Reset();
