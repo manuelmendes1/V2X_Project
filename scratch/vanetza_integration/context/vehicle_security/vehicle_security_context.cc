@@ -1,5 +1,6 @@
 #include "vehicle_security_context.h"
 
+#include "vanetza_integration/context/vehicle_security/vehicle_credential_binding_validator.h"
 #include "vanetza_integration/security/vehicle_crypto/vehicle_crypto.h"
 
 namespace ns3
@@ -16,6 +17,16 @@ VehicleSecurityContext::SetActiveDenmCredential(
         credential->vehicleId.empty() ||
         credential->keyFile.empty() ||
         credential->certFile.empty())
+    {
+        return false;
+    }
+
+    /*
+     * A credential may become active only after its ETSI V3 certificate
+     * and private key have been proven to belong together. Perform this
+     * validation before staging CAM material or mutating pool selection.
+     */
+    if (!VehicleCredentialBindingValidator::Validate(*credential))
     {
         return false;
     }

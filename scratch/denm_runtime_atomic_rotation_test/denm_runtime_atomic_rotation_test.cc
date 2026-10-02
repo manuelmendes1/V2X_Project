@@ -221,6 +221,41 @@ main()
             ? X509_get_pubkey(vehicle->security.certificate)
             : nullptr;
 
+    /*
+     * P18 regression:
+     * VehicleSecurityContext must reject a credential whose ETSI V3
+     * certificate does not match its private key before changing the
+     * active credential selection.
+     *
+     * Restore credential 000 afterward so the pre-existing runtime
+     * atomicity checks remain independent of this direct rejection check.
+     */
+    const bool directSelectionSucceeded =
+        vehicle->security.SetActiveDenmCredential(1);
+
+    ok &= Check(
+        !directSelectionSucceeded,
+        "security context rejects credential with invalid certificate/key binding");
+
+    if (directSelectionSucceeded)
+    {
+        ok &= Check(
+            vehicle->security.SetActiveDenmCredential(0),
+            "regression probe restores credential 000 after unexpected activation");
+    }
+
+    ok &= Check(
+        vehicle->security.credentialPool.GetActiveCredentialIndex() == 0,
+        "direct credential rejection preserves active credential index");
+
+    ok &= Check(
+        vehicle->security.certFile == originalCert,
+        "direct credential rejection preserves certificate path");
+
+    ok &= Check(
+        vehicle->security.keyFile == originalKey,
+        "direct credential rejection preserves private-key path");
+
     ok &= Check(
         originalPrivateKey != nullptr,
         "original private key is available for atomic-rollback comparison");
