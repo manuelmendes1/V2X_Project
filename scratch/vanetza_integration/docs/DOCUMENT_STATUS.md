@@ -69,7 +69,7 @@ Validation: `26/26` analyzer tests, real-log `RESULTADO P3: PASS`, analyzer exit
 ## 8.12 — DENM E2E Acceptance
 
 **STATUS:** COMPLETED  
-**DATE:** 2026-09-22  
+**DATE:** 2026-09-22
 **RESULT:** PASS
 
 A aceitação formal E2E da fase 8.12 foi concluída com uma execução runtime real.
@@ -190,7 +190,7 @@ Próxima fase: desenvolvimento posterior à Etapa 8, sem reabrir os acceptance j
 ## P15 — Certificate Temporal Validity
 
 **STATUS:** VALIDATED  
-**DATE:** 2026-09-30  
+**DATE:** 2026-09-30
 **RESULT:** PASS
 
 Evidência:
@@ -202,7 +202,7 @@ O P15 foi fechado como validação da validade temporal dos certificados V3. O c
 ## P16 — High-Density DENM Provisioning
 
 **STATUS:** VALIDATED  
-**DATE:** 2026-09-30  
+**DATE:** 2026-09-30
 **RESULT:** PASS
 
 Evidência:
@@ -215,6 +215,88 @@ Commit da evidência no repositório PKI:
 
 08eff6ae
 
-Escopo ainda não coberto:
+A observação de que a integração ns-3/SUMO ainda não estava validada corresponde ao estado no encerramento do P16; essa lacuna foi posteriormente fechada pelo P17.
+
+Relacionado:
 
 [[scratch/vanetza_integration/docs/P17_P4_Bridge_Integration]]
+
+
+## P17 — P4 Bridge / SUMO Integration
+
+[[scratch/vanetza_integration/docs/P17_P4_Bridge_Integration]]
+
+**STATUS:** VALIDATED
+**RESULT:** PASS
+
+A bridge P4/SUMO foi correlacionada com a ingestão DENM no ns-3.
+
+```text
+bridge_events=7
+ns3_ingest_events=7
+matched=7
+missing=0
+unexpected=0
+```
+
+Acceptance commit: `ac3dd63`
+
+## P18 — DENM Credential Binding Ownership
+
+[[scratch/vanetza_integration/docs/P18_Credential_Binding_Ownership]]
+
+**STATUS:** VALIDATED
+**RESULT:** PASS
+
+A seleção da credencial DENM ativa passou a exigir validação do binding certificado/chave privada ETSI V3.
+
+Commit: `6807573`
+
+## P19 — CAM / DENM Regression Acceptance
+
+[[scratch/vanetza_integration/docs/P19_CAM_DENM_Regression_Acceptance]]
+
+**STATUS:** VALIDATED
+**RESULT:** PASS
+
+A regressão pós-P18 confirmou CAM, DENM, coexistência e controlos negativos.
+
+Acceptance commit: `4b4ef28`
+
+## P20 — High-Density DENM V3 Runtime Validation
+
+[[scratch/vanetza_integration/docs/P20_High_Density_V3_Runtime_Validation]]
+
+**STATUS:** VALIDATED
+**RESULT:** PASS
+
+O runtime V3 foi validado com 10 e 20 veículos e, como extensão, 100 veículos.
+
+```text
+VEHICLE_COUNT=100
+UNIQUE_GLOBAL_SIGNER_COUNT=300
+DENM_HIGH_DENSITY_V3_RUNTIME_ROTATION_EXIT=0
+```
+
+## Current state
+
+```text
+P15 = VALIDATED
+P16 = VALIDATED
+P17 = VALIDATED
+P18 = VALIDATED
+P19 = VALIDATED
+P20 = VALIDATED
+P21 = NOT DEFINED
+```
+
+O próximo item deve resultar de requisito ou lacuna técnica explicitamente identificável.
+
+Relacionado:
+
+[[scratch/vanetza_integration/docs/CURRENT_STATE]]
+[[scratch/vanetza_integration/docs/P16_High_Density_DENM_Provisioning]]
+[[scratch/vanetza_integration/docs/P17_P4_Bridge_Integration]]
+[[scratch/vanetza_integration/docs/P18_Credential_Binding_Ownership]]
+[[scratch/vanetza_integration/docs/P19_CAM_DENM_Regression_Acceptance]]
+[[scratch/vanetza_integration/docs/P20_High_Density_V3_Runtime_Validation]]

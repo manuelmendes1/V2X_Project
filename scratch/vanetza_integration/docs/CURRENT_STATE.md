@@ -364,8 +364,78 @@ Commit de evidência:
 08eff6ae test(p16): validate high-density DENM provisioning
 ~~~
 
-O resultado valida a capacidade de provisionamento e a idempotência do conjunto. Não valida ainda a integração automática entre p4_bridge_high_density.py, SUMO e a criação dos veículos no runtime ns-3.
+O resultado valida a capacidade de provisionamento e a idempotência do conjunto. A observação de que a integração ns-3/SUMO ainda não estava validada corresponde ao estado no encerramento do P16. Essa lacuna foi posteriormente fechada pelo P17.
 
-Próxima etapa:
+Relacionado:
 
 [[scratch/vanetza_integration/docs/P17_P4_Bridge_Integration]]
+
+
+## P17 — P4 Bridge / SUMO Integration
+
+[[scratch/vanetza_integration/docs/P17_P4_Bridge_Integration]]
+
+**STATUS:** VALIDATED
+**RESULT:** PASS
+
+P17 validou a integração bridge/SUMO/ns-3 por correlação de 7 eventos DENM da bridge com 7 eventos de ingestão no ns-3.
+
+```text
+bridge_events=7
+ns3_ingest_events=7
+matched=7
+missing=0
+unexpected=0
+```
+
+## P18 — DENM Credential Binding Ownership
+
+[[scratch/vanetza_integration/docs/P18_Credential_Binding_Ownership]]
+
+**STATUS:** VALIDATED
+**RESULT:** PASS
+
+P18 validou rejeição de credential binding certificado/chave inválido antes da alteração da credencial ativa.
+
+Commit: `6807573`
+
+## P19 — CAM / DENM Regression Acceptance
+
+[[scratch/vanetza_integration/docs/P19_CAM_DENM_Regression_Acceptance]]
+
+**STATUS:** VALIDATED
+**RESULT:** PASS
+
+P19 confirmou a regressão integrada CAM + DENM pós-P18.
+
+## P20 — High-Density DENM V3 Runtime Validation
+
+[[scratch/vanetza_integration/docs/P20_High_Density_V3_Runtime_Validation]]
+
+**STATUS:** VALIDATED
+**RESULT:** PASS
+
+P20 validou o envelope de 10 e 20 veículos e a extensão de 100 veículos, incluindo rotação de três credenciais.
+
+```text
+UNIQUE_GLOBAL_SIGNER_COUNT=300
+DENM_HIGH_DENSITY_V3_RUNTIME_ROTATION_EXIT=0
+```
+
+## Current validation frontier
+
+```text
+P15 = VALIDATED
+P16 = VALIDATED
+P17 = VALIDATED
+P18 = VALIDATED
+P19 = VALIDATED
+P20 = VALIDATED
+P21 = NOT DEFINED
+```
+
+Não existe atualmente um P21 formalmente definido no checkout. O próximo item técnico deve resultar de um requisito ou lacuna verificável.
+
+Relacionado:
+
+[[scratch/vanetza_integration/docs/DOCUMENT_STATUS]]
