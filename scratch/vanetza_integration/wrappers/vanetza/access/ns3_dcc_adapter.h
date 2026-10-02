@@ -44,6 +44,11 @@ public:
         const vanetza::dcc::DataRequest& request,
         std::unique_ptr<vanetza::ChunkPacket> packet) override;
 
+    // Export the earliest Vanetza Runtime deadline to the ns-3 Simulator.
+    // This is needed after Router operations that may create internal
+    // Runtime callbacks, e.g. CBF forwarding timers.
+    void SynchronizeRuntimeScheduler();
+
 private:
     using PacketContextPtr =
         std::shared_ptr<PacketContext>;

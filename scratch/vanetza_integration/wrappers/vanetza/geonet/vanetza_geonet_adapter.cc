@@ -703,6 +703,16 @@ VanetzaGeoNetAdapter::Receive(
                 std::move(packet),
                 sender,
                 vanetza::cBroadcastMacAddress);
+
+            // Router::indicate() may have created internal ManualRuntime
+            // callbacks, e.g. a CBF forwarding timer. Export the earliest
+            // Runtime deadline to the ns-3 Simulator immediately after the
+            // Router operation so it cannot remain dormant until a later
+            // application TX calls PrepareTx().
+            if (m_impl->dccAdapter)
+            {
+                m_impl->dccAdapter->SynchronizeRuntimeScheduler();
+            }
         }
         catch (...)
         {

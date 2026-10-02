@@ -202,6 +202,12 @@ Ns3DccAdapter::OnPacketDrop(
 }
 
 void
+Ns3DccAdapter::SynchronizeRuntimeScheduler()
+{
+    ScheduleNextRuntimeEvent();
+}
+
+void
 Ns3DccAdapter::ScheduleNextRuntimeEvent()
 {
     if (m_runtimeEventScheduled)
