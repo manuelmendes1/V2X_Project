@@ -467,3 +467,403 @@ def test_p18_denm_decode_timing_uses_current_event():
     metrics = timing.compute([entry])
 
     assert metrics.operations["decode"].samples == [55]
+
+
+def test_denm_lifecycle_metrics_expose_logical_event_actions():
+    from v2x_analyzer.metrics.denm import DenmLifecycleMetrics, compute_lifecycle
+
+    entries = [
+        mk(
+            "DENM",
+            "DENM_DECODE_OK",
+            veh="veh1",
+            node=1,
+            station=2,
+            msg="origin_station=1 action_seq=7 action=0",
+        ),
+        mk(
+            "DENM",
+            "DENM_REPLAY_OK",
+            veh="veh1",
+            node=1,
+            station=2,
+            msg="origin_station=1 action_seq=7 action=1",
+        ),
+        mk(
+            "DENM",
+            "DENM_DECODE_OK",
+            veh="veh1",
+            node=1,
+            station=2,
+            msg="origin_station=1 action_seq=7 action=2",
+        ),
+    ]
+
+    m = compute_lifecycle(entries)
+
+    assert isinstance(m, DenmLifecycleMetrics)
+    assert m.new == 1
+    assert m.update == 1
+    assert m.cancellation == 1
+    assert m.logical_events == {(1, 7)}
+
+
+def test_denm_v3_credential_metrics_count_structured_signing_evidence():
+    from v2x_analyzer.metrics.denm import compute_credentials
+
+    entries = [
+        mk(
+            "SECURITY",
+            "SIGN_OK",
+            veh="veh0",
+            node=0,
+            station=1,
+            msg="DENM_V3 signed protocol_version=3 aid=37 signed=1",
+        ),
+        mk(
+            "SECURITY",
+            "SIGN_OK",
+            veh="veh1",
+            node=1,
+            station=2,
+            msg="DENM_V3 signed protocol_version=3 aid=37 signed=1",
+        ),
+        mk(
+            "SECURITY",
+            "SIGN_OK",
+            veh="veh0",
+            node=0,
+            station=1,
+            msg="CAM signed protocol_version=3 aid=36 signed=1",
+        ),
+    ]
+
+    m = compute_credentials(entries)
+
+    assert m.denm_v3_signatures == 2
+    assert m.denm_v3_aids == {37}
+    assert m.signers == {"veh0", "veh1"}
+
+
+def test_denm_lifecycle_deduplicates_multiple_physical_observations():
+    from v2x_analyzer.metrics.denm import compute_lifecycle
+
+    entries = [
+        mk(
+            "DENM",
+            "DENM_RECEPTION_OK",
+            veh="veh2",
+            node=2,
+            station=9,
+            pkt=100,
+            msg="origin_station=1 action_seq=7 action=0",
+        ),
+        mk(
+            "DENM",
+            "DENM_DELIVER_OK",
+            veh="veh3",
+            node=3,
+            station=10,
+            pkt=101,
+            msg="origin_station=1 action_seq=7 action=0",
+        ),
+        mk(
+            "DENM",
+            "DENM_DELIVER_OK",
+            veh="veh4",
+            node=4,
+            station=11,
+            pkt=102,
+            msg="origin_station=1 action_seq=7 action=0",
+        ),
+        mk(
+            "DENM",
+            "DENM_REPLAY_OK",
+            veh="veh2",
+            node=2,
+            station=9,
+            pkt=103,
+            msg="origin_station=1 action_seq=7 action=1",
+        ),
+        mk(
+            "DENM",
+            "DENM_DELIVER_OK",
+            veh="veh3",
+            node=3,
+            station=10,
+            pkt=104,
+            msg="origin_station=1 action_seq=7 action=1",
+        ),
+        mk(
+            "DENM",
+            "DENM_DECODE_OK",
+            veh="veh4",
+            node=4,
+            station=11,
+            pkt=105,
+            msg="origin_station=1 action_seq=7 action=2",
+        ),
+    ]
+
+    m = compute_lifecycle(entries)
+
+    assert m.new == 1
+    assert m.update == 1
+    assert m.cancellation == 1
+    assert m.logical_events == {(1, 7)}
+
+
+def test_build_report_exposes_denm_lifecycle_and_credentials():
+    from v2x_analyzer.parser import ParseStats
+    from v2x_analyzer.report import build_report
+
+    entries = [
+        mk(
+            "DENM",
+            "DENM_REPLAY_OK",
+            veh="veh1",
+            node=1,
+            station=2,
+            msg="origin_station=1 action_seq=7 action=0",
+        ),
+        mk(
+            "DENM",
+            "DENM_REPLAY_OK",
+            veh="veh1",
+            node=1,
+            station=2,
+            msg="origin_station=1 action_seq=7 action=1",
+        ),
+        mk(
+            "DENM",
+            "DENM_REPLAY_OK",
+            veh="veh1",
+            node=1,
+            station=2,
+            msg="origin_station=1 action_seq=7 action=2",
+        ),
+        mk(
+            "SECURITY",
+            "SIGN_OK",
+            veh="veh1",
+            node=1,
+            station=2,
+            msg="DENM_V3 signed protocol_version=3 aid=37 signed=1",
+        ),
+    ]
+
+    stats = ParseStats(
+        files=["synthetic.log"],
+        total_lines=len(entries),
+        parsed_lines=len(entries),
+        unparsed_lines=0,
+        unparsed_samples=[],
+        missing_sim_time=0,
+    )
+
+    report = build_report(entries, stats)
+
+    assert report.denm.lifecycle.new == 1
+    assert report.denm.lifecycle.update == 1
+    assert report.denm.lifecycle.cancellation == 1
+    assert report.denm.credentials.denm_v3_signatures == 1
+
+
+def test_render_json_exposes_denm_metrics():
+    import json
+
+    from v2x_analyzer.parser import (
+        DenmProvisioningEvidence,
+        ParseStats,
+    )
+    from v2x_analyzer.report import build_report, render_json
+
+    entries = [
+        mk(
+            "DENM",
+            "DENM_REPLAY_OK",
+            veh="veh1",
+            node=1,
+            station=2,
+            msg="origin_station=1 action_seq=7 action=0",
+        ),
+        mk(
+            "SECURITY",
+            "SIGN_OK",
+            veh="veh1",
+            node=1,
+            station=2,
+            msg="DENM_V3 signed protocol_version=3 aid=37 signed=1",
+        ),
+    ]
+
+    stats = ParseStats(
+        files=["synthetic.log"],
+        total_lines=len(entries),
+        parsed_lines=len(entries),
+        unparsed_lines=0,
+        unparsed_samples=[],
+        denm_provisioning=[
+            DenmProvisioningEvidence(
+                vehicle="veh1",
+                cert_path="/pki/veh1-ticket-000.cert",
+                role="signer",
+                line_no=1,
+                source_file="synthetic.log",
+            ),
+        ],
+        missing_sim_time=0,
+    )
+
+    report = build_report(entries, stats)
+    data = json.loads(render_json(report))
+
+    assert data["denm"]["lifecycle"]["new"] == 1
+    assert data["denm"]["credentials"]["denm_v3_signatures"] == 1
+    assert data["denm"]["credentials"]["real_signers"] == ["veh1"]
+    assert data["denm"]["credentials"]["certificate_paths"] == {
+        "veh1": "/pki/veh1-ticket-000.cert",
+    }
+
+
+def test_denm_v3_credentials_expose_real_provisioning_evidence():
+    from v2x_analyzer.metrics.denm import compute_credentials
+    from v2x_analyzer.parser import DenmProvisioningEvidence
+
+    entries = [
+        mk(
+            "SECURITY",
+            "SIGN_OK",
+            veh="veh0",
+            node=0,
+            station=1,
+            msg="DENM_V3 signed protocol_version=3 aid=37 signed=1",
+        ),
+    ]
+
+    provisioning = [
+        DenmProvisioningEvidence(
+            vehicle="veh0",
+            cert_path="/pki/veh0-ticket-000.cert",
+            role="signer",
+            line_no=10,
+            source_file="p21_1.log",
+        ),
+        DenmProvisioningEvidence(
+            vehicle="veh1",
+            cert_path="/pki/veh1-ticket-000.cert",
+            role="signer",
+            line_no=20,
+            source_file="p21_1.log",
+        ),
+    ]
+
+    m = compute_credentials(entries, provisioning)
+
+    assert m.real_signers == {"veh0", "veh1"}
+    assert m.certificate_paths == {
+        "veh0": "/pki/veh0-ticket-000.cert",
+        "veh1": "/pki/veh1-ticket-000.cert",
+    }
+    assert m.denm_v3_signatures == 1
+
+
+def test_build_report_exposes_real_denm_provisioning():
+    from v2x_analyzer.parser import DenmProvisioningEvidence, ParseStats
+    from v2x_analyzer.report import build_report
+
+    entries = [
+        mk(
+            "SECURITY",
+            "SIGN_OK",
+            veh="veh0",
+            node=0,
+            station=1,
+            msg="DENM_V3 signed protocol_version=3 aid=37 signed=1",
+        ),
+    ]
+
+    provisioning = [
+        DenmProvisioningEvidence(
+            vehicle="veh0",
+            cert_path="/pki/veh0-ticket-000.cert",
+            role="signer",
+            line_no=1,
+            source_file="p21_1.log",
+        ),
+        DenmProvisioningEvidence(
+            vehicle="veh1",
+            cert_path="/pki/veh1-ticket-000.cert",
+            role="signer",
+            line_no=2,
+            source_file="p21_1.log",
+        ),
+    ]
+
+    stats = ParseStats(
+        files=["p21_1.log"],
+        total_lines=3,
+        parsed_lines=1,
+        unparsed_lines=0,
+        unparsed_samples=[],
+        denm_provisioning=provisioning,
+        missing_sim_time=0,
+    )
+
+    report = build_report(entries, stats)
+
+    assert report.denm.credentials.real_signers == {"veh0", "veh1"}
+    assert report.denm.credentials.certificate_paths == {
+        "veh0": "/pki/veh0-ticket-000.cert",
+        "veh1": "/pki/veh1-ticket-000.cert",
+    }
+
+
+def test_render_text_exposes_real_denm_provisioning():
+    from v2x_analyzer.parser import DenmProvisioningEvidence, ParseStats
+    from v2x_analyzer.report import build_report, render_text
+
+    entries = [
+        mk(
+            "SECURITY",
+            "SIGN_OK",
+            veh="veh0",
+            node=0,
+            station=1,
+            msg="DENM_V3 signed protocol_version=3 aid=37 signed=1",
+        ),
+    ]
+
+    stats = ParseStats(
+        files=["p21_1.log"],
+        total_lines=2,
+        parsed_lines=1,
+        unparsed_lines=0,
+        unparsed_samples=[],
+        denm_provisioning=[
+            DenmProvisioningEvidence(
+                vehicle="veh0",
+                cert_path="/pki/veh0-ticket-000.cert",
+                role="signer",
+                line_no=1,
+                source_file="p21_1.log",
+            ),
+            DenmProvisioningEvidence(
+                vehicle="veh1",
+                cert_path="/pki/veh1-ticket-000.cert",
+                role="signer",
+                line_no=2,
+                source_file="p21_1.log",
+            ),
+        ],
+        missing_sim_time=0,
+    )
+
+    report = build_report(entries, stats)
+    rendered = render_text(report)
+
+    assert "DENM V3 Real Signers" in rendered
+    assert "veh0, veh1" in rendered
+    assert "DENM V3 Certificate Paths" in rendered
+    assert "veh0=/pki/veh0-ticket-000.cert" in rendered
+    assert "veh1=/pki/veh1-ticket-000.cert" in rendered

@@ -12,6 +12,7 @@ from .parser import LogEntry, ParseStats
 from .identity import IdentityMap, build_identity_map
 from .metrics import (
     connectivity,
+    denm,
     duplicates,
     errors,
     exit_criteria,
@@ -27,6 +28,7 @@ from .metrics import (
 class FullReport:
     parse_stats: ParseStats
     identity: IdentityMap
+    denm: denm.DenmReport
     tx: tx_pipeline.TxPipelineMetrics
     triggers: trigger_reasons.TriggerReasonMetrics
     rx: rx_pipeline.RxPipelineMetrics
@@ -44,6 +46,13 @@ def build_report(
 ) -> FullReport:
 
     identity = build_identity_map(entries)
+    denm_report = denm.DenmReport(
+        lifecycle=denm.compute_lifecycle(entries),
+        credentials=denm.compute_credentials(
+            entries,
+            getattr(stats, "denm_provisioning", ()),
+        ),
+    )
     tx = tx_pipeline.compute(entries)
     triggers = trigger_reasons.compute(entries)
     rx = rx_pipeline.compute(entries)
@@ -61,6 +70,7 @@ def build_report(
     return FullReport(
         parse_stats=stats,
         identity=identity,
+        denm=denm_report,
         tx=tx,
         triggers=triggers,
         rx=rx,
@@ -174,6 +184,36 @@ def render_text(r: FullReport) -> str:
 
     for label, value in rx_rows:
         w(f"  {label:<24}{value:>7}")
+
+    w("")
+    w("-" * 72)
+    w("DENM")
+    w("-" * 72)
+    w(f"  {'NEW':<24}{r.denm.lifecycle.new:>7}")
+    w(f"  {'UPDATE':<24}{r.denm.lifecycle.update:>7}")
+    w(f"  {'CANCELLATION':<24}{r.denm.lifecycle.cancellation:>7}")
+    w(f"  {'Logical Events':<24}{len(r.denm.lifecycle.logical_events):>7}")
+    w(
+        f"  {'DENM V3 Signatures':<24}"
+        f"{r.denm.credentials.denm_v3_signatures:>7}"
+    )
+    w(
+        f"  {'DENM V3 AIDs':<24}"
+        f"{', '.join(str(aid) for aid in sorted(r.denm.credentials.denm_v3_aids)) or 'none'}"
+    )
+    w(
+        f"  {'DENM V3 Signers':<24}"
+        f"{', '.join(sorted(r.denm.credentials.signers)) or 'none'}"
+    )
+    w(
+        f"  {'DENM V3 Real Signers':<24}"
+        f"{', '.join(sorted(r.denm.credentials.real_signers)) or 'none'}"
+    )
+    w("  DENM V3 Certificate Paths:")
+    for vehicle, cert_path in sorted(
+        r.denm.credentials.certificate_paths.items()
+    ):
+        w(f"    {vehicle}={cert_path}")
 
     w("")
     w("-" * 72)

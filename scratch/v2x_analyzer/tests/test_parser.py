@@ -2,7 +2,12 @@ from pathlib import Path
 
 import pytest
 
-from v2x_analyzer.parser import LogEntry, load_log, parse_line
+from v2x_analyzer.parser import (
+    DenmProvisioningEvidence,
+    LogEntry,
+    load_log,
+    parse_line,
+)
 
 
 def test_parse_current_rich_line():
@@ -251,3 +256,48 @@ def test_logentry_reason_field_is_optional():
 
     assert e.reason_field is None
     assert e.reason() == "FIRST_CAM"
+
+
+def test_parse_denm_v3_real_signer_provisioning_line():
+    from v2x_analyzer.parser import DenmProvisioningEvidence, parse_auxiliary_line
+
+    raw = (
+        "[SECURITY] DENM V3 signer=REAL "
+        "veh=veh0 "
+        "cert=/home/mmendes/vanetza-pki-lab/validation-denm-pki/"
+        "veh0-ticket-000.cert"
+    )
+
+    evidence = parse_auxiliary_line(raw, 10, "p21_1.log")
+
+    assert isinstance(evidence, DenmProvisioningEvidence)
+    assert evidence.vehicle == "veh0"
+    assert evidence.cert_path.endswith("veh0-ticket-000.cert")
+    assert evidence.role == "signer"
+
+
+def test_load_log_collects_denm_provisioning_without_creating_logentry(tmp_path):
+    log = tmp_path / "p21_provisioning.log"
+    log.write_text(
+        "[SECURITY] DENM V3 signer=REAL "
+        "veh=veh0 cert=/pki/veh0-ticket-000.cert\n"
+        "[SIM_STEP=0][SIM_TIME=2.0s][NODE=0][STATION=1][SEQ=1]"
+        "[LVL=DEBUG][MOD=SECURITY][EV=SIGN_OK] "
+        "DENM_V3 signed protocol_version=3 aid=37 signed=1\n",
+        encoding="utf-8",
+    )
+
+    entries, stats = load_log([str(log)])
+
+    assert len(entries) == 1
+    assert entries[0].event == "SIGN_OK"
+    assert stats.denm_provisioning == [
+        DenmProvisioningEvidence(
+            vehicle="veh0",
+            cert_path="/pki/veh0-ticket-000.cert",
+            role="signer",
+            line_no=1,
+            source_file=str(log),
+        )
+    ]
+    assert stats.unparsed_lines == 0

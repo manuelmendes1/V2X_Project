@@ -62,6 +62,13 @@ _REASON_FREE_RE = re.compile(
     re.IGNORECASE,
 )
 
+_DENM_REAL_SIGNER_RE = re.compile(
+    r"^\[SECURITY\]\s+DENM\s+V3\s+"
+    r"signer=REAL\s+"
+    r"veh=(?P<vehicle>[^\s]+)\s+"
+    r"cert=(?P<cert_path>\S+)\s*$"
+)
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -110,6 +117,39 @@ def _parse_tags(raw: str) -> tuple[dict[str, str], int]:
         last_end = match.end()
 
     return tags, last_end
+
+
+# ---------------------------------------------------------------------------
+# Evidência auxiliar de provisioning DENM V3
+# ---------------------------------------------------------------------------
+
+@dataclass(frozen=True, slots=True)
+class DenmProvisioningEvidence:
+    vehicle: str
+    cert_path: str
+    role: str
+    line_no: int
+    source_file: str
+
+
+def parse_auxiliary_line(
+    raw: str,
+    line_no: int,
+    source_file: str,
+) -> DenmProvisioningEvidence | None:
+    raw = raw.rstrip("\n\r")
+
+    match = _DENM_REAL_SIGNER_RE.match(raw)
+    if not match:
+        return None
+
+    return DenmProvisioningEvidence(
+        vehicle=match.group("vehicle"),
+        cert_path=match.group("cert_path"),
+        role="signer",
+        line_no=line_no,
+        source_file=source_file,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -249,6 +289,10 @@ class ParseStats:
     unparsed_lines: int = 0
 
     unparsed_samples: list[str] = field(default_factory=list)
+
+    denm_provisioning: list[DenmProvisioningEvidence] = field(
+        default_factory=list
+    )
 
     missing_sim_time: int = 0
 
@@ -442,6 +486,16 @@ def load_log(
                 )
 
                 if entry is None:
+                    auxiliary = parse_auxiliary_line(
+                        raw,
+                        line_no,
+                        source_file,
+                    )
+
+                    if auxiliary is not None:
+                        stats.denm_provisioning.append(auxiliary)
+                        continue
+
                     stats.unparsed_lines += 1
 
                     if len(stats.unparsed_samples) < 5:
