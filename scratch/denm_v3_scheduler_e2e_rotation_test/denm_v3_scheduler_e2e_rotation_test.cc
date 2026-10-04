@@ -254,6 +254,7 @@ main(int argc, char* argv[])
 
     std::shared_ptr<const ns3::PacketContext> firstContext;
     std::shared_ptr<const ns3::PacketContext> secondContext;
+    std::string firstSignerCertificateIdAtSign;
 
     ns3::Simulator::Schedule(
         ns3::Seconds(1.0),
@@ -277,6 +278,16 @@ main(int argc, char* argv[])
                     firstContext != nullptr &&
                     firstContext->signerCertificateIdHex.size() == 16,
                     "first scheduler DENM exposes a V3 HashedId8");
+
+                if (firstContext)
+                {
+                    firstSignerCertificateIdAtSign =
+                        firstContext->signerCertificateIdHex;
+
+                    Expect(
+                        !firstSignerCertificateIdAtSign.empty(),
+                        "first scheduler DENM captures signer identity after SIGN");
+                }
 
                 Expect(
                     firstContext != nullptr &&
@@ -380,6 +391,13 @@ main(int argc, char* argv[])
                 !firstContext->signerCertificateIdHex.empty() &&
                 !secondContext->signerCertificateIdHex.empty(),
                 "both scheduler DENMs expose signer identity");
+
+            Expect(
+                firstContext != nullptr &&
+                !firstSignerCertificateIdAtSign.empty() &&
+                firstContext->signerCertificateIdHex ==
+                    firstSignerCertificateIdAtSign,
+                "PKT=1 signer remains unchanged until TX_COMPLETE");
 
             Expect(
                 firstContext != nullptr &&

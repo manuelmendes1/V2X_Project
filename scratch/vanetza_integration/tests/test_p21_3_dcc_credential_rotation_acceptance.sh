@@ -213,6 +213,15 @@ pass "PKT=1 is transmitted after rotation"
 pass "DCC delay does not change the signer of already-signed PKT=1"
 
 echo
+echo "===== SIGNER CONTEXT STABILITY ====="
+
+grep -q \
+    'PASS PKT=1 signer remains unchanged until TX_COMPLETE' \
+    "$LOG" \
+    || fail "PKT=1 signer stability through DCC/TX_COMPLETE is not explicitly demonstrated"
+
+pass "PKT=1 signer remains unchanged until TX_COMPLETE"
+
 echo "===== PACKET CONTEXT STABILITY ====="
 
 sign_pkt="$(
