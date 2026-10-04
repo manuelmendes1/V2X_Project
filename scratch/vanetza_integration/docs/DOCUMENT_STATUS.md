@@ -287,10 +287,10 @@ P17 = VALIDATED
 P18 = VALIDATED
 P19 = VALIDATED
 P20 = VALIDATED
-P21 = NOT DEFINED
+P21 = CLOSED / VALIDATED
 ```
 
-O próximo item deve resultar de requisito ou lacuna técnica explicitamente identificável.
+P21 está fechado. O próximo item permanece UNDEFINED até existir requisito técnico ou lacuna demonstrada explicitamente identificável.
 
 Relacionado:
 

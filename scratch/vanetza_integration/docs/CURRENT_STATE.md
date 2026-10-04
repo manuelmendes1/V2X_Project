@@ -431,11 +431,34 @@ P17 = VALIDATED
 P18 = VALIDATED
 P19 = VALIDATED
 P20 = VALIDATED
-P21 = NOT DEFINED
+P21 = CLOSED / VALIDATED
 ```
 
-Não existe atualmente um P21 formalmente definido no checkout. O próximo item técnico deve resultar de um requisito ou lacuna verificável.
+P21 está formalmente fechado e validado no checkout. O próximo item técnico permanece UNDEFINED até existir um requisito ou lacuna verificável.
 
 Relacionado:
 
 [[scratch/vanetza_integration/docs/DOCUMENT_STATUS]]
+
+
+## Post-P21 Rebaseline
+
+[[POST_P21_REBASELINE_2026-10-04]]
+
+**STATUS:** VALIDATED
+**DATE:** 2026-10-04
+**RESULT:** P21 CLOSED / VALIDATED
+
+```text
+P15 = VALIDATED
+P16 = VALIDATED
+P17 = VALIDATED
+P18 = VALIDATED
+P19 = VALIDATED
+P20 = VALIDATED
+P21 = CLOSED / VALIDATED
+
+NEXT = UNDEFINED
+```
+
+P1 e P2 são etapas históricas já concluídas. Não existe atualmente uma especificação P22 aprovada. A próxima etapa deve nascer de um requisito técnico explícito ou de uma lacuna demonstrada.
