@@ -276,10 +276,10 @@ def render_text(r: FullReport) -> str:
     w("-" * 72)
     w("DUPLICADOS")
     w("-" * 72)
-    w(f"  Receções com seq válido: {r.dup.total_valid_receptions}")
+    w(f"  Receções com packetId válido: {r.dup.total_valid_receptions}")
     w(f"  Chaves duplicadas: {r.dup.duplicated_keys}")
     w(f"  Receções duplicadas: {r.dup.duplicate_count}")
-    w(f"  Seq inválido ignorado: {r.dup.skipped_invalid_seq}")
+    w(f"  packetId inválido ignorado: {r.dup.skipped_invalid_pkt}")
     w(f"  Emissor não resolvido: {r.dup.skipped_unresolved_sender}")
 
     w("")

@@ -867,3 +867,61 @@ def test_render_text_exposes_real_denm_provisioning():
     assert "DENM V3 Certificate Paths" in rendered
     assert "veh0=/pki/veh0-ticket-000.cert" in rendered
     assert "veh1=/pki/veh1-ticket-000.cert" in rendered
+
+def test_current_cam_reception_uses_packet_id_when_sequence_is_zero():
+    identity = current_identity()
+    entry = mk(
+        "CAM_RX",
+        "RECEPTION_OK",
+        veh="veh1",
+        node=1,
+        station=2,
+        seq=0,
+        pkt=42,
+        msg=(
+            "sender=veh0 sender_node=0 sender_station=1 "
+            "receiver=veh1 receiver_node=1 receiver_station=2 "
+            "pkt=42 vpkt=0 seq=0"
+        ),
+    )
+
+    metrics = duplicates.compute([entry], identity)
+
+    assert metrics.total_valid_receptions == 1
+    assert metrics.skipped_invalid_pkt == 0
+    assert dict(metrics._counts) == {(1, 1, 42): 1}
+
+
+def test_current_cam_reception_counts_same_packet_id_as_duplicate():
+    identity = current_identity()
+
+    entries = [
+        mk(
+            "CAM_RX",
+            "RECEPTION_OK",
+            veh="veh1",
+            node=1,
+            station=2,
+            seq=0,
+            pkt=42,
+            msg="sender=veh0 receiver=veh1 pkt=42 vpkt=0 seq=0",
+        ),
+        mk(
+            "CAM_RX",
+            "RECEPTION_OK",
+            veh="veh1",
+            node=1,
+            station=2,
+            seq=0,
+            pkt=42,
+            msg="sender=veh0 receiver=veh1 pkt=42 vpkt=0 seq=0",
+        ),
+    ]
+
+    metrics = duplicates.compute(entries, identity)
+
+    assert metrics.total_valid_receptions == 2
+    assert metrics.skipped_invalid_pkt == 0
+    assert metrics.duplicated_keys == 1
+    assert metrics.duplicate_count == 1
+    assert dict(metrics._counts) == {(1, 1, 42): 2}

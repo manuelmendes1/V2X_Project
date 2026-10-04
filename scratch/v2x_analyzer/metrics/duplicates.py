@@ -1,11 +1,11 @@
 """
 Duplicados baseados na receção CAM atual.
 
-O identificador semântico continua a ser:
-(receiver node, sender station, seq).
+O identificador físico da observação é:
+(receiver node, sender station, packetId).
 
-Quando seq <= 0 a receção não é usada para esta métrica, em vez de
-inventar um identificador alternativo.
+O campo SEQ do envelope pode ser zero no logger atual e não é usado
+como identificador de duplicação.
 """
 
 from __future__ import annotations
@@ -23,7 +23,7 @@ class DuplicateMetrics:
     duplicated_keys: int = 0
     duplicate_count: int = 0
 
-    skipped_invalid_seq: int = 0
+    skipped_invalid_pkt: int = 0
     skipped_unresolved_sender: int = 0
 
     _counts: Counter[tuple[int, int, int]] = field(
@@ -50,8 +50,8 @@ def compute(
         if not entry.is_("CAM_RX", "RECEPTION_OK"):
             continue
 
-        if entry.seq <= 0:
-            m.skipped_invalid_seq += 1
+        if entry.pkt is None or entry.pkt <= 0:
+            m.skipped_invalid_pkt += 1
             continue
 
         sender, _ = resolve_sender_receiver(entry, identity)
@@ -64,7 +64,7 @@ def compute(
             m.skipped_unresolved_sender += 1
             continue
 
-        key = (entry.node, sender_station, entry.seq)
+        key = (entry.node, sender_station, entry.pkt)
 
         m.total_valid_receptions += 1
         m._counts[key] += 1
