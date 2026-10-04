@@ -519,6 +519,10 @@ VanetzaBtpAdapter::SendBtpB(
         if (!std::isfinite(area.latitudeDeg) ||
             !std::isfinite(area.longitudeDeg) ||
             !std::isfinite(area.radiusMeters) ||
+            area.latitudeDeg < -90.0 ||
+            area.latitudeDeg > 90.0 ||
+            area.longitudeDeg < -180.0 ||
+            area.longitudeDeg > 180.0 ||
             area.radiusMeters <= 0.0)
         {
             context.MarkFailure();
