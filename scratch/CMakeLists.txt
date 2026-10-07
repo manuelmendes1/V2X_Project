@@ -128,6 +128,10 @@ add_library(vanetza_cam_encoder_obj OBJECT
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/security/cam_security.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/security/vehicle_crypto/vehicle_crypto.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/sumo_adapter/sumo_adapter.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/sumo_adapter/sumo_traffic_light_parser.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/sumo_adapter/sumo_traffic_light_mapper.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/sumo_adapter/sumo_traffic_light_timing_mapper.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/sumo_adapter/sumo_traffic_light_spatem_mapper.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/sumo_adapter/sumo_parser.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/sumo_adapter/sumo_serializer.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/sumo_adapter/sumo_socket.cc
@@ -196,6 +200,35 @@ target_link_libraries(vanetza_denm_obj
 )
 
 
+
+# =========================================================
+# SPATEM OBJECT LIBRARY
+# =========================================================
+
+add_library(vanetza_spatem_obj OBJECT
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/spatem/spatem_asn1_builder.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/spatem/spatem_converter.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/spatem/vanetza_spatem_codec.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/spatem/service/spatem_service.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/spatem/rx/spatem_rx_pipeline.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/spatem/replay/spatem_replay_protection.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/spatem/uper/spatem_uper_encoder.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/spatem/uper/spatem_uper_decoder.cc
+)
+
+target_include_directories(vanetza_spatem_obj PUBLIC
+    ${CMAKE_SOURCE_DIR}/scratch
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration
+    /usr/local/include
+    /usr/local/include/vanetza
+    /usr/local/include/vanetza/asn1
+    /usr/local/include/vanetza/asn1/support
+)
+
+target_link_libraries(vanetza_spatem_obj
+    ${VANETZA_LIBS}
+)
+
 # =========================================================
 # SCRATCH EXEC BUILDER
 # =========================================================
@@ -242,6 +275,7 @@ function(create_scratch source_files)
             OpenSSL::Crypto
             $<TARGET_OBJECTS:vanetza_cam_encoder_obj>
             $<TARGET_OBJECTS:vanetza_denm_obj>
+            $<TARGET_OBJECTS:vanetza_spatem_obj>
         EXECUTABLE_DIRECTORY_PATH ${CMAKE_OUTPUT_DIRECTORY}/scratch
         IGNORE_PCH
     )

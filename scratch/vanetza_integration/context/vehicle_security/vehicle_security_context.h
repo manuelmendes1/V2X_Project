@@ -10,6 +10,7 @@
 #include "vanetza_integration/context/vehicle_security/vehicle_credential_pool.h"
 #include "vanetza_integration/context/vehicle_security/replay/replay_context.h"
 #include "vanetza_integration/denm/replay/denm_replay_context.h"
+#include "vanetza_integration/spatem/replay/spatem_replay_context.h"
 
 namespace ns3
 {
@@ -68,6 +69,7 @@ struct VehicleSecurityContext
 
     ReplayContext replay;
     DenmReplayContext denmReplay;
+    SpatemReplayContext spatemReplay;
 
     // ------------------------------------------------------------------------
     // Construction

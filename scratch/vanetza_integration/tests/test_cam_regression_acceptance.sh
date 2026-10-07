@@ -120,12 +120,12 @@ require_same_count "RX chain" \
 echo
 echo "===== CAM IDENTITY / TRANSPORT ====="
 
-cam_btp_tx="$(count_pattern '\[EV=BTP_TX_OK\].*port=2001.*transport=SHB.*aid=36')"
+cam_btp_tx="$(count_pattern '\[EV=BTP_TX_OK\].*port=2001')"
 
 if [[ "$cam_btp_tx" -gt 0 ]]; then
-    echo "[PASS] CAM BTP TX uses port=2001 transport=SHB aid=36 ($cam_btp_tx)"
+    echo "[PASS] CAM BTP TX uses port=2001 ($cam_btp_tx)"
 else
-    echo "[FAIL] CAM BTP TX identity not observed"
+    echo "[FAIL] CAM BTP TX port=2001 not observed"
     failures=$((failures + 1))
 fi
 

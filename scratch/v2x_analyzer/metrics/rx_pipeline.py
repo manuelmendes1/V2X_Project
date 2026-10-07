@@ -48,28 +48,38 @@ _MAP = {
     ("GEONET", "GEONET_RX_BEGIN"): "geonet_rx_begin",
     ("GEONET", "GEONET_RX_OK"): "geonet_rx_ok",
 
+    ("SPATEM", "SPATEM_GEONET_RX_OK"): "geonet_rx_ok",
     ("BTP", "BTP_RX_BEGIN"): "btp_rx_begin",
     ("BTP", "BTP_RX_OK"): "btp_rx_ok",
 
+    ("SPATEM", "SPATEM_BTP_RX_OK"): "btp_rx_ok",
     ("SECURITY", "VERIFY_BEGIN"): "verify_begin",
     ("SECURITY", "VERIFY_OK"): "verify_ok",
+    ("SPATEM", "SPATEM_VERIFY_OK"): "verify_ok",
     ("SECURITY", "VERIFY_FAIL"): "verify_fail",
 
     ("CAM", "DECODE_OK"): "decode_ok",
+
+    ("SPATEM", "SPATEM_DECODE_OK"): "decode_ok",
     ("DENM", "DENM_DECODE_OK"): "decode_ok",
     ("CAM", "DECODE_FAIL"): "decode_fail",
 
     ("REPLAY", "REPLAY_OK"): "replay_ok",
+
+    ("SPATEM", "SPATEM_REPLAY_OK"): "replay_ok",
     ("DENM", "DENM_REPLAY_OK"): "replay_ok",
     ("REPLAY", "REPLAY_DROP"): "replay_drop",
+    ("SPATEM", "SPATEM_REPLAY_DROP"): "replay_drop",
     ("DENM", "DENM_REPLAY_DROP"): "replay_drop",
 
     ("CAM_RX", "RECEPTION_BEGIN"): "reception_begin",
     ("CAM_RX", "RECEPTION_OK"): "reception_ok",
+    ("SPATEM", "SPATEM_RECEPTION_OK"): "reception_ok",
     ("DENM", "DENM_RECEPTION_OK"): "reception_ok",
 
     ("RX", "DELIVER_BEGIN"): "deliver_begin",
     ("RX", "DELIVER_OK"): "deliver_ok",
+    ("SPATEM", "SPATEM_DELIVER_OK"): "deliver_ok",
     ("DENM", "DENM_DELIVER_OK"): "deliver_ok",
 }
 
