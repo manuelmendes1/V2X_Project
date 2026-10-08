@@ -467,16 +467,16 @@ Ptr<WifiPhy>
 Ns3AccessAdapter::GetWifiPhy() const
 {
     NS_ABORT_MSG_IF(
-        m_vehicle.node == nullptr,
+        m_node == nullptr,
         "[DCC] Vehicle has no node");
 
     for (uint32_t i = 0;
-         i < m_vehicle.node->GetNDevices();
+         i < m_node->GetNDevices();
          ++i)
     {
         Ptr<WifiNetDevice> wifiDevice =
             DynamicCast<WifiNetDevice>(
-                m_vehicle.node->GetDevice(i));
+                m_node->GetDevice(i));
 
         if (wifiDevice != nullptr)
         {
@@ -1766,7 +1766,20 @@ Ns3AccessAdapter::Ns3AccessAdapter(
     const vanetza::geonet::MIB& mib,
     vanetza::geonet::Router& router)
     :
-    m_vehicle(vehicle),
+    m_node(vehicle.node),
+    m_socket(vehicle.socket),
+    m_mib(mib),
+    m_router(router)
+{
+}
+
+Ns3AccessAdapter::Ns3AccessAdapter(
+    ItsStationState& station,
+    const vanetza::geonet::MIB& mib,
+    vanetza::geonet::Router& router)
+    :
+    m_node(station.node),
+    m_socket(station.socket),
     m_mib(mib),
     m_router(router)
 {
@@ -1901,7 +1914,7 @@ Ns3AccessAdapter::request(
         return;
     }
 
-    if (!m_vehicle.socket)
+    if (!m_socket)
     {
         if (ctx)
         {
@@ -2287,7 +2300,7 @@ Ns3AccessAdapter::request(
         "ns3::Packet size differs from serialized frame");
 
     Ptr<Socket> socket =
-        m_vehicle.socket;
+        m_socket;
 
     //----------------------------------------------------------------------
     // TEST HOOK: deterministic DENM V3 duplicate.

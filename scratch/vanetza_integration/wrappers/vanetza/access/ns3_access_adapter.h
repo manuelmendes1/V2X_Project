@@ -6,6 +6,10 @@
 #include <vanetza/access/interface.hpp>
 
 #include "ns3/ptr.h"
+#include "ns3/node.h"
+#include "ns3/socket.h"
+
+#include "vanetza_integration/spatem/emitter/its_station_state.h"
 
 namespace vanetza {
 
@@ -33,6 +37,8 @@ namespace ns3 {
 
             Ns3AccessAdapter(VehicleState& vehicle, const vanetza::geonet::MIB& mib, vanetza::geonet::Router& router);
 
+            Ns3AccessAdapter(ItsStationState& station, const vanetza::geonet::MIB& mib, vanetza::geonet::Router& router);
+
             ~Ns3AccessAdapter() override = default;
 
             void request(const vanetza::access::DataRequest& request, std::unique_ptr<vanetza::ChunkPacket> packet) override;
@@ -53,7 +59,8 @@ namespace ns3 {
 
         private:
 
-            VehicleState& m_vehicle;
+            Ptr<Node> m_node;
+            Ptr<Socket> m_socket;
 
             const vanetza::geonet::MIB& m_mib;
 

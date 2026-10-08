@@ -132,6 +132,7 @@ add_library(vanetza_cam_encoder_obj OBJECT
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/sumo_adapter/sumo_traffic_light_mapper.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/sumo_adapter/sumo_traffic_light_timing_mapper.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/sumo_adapter/sumo_traffic_light_spatem_mapper.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/sumo_adapter/sumo_traffic_light_spatem_intersection_builder.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/sumo_adapter/sumo_parser.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/sumo_adapter/sumo_serializer.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/sumo_adapter/sumo_socket.cc
@@ -210,6 +211,9 @@ add_library(vanetza_spatem_obj OBJECT
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/spatem/spatem_converter.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/spatem/vanetza_spatem_codec.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/spatem/service/spatem_service.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/spatem/emitter/spatem_emitter_endpoint.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/spatem/emitter/its_station_network_builder.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/spatem/emitter/its_station_address_builder.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/spatem/rx/spatem_rx_pipeline.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/spatem/replay/spatem_replay_protection.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/spatem/uper/spatem_uper_encoder.cc
