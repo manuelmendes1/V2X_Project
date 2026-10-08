@@ -246,6 +246,11 @@ bool BuildIntersection(
     const SpatemIntersection& input,
     IntersectionState_t& intersection)
 {
+    if (input.intersectionId == 0)
+    {
+        return false;
+    }
+
     if (input.movements.empty() ||
         input.movements.size() > 255)
     {

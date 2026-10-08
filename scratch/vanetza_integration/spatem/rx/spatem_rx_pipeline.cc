@@ -142,6 +142,34 @@ SpatemRxPipeline::Process(PacketContext& context,
         return false;
     }
 
+    //----------------------------------------------------------------------
+    // SENDER IDENTITY BINDING
+    //
+    // The SPATEM stationId must identify the same sender that was resolved
+    // by the RX/runtime boundary. This prevents a valid ASN.1 payload from
+    // impersonating another station.
+    //----------------------------------------------------------------------
+
+    if (context.senderStationId != 0 &&
+        message.stationId != context.senderStationId)
+    {
+        context.MarkDrop();
+        context.reason =
+            "spatem_sender_identity_mismatch";
+
+        V2XWriteLog(
+            context,
+            V2XLogLevel::WARN,
+            "SPATEM",
+            "SPATEM_SENDER_IDENTITY_MISMATCH",
+            "payload_station=" +
+                std::to_string(message.stationId) +
+            " resolved_sender_station=" +
+                std::to_string(context.senderStationId));
+
+        return false;
+    }
+
     context.payload.type = PayloadType::SPATEM;
     context.MarkSuccess();
 
@@ -154,6 +182,36 @@ SpatemRxPipeline::Process(PacketContext& context,
             std::to_string(message.stationId) +
         " intersections=" +
             std::to_string(message.intersections.size()));
+
+    //----------------------------------------------------------------------
+    // SELF-ORIGIN
+    //
+    // PacketContext already carries the authoritative RX endpoint
+    // identities. A packet originating from the same node/station must
+    // be dropped before replay processing and before application
+    // reception/delivery.
+    //
+    // nodeId 0 is a valid ns-3 node identifier, therefore the test does
+    // not use nodeId != 0 as a presence check.
+    //----------------------------------------------------------------------
+
+    if (context.senderStationId != 0 &&
+        context.senderStationId == context.receiverStationId &&
+        context.senderNodeId == context.receiverNodeId &&
+        message.stationId == context.senderStationId)
+    {
+        context.MarkDrop();
+        context.reason = "self_reception";
+
+        V2XWriteLog(
+            context,
+            V2XLogLevel::TRACE,
+            "SPATEM",
+            "SPATEM_SELF_ORIGIN_DROP",
+            "sender and receiver are the same station/node");
+
+        return false;
+    }
 
     //----------------------------------------------------------------------
     // REPLAY

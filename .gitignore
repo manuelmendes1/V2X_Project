@@ -114,3 +114,21 @@ scratch/**/*.bak
 # ------------------------------------------------------------
 !/scratch/spatem_real_rx_acceptance_test/
 !/scratch/spatem_real_rx_acceptance_test/**
+
+# ------------------------------------------------------------
+# SPATEM-19 / 9.14 self-origin RX pipeline test
+# ------------------------------------------------------------
+!/scratch/spatem_rx_pipeline_test/
+!/scratch/spatem_rx_pipeline_test/**
+
+# ------------------------------------------------------------
+# SPATEM-19 / 9.14 unknown sender runtime test
+# ------------------------------------------------------------
+!/scratch/spatem_unknown_sender_runtime_test/
+!/scratch/spatem_unknown_sender_runtime_test/**
+
+# ------------------------------------------------------------
+# SPATEM-19 / 9.14 codec boundary test
+# ------------------------------------------------------------
+!/scratch/spatem_codec_boundary_test/
+!/scratch/spatem_codec_boundary_test/**

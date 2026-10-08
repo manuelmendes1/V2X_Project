@@ -84,10 +84,10 @@ Check(bool condition, const std::string& message)
 }
 
 SpatemInput
-MakeDeterministicSpatem()
+MakeDeterministicSpatem(uint32_t stationId)
 {
     SpatemInput input{};
-    input.stationId = 1001;
+    input.stationId = stationId;
 
     SpatemIntersection intersection{};
     intersection.intersectionId = 42;
@@ -189,7 +189,8 @@ main()
         veh1->identity.nodeId;
 
     const SpatemInput input =
-        MakeDeterministicSpatem();
+        MakeDeterministicSpatem(
+            veh0->identity.stationId);
 
     const auto encoded =
         VanetzaSpatemCodec::Encode(input);

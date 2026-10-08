@@ -726,10 +726,15 @@ VanetzaRuntime::ReceivePacket(
     VehicleState* sender =
         VehicleRegistry::Instance().GetByIpv4(sourceIp);
 
-    NS_ABORT_MSG_IF(
-        sender == nullptr,
-        "[VRT_RX] Sender not found for source IPv4="
+    if (sender == nullptr)
+    {
+        NS_LOG_UNCOND(
+            "[VRT_RX] SENDER_NOT_FOUND "
+            "source_ip="
             << sourceIp);
+
+        return;
+    }
 
     NS_ABORT_MSG_IF(
         !sender->linkMacInitialized,
