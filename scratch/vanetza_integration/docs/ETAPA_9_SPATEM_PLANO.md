@@ -1,7 +1,7 @@
 ---
 
 title: "Etapa 9 — SPATEM — Plano de Implementação e Validação"
-status: "PROPOSED"
+status: "ACTIVE / REVALIDATED"
 type: "FUNCTIONAL DEVELOPMENT AND VALIDATION PLAN"
 date: 2026-10-04
 project: "ns-3.47 + Vanetza + SUMO V2X Integration"
@@ -10,7 +10,7 @@ scope: "SPATEM"
 baseline: "POST-P21"
 baseline_commit: "420db8a"
 previous_stage: "P21 CLOSED / VALIDATED"
-next_stage: "SPATEM — PENDING PLAN APPROVAL"
+next_stage: "SPATEM-19 / Fase 9.14 — Robustness"
 related_state:
 
 * "[[CURRENT_STATE]]"

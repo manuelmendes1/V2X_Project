@@ -150,7 +150,7 @@ Próxima etapa:
 
 [[scratch/vanetza_integration/docs/ETAPA_8_14_CLOSEOUT]]
 
-## 8.14 — Etapa 8 Closeout
+## 8.14 — Etapa 8 Closeout (HISTORICAL)
 
 **STATUS:** COMPLETED
 **DATE:** 2026-09-22
@@ -300,3 +300,13 @@ Relacionado:
 [[scratch/vanetza_integration/docs/P18_Credential_Binding_Ownership]]
 [[scratch/vanetza_integration/docs/P19_CAM_DENM_Regression_Acceptance]]
 [[scratch/vanetza_integration/docs/P20_High_Density_V3_Runtime_Validation]]
+
+## Etapa 9 — SPATEM — Rebaseline 2026-10-08
+
+**STATUS:** ACTIVE / REVALIDATED
+
+[[scratch/vanetza_integration/docs/ETAPA_9_SPATEM_REBASELINE_2026-10-08]]
+
+Estado demonstrado: `SPATEM-01 .. SPATEM-18 = PASS`
+
+Próximo gate: `SPATEM-19` / Fase 9.14 — Robustness / validação estrutural.

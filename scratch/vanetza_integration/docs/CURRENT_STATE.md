@@ -309,7 +309,7 @@ Próxima etapa:
 
 [[scratch/vanetza_integration/docs/ETAPA_8_14_CLOSEOUT]]
 
-### Etapa 8.14 — Closeout
+### Etapa 8.14 — Closeout (HISTORICAL)
 
 **STATUS:** COMPLETE / PASS
 **DATE:** 2026-09-22
@@ -463,3 +463,14 @@ NEXT = UNDEFINED
 ```
 
 P1 e P2 são etapas históricas já concluídas. Não existe atualmente uma especificação P22 aprovada. A próxima etapa deve nascer de um requisito técnico explícito ou de uma lacuna demonstrada.
+
+### Etapa 9 — SPATEM — Current Rebaseline
+
+**STATUS:** ACTIVE / REVALIDATED
+**REVALIDATED:** 2026-10-08
+
+[[scratch/vanetza_integration/docs/ETAPA_9_SPATEM_REBASELINE_2026-10-08]]
+
+Gates demonstrados: `SPATEM-01` até `SPATEM-18`.
+
+Próximo gate: `SPATEM-19` / Fase 9.14 — Robustness / validação estrutural.

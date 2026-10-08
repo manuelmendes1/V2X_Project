@@ -33,7 +33,7 @@ test_script: "../tests/test_cam_regression_acceptance.sh"
 - [[DOCUMENT_STATUS]]
 - [[ETAPA_8_12_E2E_ACCEPTANCE]]
 - [[ETAPA_8_13_CAM_REGRESSION]]
-- [[ETAPA_8_14_CLOSEOUT]]
+- [[ETAPA_9_SPATEM_REBASELINE_2026-10-08]]
 
 Teste formal:
 
@@ -196,4 +196,4 @@ Estado corrente: [[CURRENT_STATE]]
 
 Análise: [[../../v2x_analyzer/README]]
 
-Próxima etapa: [[ETAPA_8_14_CLOSEOUT]]
+Próxima etapa: [[ETAPA_9_SPATEM_REBASELINE_2026-10-08]]
