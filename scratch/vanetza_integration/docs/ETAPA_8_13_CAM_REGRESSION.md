@@ -2,6 +2,7 @@
 title: "Etapa 8.13 — CAM Regression Acceptance"
 status: "PASS"
 date: "2026-09-22"
+revalidated: "2026-10-08"
 project: "ns-3 + Vanetza + SUMO V2X"
 stage: "8.13"
 type: "validation"
@@ -16,7 +17,7 @@ tags:
   - sumo
   - etapa-8
   - etapa-8-13
-evidence_log: "output_log_etapa_8_13.txt"
+evidence_log: "../../../test-results/p9_13/p9_13_cam_16s.log"
 test_script: "../tests/test_cam_regression_acceptance.sh"
 ---
 
@@ -40,7 +41,7 @@ Teste formal:
 
 Evidência runtime:
 
-`output_log_etapa_8_13.txt`
+`test-results/p9_13/p9_13_cam_16s.log`
 
 ## Objetivo
 
@@ -49,10 +50,10 @@ A Etapa 8.13 valida a regressão CAM após a introdução do DENM, executando a 
 ## Execução
 
 ```bash
-./build/scratch_v2x_sumo \
+./build/scratch/ns3.47-v2x_sumo-default \
   --enableDenm=0 \
-  --simDuration=15 \
-  > output_log_etapa_8_13.txt 2>&1
+  --simDuration=16 \
+  > test-results/p9_13/p9_13_cam_16s.log 2>&1
 ```
 
 Resultado da execução:
@@ -79,7 +80,7 @@ TX_COMPLETE
 
 ## CAM RX
 
-Foram observadas 133 ocorrências em cada estágio instrumentado:
+Na execução revalidada, a cadeia CAM RX foi observada com uma ocorrência em cada estágio instrumentado, desde `RAW_RX` até `DELIVER_OK`:
 
 ```text
 RAW_RX
@@ -157,8 +158,9 @@ O acceptance formal foi executado sobre o log da regressão CAM:
 
 ```bash
 ./scratch/vanetza_integration/tests/test_cam_regression_acceptance.sh \
-  output_log_etapa_8_13.txt \
-  0
+  test-results/p9_13/p9_13_cam_16s.log \
+  0 \
+  16
 ```
 
 Resultado:
@@ -172,7 +174,15 @@ ACCEPTANCE_EXIT=0
 
 A aceitação demonstra continuidade funcional do pipeline CAM TX e RX, preservação da identidade CAM e ausência de atividade DENM/GBC durante uma execução com DENM desativado.
 
-As contagens TX=75 e RX=133 não são comparadas entre si como taxa de entrega. A aceitação verifica a consistência interna das respectivas cadeias instrumentadas.
+A aceitação atual distingue entre pacotes CAM completamente transmitidos antes do
+fim da simulação e pacotes legitimamente pendentes no horizonte devido ao agendamento DCC.
+
+Na execução de 16 s foram observados 611 CAM TX:
+607 completados integralmente e 4 pendentes no horizonte
+(PKT=609,610,611,612), com accounting terminal 607 + 4 = 611.
+
+A regressão possui ainda um controlo negativo: remover um TX_COMPLETE de um
+pacote que já passou pelo DCC faz a acceptance falhar.
 
 Esta aceitação não demonstra interoperabilidade externa nem constitui uma medição independente de perda rádio.
 

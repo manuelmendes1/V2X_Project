@@ -265,8 +265,9 @@ Relacionado:
 
 ### Etapa 8.13 — CAM Regression Acceptance
 
-**STATUS:** COMPLETE / PASS
-**DATE:** 2026-09-22
+**STATUS:** COMPLETE / PASS / REVALIDATED
+**ORIGINAL DATE:** 2026-09-22
+**REVALIDATED:** 2026-10-08
 
 A regressão CAM foi formalmente validada com DENM desativado através de `--enableDenm=0`.
 
@@ -286,15 +287,15 @@ RESULTADO 8.13: PASS
 ACCEPTANCE_EXIT=0
 ```
 
-CAM TX: 75 ocorrências em cada estágio instrumentado até `TX_COMPLETE`.
+CAM TX: 611 pacotes identificados; 607 completados integralmente e 4 pendentes no horizonte de 16 s devido ao agendamento DCC.
 
-CAM RX: 133 ocorrências em cada estágio instrumentado desde `RAW_RX` até `DELIVER_OK`.
+CAM RX: cadeia observada completa desde `RAW_RX` até `DELIVER_OK`.
 
 Identidade CAM: BTP port `2001`, transport `SHB`, ITS-AID `36 / CA`, profile `ITS_G5`.
 
 DENM/GBC: zero eventos observados na execução de regressão.
 
-Esta validação não interpreta TX=75 e RX=133 como taxa de entrega.
+Esta validação trata explicitamente o horizonte finito do DCC e não interpreta TX e RX como taxa de entrega entre si.
 
 Relacionado:
 

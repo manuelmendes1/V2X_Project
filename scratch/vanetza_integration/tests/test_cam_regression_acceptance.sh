@@ -4,9 +4,10 @@ set -u
 
 LOG="${1:-}"
 RUN_EXIT="${2:-0}"
+SIM_DURATION="${3:-}"
 
 if [[ -z "$LOG" ]]; then
-    echo "USAGE: $0 <log_file> [run_exit]"
+    echo "USAGE: $0 <log_file> <run_exit> <sim_duration>"
     exit 2
 fi
 
@@ -86,16 +87,24 @@ fi
 echo
 echo "===== CAM TX PIPELINE ====="
 
-require_same_count "TX chain" \
+require_same_count "TX pre-DCC chain" \
     BTP_TX_BEGIN \
     BTP_TX_OK \
     GEONET_TX_BEGIN \
-    GEONET_TX_OK \
-    ACCESS_TX_BEGIN \
-    ACCESS_TX_OK \
-    SEND_BEGIN \
-    SEND_OK \
-    TX_COMPLETE
+    GEONET_TX_OK
+
+if [[ -z "$SIM_DURATION" ]]; then
+    echo "[FAIL] SIM_DURATION is required for CAM horizon acceptance"
+    failures=$((failures + 1))
+else
+    if ! python3 \
+        "$(dirname "$0")/cam_tx_horizon_analyzer.py" \
+        "$LOG" \
+        "$SIM_DURATION"
+    then
+        failures=$((failures + 1))
+    fi
+fi
 
 echo
 echo "===== CAM RX PIPELINE ====="

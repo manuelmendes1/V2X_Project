@@ -103,9 +103,9 @@ Relacionado:
 
 ## 8.13 — CAM Regression Acceptance
 
-**STATUS:** COMPLETED
-**DATE:** 2026-09-22
-**RESULT:** PASS
+**STATUS:** REVALIDATED / PASS
+**ORIGINAL DATE:** 2026-09-22
+**REVALIDATED:** 2026-10-08
 
 A aceitação formal da regressão CAM da fase 8.13 foi concluída com uma execução runtime real e com DENM explicitamente desativado.
 
@@ -128,15 +128,15 @@ RESULTADO 8.13: PASS
 ACCEPTANCE_EXIT=0
 ```
 
-A execução foi realizada com `--enableDenm=0` e terminou com `RUN_EXIT=0`. O pipeline CAM TX apresentou 75 ocorrências em cada estágio desde BTP até `TX_COMPLETE`. O pipeline CAM RX apresentou 133 ocorrências em cada estágio desde `RAW_RX` até `DELIVER_OK`.
+A execução foi realizada com `--enableDenm=0` e terminou com `RUN_EXIT=0`. Na revalidação de 8 de outubro de 2026, com `--simDuration=16`, foram observados 611 CAM TX: 607 completados e 4 pendentes no horizonte DCC. O pipeline CAM RX apresentou uma cadeia completa desde `RAW_RX` até `DELIVER_OK`.
 
 A identidade CAM foi preservada com BTP port `2001`, transport `SHB`, ITS-AID `36 / CA` e perfil `ITS_G5`. No RX, o BTP confirmou igualmente port `2001`.
 
-A instrumentação Access RX utiliza `ACCESS_RX_BEGIN` e `ACCESS_RX_OK`, ambos com 133 ocorrências.
+A instrumentação Access RX observou `ACCESS_RX_BEGIN` e `ACCESS_RX_OK` com 1 ocorrência na execução revalidada.
 
 Não foram observados eventos DENM/GBC durante a regressão: `GBC_REQUEST`, `DENM_RX_DISPATCH`, `DENM_DECODE_OK`, `DENM_REPLAY_OK`, `DENM_RECEPTION_OK`, `DENM_DELIVER_OK` e `DENM_SELF_ORIGIN_DROP` permaneceram em zero.
 
-As contagens TX=75 e RX=133 não são comparadas entre si como taxa de entrega; a aceitação verifica a integridade das cadeias instrumentadas e a ausência de atividade DENM.
+A aceitação atual trata explicitamente o horizonte finito do DCC e não interpreta TX e RX como taxa de entrega entre si. O controlo negativo também confirma a rejeição de um TX pós-DCC sem `TX_COMPLETE`.
 
 Relacionado:
 
