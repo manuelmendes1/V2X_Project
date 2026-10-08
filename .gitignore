@@ -108,3 +108,9 @@ scratch/**/*.bak
 !/scratch/sumo_spatem_traci_composed_test/
 !/scratch/sumo_spatem_traci_composed_test/**
 /scratch/vanetza_integration/**/__pycache__/
+
+# ------------------------------------------------------------
+# SPATEM-19.1 real RX acceptance test
+# ------------------------------------------------------------
+!/scratch/spatem_real_rx_acceptance_test/
+!/scratch/spatem_real_rx_acceptance_test/**

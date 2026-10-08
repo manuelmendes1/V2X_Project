@@ -91,10 +91,30 @@ bool SetTiming(
         return false;
     }
 
+    if (input.maxEndTime.has_value() &&
+        *input.maxEndTime < input.minEndTime)
+    {
+        return false;
+    }
+
     if (input.confidence.has_value() &&
         *input.confidence > 15U)
     {
         return false;
+    }
+
+    if (input.likelyTime.has_value())
+    {
+        if (*input.likelyTime < input.minEndTime)
+        {
+            return false;
+        }
+
+        if (input.maxEndTime.has_value() &&
+            *input.likelyTime > *input.maxEndTime)
+        {
+            return false;
+        }
     }
 
     auto* timing =
@@ -272,6 +292,16 @@ bool BuildIntersection(
 
     if (input.minuteOfYear.has_value())
     {
+        const auto minuteOfYear = *input.minuteOfYear;
+
+        // MinuteOfTheYear semantic domain:
+        //   0..527039 = valid
+        //   527040    = invalid sentinel
+        if (minuteOfYear >= 527040U)
+        {
+            return false;
+        }
+
         auto* value =
             static_cast<MinuteOfTheYear_t*>(
                 calloc(1, sizeof(MinuteOfTheYear_t)));
@@ -283,13 +313,24 @@ bool BuildIntersection(
 
         *value =
             static_cast<MinuteOfTheYear_t>(
-                *input.minuteOfYear);
+                minuteOfYear);
 
         intersection.moy = value;
     }
 
     if (input.dSecond.has_value())
     {
+        const auto dSecond = *input.dSecond;
+
+        // DSecond semantic domain:
+        //   0..60999      valid
+        //   61000..65534  reserved
+        //   65535         unavailable
+        if (dSecond > 60999U && dSecond != 65535U)
+        {
+            return false;
+        }
+
         auto* value =
             static_cast<DSecond_t*>(
                 calloc(1, sizeof(DSecond_t)));
@@ -301,7 +342,7 @@ bool BuildIntersection(
 
         *value =
             static_cast<DSecond_t>(
-                *input.dSecond);
+                dSecond);
 
         intersection.timeStamp = value;
     }
