@@ -301,12 +301,18 @@ Relacionado:
 [[scratch/vanetza_integration/docs/P19_CAM_DENM_Regression_Acceptance]]
 [[scratch/vanetza_integration/docs/P20_High_Density_V3_Runtime_Validation]]
 
-## Etapa 9 — SPATEM — Rebaseline 2026-10-08
+## Etapa 9 — SPATEM — Rebaseline do checkout 2026-10-09
 
-**STATUS:** ACTIVE / REVALIDATED
+**STATUS:** BASELINE CAPTURED WITH KNOWN LIMITATIONS
 
+[[scratch/vanetza_integration/docs/P0_REBASELINE_2026-10-09]]
 [[scratch/vanetza_integration/docs/ETAPA_9_SPATEM_REBASELINE_2026-10-08]]
 
-Estado demonstrado: `SPATEM-01 .. SPATEM-18 = PASS`
+A recolha P0 confirmou build PASS, CAM-only PASS, CAM + DENM PASS e
+P21.1–P21.6 PASS. A suite SPATEM teve quatro acceptance PASS e dois
+resultados não aprovados: RX pipeline sem DECODE_OK e SUMO/TraCI sem
+a configuração temporária do cenário. O DENM E2E histórico 8.12 não
+foi reproduzido devido à ausência do log de entrada.
 
-Próximo gate: `SPATEM-19` / Fase 9.14 — Robustness / validação estrutural.
+O próximo trabalho deverá seguir o plano Etapa 9, com estas limitações
+preservadas e sem classificar a suite SPATEM completa como PASS.
