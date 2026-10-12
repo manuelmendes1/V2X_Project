@@ -269,6 +269,7 @@ function(create_scratch source_files)
 
     build_exec(
         EXECNAME ${name}
+        EXECNAME_PREFIX ${target_prefix}
         SOURCE_FILES ${source_files}
         LIBRARIES_TO_LINK
             ${ns3-libs}
@@ -296,41 +297,11 @@ endfunction()
 # SCRATCH FILES (.cc ROOT LEVEL)
 # =========================================================
 
-file(GLOB scratch_sources CONFIGURE_DEPENDS
-    ${CMAKE_CURRENT_SOURCE_DIR}/*.cc
-)
-
-create_scratch("${scratch_sources}")
-
 # =========================================================
-# SUBDIRECTORIES SUPPORT (SAFE VERSION)
+# UNICO EXECUTAVEL DA APLICACAO
 # =========================================================
+# Não descobrir automaticamente subdiretórios nem criar alvos
+# a partir de ficheiros .cc encontrados em scratch.
+# O único executável deste CMake é v2x_sumo.
 
-file(GLOB scratch_subdirs CONFIGURE_DEPENDS
-    ${CMAKE_CURRENT_SOURCE_DIR}/*
-)
-
-foreach(entry ${scratch_subdirs})
-
-    if(IS_DIRECTORY ${entry})
-
-        get_filename_component(dir ${entry} NAME)
-
-        if(NOT dir MATCHES "^\\.")
-
-            if(EXISTS ${entry}/CMakeLists.txt)
-                add_subdirectory(${entry})
-            else()
-
-                file(GLOB sub_sources CONFIGURE_DEPENDS
-                    ${entry}/*.cc
-                )
-
-                create_scratch("${sub_sources}")
-            endif()
-
-        endif()
-
-    endif()
-
-endforeach()
+create_scratch("${CMAKE_CURRENT_SOURCE_DIR}/v2x/v2x_sumo.cc")

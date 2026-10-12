@@ -132,3 +132,12 @@ scratch/**/*.bak
 # ------------------------------------------------------------
 !/scratch/spatem_codec_boundary_test/
 !/scratch/spatem_codec_boundary_test/**
+
+# V2X Green/Red test hierarchy
+!scratch/test/
+!scratch/test/**
+scratch/test/**/__pycache__/
+scratch/test/**/*.py[cod]
+scratch/test/**/.pytest_cache/
+scratch/test/**/CMakeFiles/
+scratch/test/**/build/
