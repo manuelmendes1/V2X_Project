@@ -1,5 +1,6 @@
 #include "vanetza_runtime.h"
 
+#include "vanetza_integration/spatem/rx/spatem_rx_pipeline.h"
 #include "vanetza_integration/context/packet/packet_id_manager.h"
 #include "vanetza_integration/context/rx_bridge/rx_bridge_context.h"
 #include "vanetza_integration/context/vehicle_state.h"
@@ -469,6 +470,89 @@ VanetzaRuntime::Initialize()
     });
 
     //=========================================================================
+    // SPATEM BTP RX boundary
+    // =========================================================================
+    //
+    // Stage 9.8:
+    // BTP port 2004 is the SPATEM application boundary.
+    // The specialized SPATEM RX pipeline owns decode and delivery.
+    //=========================================================================
+
+    m_geonet->SetBtpRxHandler(
+        2004,
+        [this](const VanetzaGeoNetAdapter::BtpRxData& rx)
+        {
+            PacketContext* ctx =
+                RxBridgeContext::Current();
+
+            if (!ctx)
+            {
+                NS_LOG_UNCOND(
+                    "[SPATEM_RX] ERROR: RxBridgeContext is null");
+                return;
+            }
+
+            ctx->btpDestinationPort =
+                rx.destinationPort;
+
+            ctx->geonet.hasItsAid =
+                rx.hasItsAid;
+
+            if (rx.hasItsAid)
+            {
+                ctx->geonet.itsAid =
+                    rx.itsAid;
+            }
+
+            ctx->geonet.hasSenderMid =
+                rx.hasSourceMid;
+
+            if (rx.hasSourceMid)
+            {
+                ctx->geonet.senderMid =
+                    rx.sourceMid;
+            }
+
+            V2XWriteLog(
+                *ctx,
+                V2XLogLevel::INFO,
+                "SPATEM",
+                "SPATEM_RX_DISPATCH",
+                "port=" +
+                    std::to_string(
+                        rx.destinationPort) +
+                " payload=" +
+                    std::to_string(
+                        rx.payload.size()) +
+                " aid=" +
+                    std::to_string(
+                        rx.hasItsAid
+                            ? rx.itsAid
+                            : 0));
+
+            SpatemMessage message{};
+
+            const bool processed =
+                SpatemRxPipeline::Process(
+                    *ctx,
+                    rx.payload,
+                    message,
+                    m_vehicle.security.spatemReplay);
+
+            NS_LOG_UNCOND(
+                "[SPATEM_RX] BTP handler "
+                << (processed ? "delivered" : "rejected")
+                << " receiver="
+                << m_vehicle.identity.vehId
+                << " port="
+                << rx.destinationPort
+                << " payload="
+                << rx.payload.size()
+                << " aid="
+                << (rx.hasItsAid ? rx.itsAid : 0));
+        });
+
+    //=========================================================================
     // Final initialization state
     //=========================================================================
 
@@ -642,10 +726,15 @@ VanetzaRuntime::ReceivePacket(
     VehicleState* sender =
         VehicleRegistry::Instance().GetByIpv4(sourceIp);
 
-    NS_ABORT_MSG_IF(
-        sender == nullptr,
-        "[VRT_RX] Sender not found for source IPv4="
+    if (sender == nullptr)
+    {
+        NS_LOG_UNCOND(
+            "[VRT_RX] SENDER_NOT_FOUND "
+            "source_ip="
             << sourceIp);
+
+        return;
+    }
 
     NS_ABORT_MSG_IF(
         !sender->linkMacInitialized,

@@ -24,6 +24,92 @@ bool SumoSocket::Init(int& socketFd,sockaddr_in& localAddr, sockaddr_in& sumoAdd
         return false;
     }
 
+
+    // Configure the receive queue before bind() and before SUMO starts
+    // sending its UDP stream. Linux may double the requested value.
+    const int requestedReceiveBufferBytes = 4 * 1024 * 1024;
+
+    if (::setsockopt(
+            socketFd,
+            SOL_SOCKET,
+            SO_RCVBUF,
+            &requestedReceiveBufferBytes,
+            sizeof(requestedReceiveBufferBytes)) < 0)
+    {
+        V2XWriteLog(
+            SimulationContext::simulationStep,
+            V2XLogLevel::ERROR,
+            "SUMO",
+            "SO_RCVBUF_FAIL",
+            "-",
+            0,
+            0,
+            -1,
+            "Unable to configure UDP receive buffer");
+
+        ::close(socketFd);
+        socketFd = -1;
+        return false;
+    }
+
+    int effectiveReceiveBufferBytes = 0;
+    socklen_t receiveBufferLength = sizeof(effectiveReceiveBufferBytes);
+
+    if (::getsockopt(
+            socketFd,
+            SOL_SOCKET,
+            SO_RCVBUF,
+            &effectiveReceiveBufferBytes,
+            &receiveBufferLength) < 0)
+    {
+        V2XWriteLog(
+            SimulationContext::simulationStep,
+            V2XLogLevel::ERROR,
+            "SUMO",
+            "SO_RCVBUF_VERIFY_FAIL",
+            "-",
+            0,
+            0,
+            -1,
+            "Unable to verify UDP receive buffer");
+
+        ::close(socketFd);
+        socketFd = -1;
+        return false;
+    }
+
+    if (effectiveReceiveBufferBytes < requestedReceiveBufferBytes)
+    {
+        V2XWriteLog(
+            SimulationContext::simulationStep,
+            V2XLogLevel::ERROR,
+            "SUMO",
+            "SO_RCVBUF_TOO_SMALL",
+            "-",
+            0,
+            0,
+            -1,
+            "Effective UDP receive buffer is smaller than requested");
+
+        ::close(socketFd);
+        socketFd = -1;
+        return false;
+    }
+
+    V2XWriteLog(
+        SimulationContext::simulationStep,
+        V2XLogLevel::INFO,
+        "SUMO",
+        "SO_RCVBUF_CONFIGURED",
+        "-",
+        0,
+        0,
+        -1,
+        "requested_bytes="
+            + std::to_string(requestedReceiveBufferBytes)
+            + " effective_bytes="
+            + std::to_string(effectiveReceiveBufferBytes));
+
     // =====================================================
     // Configure the local endpoint. The adapter listens on the configured UDP port for messages arriving from the SUMO communication bridge.
     // =====================================================

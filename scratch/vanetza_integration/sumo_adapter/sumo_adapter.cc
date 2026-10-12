@@ -29,6 +29,9 @@ SumoAdapter::m_vehicleCallback = nullptr;
 SumoAdapter::DenmEventCallback
 SumoAdapter::m_denmEventCallback = nullptr;
 
+SumoAdapter::TrafficLightUpdateCallback
+SumoAdapter::m_trafficLightCallback = nullptr;
+
 // ============================================================================
 // Init
 // ============================================================================
@@ -83,6 +86,24 @@ SumoAdapter::Poll()
         buffer[bytes] = '\0';
 
         const std::string message(buffer, bytes);
+
+        if (message.rfind("SUMO_TLS,", 0) == 0)
+        {
+            const auto trafficLight =
+                ns3::SumoTrafficLightParser::Parse(message);
+
+            if (!trafficLight)
+            {
+                continue;
+            }
+
+            if (m_trafficLightCallback)
+            {
+                m_trafficLightCallback(*trafficLight);
+            }
+
+            continue;
+        }
 
         if (message.rfind("DENM_EVENT,", 0) == 0)
         {
@@ -199,6 +220,14 @@ SumoAdapter::SetVehicleUpdateCallback(
     VehicleUpdateCallback callback)
 {
     m_vehicleCallback =
+        std::move(callback);
+}
+
+void
+SumoAdapter::SetTrafficLightUpdateCallback(
+    TrafficLightUpdateCallback callback)
+{
+    m_trafficLightCallback =
         std::move(callback);
 }
 

@@ -47,10 +47,12 @@ def compute(
 
     criteria: list[Criterion] = []
 
+    # SIGN is protocol-dependent. It is validated when present, but it
+    # is not a mandatory link in the common transport chain. SPATEM's
+    # current transport path does not emit cryptographic SIGN events.
     tx_counts = [
         tx.generate_ok,
         tx.encode_ok,
-        tx.sign_ok,
         tx.btp_tx_ok,
         tx.geonet_tx_ok,
         tx.access_tx_ok,
@@ -58,11 +60,16 @@ def compute(
         tx.tx_complete,
     ]
 
+    sign_consistent = (
+        tx.sign_begin == 0
+        or tx.sign_begin <= tx.sign_ok
+    )
+
     tx_ok = (
         tx.tx_complete > 0
         and _monotonic_non_increasing(tx_counts)
         and tx.encode_begin <= tx.encode_ok
-        and tx.sign_begin <= tx.sign_ok
+        and sign_consistent
         and tx.access_tx_begin >= tx.access_tx_ok
         and tx.send_begin >= tx.send_ok
     )

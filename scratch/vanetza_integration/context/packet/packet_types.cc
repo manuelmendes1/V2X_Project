@@ -21,6 +21,7 @@ namespace ns3 {
             case PayloadType::UDP:          return "UDP";
 
             case PayloadType::RAW:          return "RAW";
+            case PayloadType::SPATEM:        return "SPATEM";
         }
 
         return "UNKNOWN";
