@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <input>
+        <net-file value="/home/mmendes/final/ns3-venv/lib/python3.12/site-packages/sumolib/scenario/scenarios/RealWorld/RiLSA_example3/rilsa3.net.xml"/>
+    </input>
+    <time>
+        <begin value="0"/>
+        <end value="10"/>
+    </time>
+</configuration>

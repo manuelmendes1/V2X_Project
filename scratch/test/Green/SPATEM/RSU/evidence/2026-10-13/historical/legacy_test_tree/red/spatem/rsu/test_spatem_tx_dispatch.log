@@ -1,0 +1,29 @@
+Diretoria de testes: /home/mmendes/final/ns-3.47/scratch/vanetza_integration/test
+Ficheiros encontrados: 1
+  red/spatem/rsu/test_spatem_tx_dispatch.py
+test_spatem_service_has_an_active_call_site (vanetza_test_0_test_spatem_tx_dispatch.TestSpatemTxDispatch.test_spatem_service_has_an_active_call_site) ... FAIL
+
+======================================================================
+FAIL: test_spatem_service_has_an_active_call_site (vanetza_test_0_test_spatem_tx_dispatch.TestSpatemTxDispatch.test_spatem_service_has_an_active_call_site)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/mmendes/final/ns-3.47/scratch/vanetza_integration/test/red/spatem/rsu/test_spatem_tx_dispatch.py", line 69, in test_spatem_service_has_an_active_call_site
+    self.assertTrue(
+    ~~~~~~~~~~~~~~~^
+        call_sites,
+        ^^^^^^^^^^^
+    ...<3 lines>...
+        "que os dados dos semáforos são codificados e transmitidos.",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+AssertionError: [] is not true : RED: SpatemService::Send() não tem um chamador ativo identificado fora da sua própria implementação. A existência do serviço e do endpoint RSU não demonstra que os dados dos semáforos são codificados e transmitidos.
+
+----------------------------------------------------------------------
+Ran 1 test in 0.030s
+
+FAILED (failures=1)
+
+Resumo: 1 executado(s), 1 falha(s), 0 erro(s).
+
+TEST_EXIT_CODE=1

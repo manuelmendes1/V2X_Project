@@ -1,4 +1,5 @@
 #include "vanetza_runtime.h"
+#include "vanetza_integration/context/station_registry/station_endpoint_registry.h"
 
 #include "vanetza_integration/spatem/rx/spatem_rx_pipeline.h"
 #include "vanetza_integration/context/packet/packet_id_manager.h"
@@ -723,8 +724,8 @@ VanetzaRuntime::ReceivePacket(
     const Ipv4Address sourceIp =
         source.GetIpv4();
 
-    VehicleState* sender =
-        VehicleRegistry::Instance().GetByIpv4(sourceIp);
+    const StationEndpointIdentity* sender =
+        StationEndpointRegistry::Instance().GetByIpv4(sourceIp);
 
     if (sender == nullptr)
     {
@@ -739,7 +740,7 @@ VanetzaRuntime::ReceivePacket(
     NS_ABORT_MSG_IF(
         !sender->linkMacInitialized,
         "[VRT_RX] Sender Link MAC not initialized: "
-            << sender->identity.vehId);
+            << sender->logicalId);
 
     //-------------------------------------------------------------------------
     // Receive information
@@ -757,12 +758,16 @@ VanetzaRuntime::ReceivePacket(
         << m_vehicle.identity.nodeId
         << " source_ip="
         << sourceIp
+        << " sender_role="
+        << StationEndpointKindName(sender->kind)
+        << " sender_id="
+        << sender->logicalId
         << " sender_veh="
-        << sender->identity.vehId
+        << sender->vehicleId
         << " sender_node="
-        << sender->identity.nodeId
+        << sender->nodeId
         << " sender_station="
-        << sender->identity.stationId
+        << sender->stationId
         << " sender_link_mac="
         << sender->linkMac);
 
@@ -816,13 +821,13 @@ VanetzaRuntime::ReceivePacket(
     //-------------------------------------------------------------------------
 
     ctx.senderVehId =
-        sender->identity.vehId;
+        sender->vehicleId;
 
     ctx.senderNodeId =
-        sender->identity.nodeId;
+        sender->nodeId;
 
     ctx.senderStationId =
-        sender->identity.stationId;
+        sender->stationId;
 
     //-------------------------------------------------------------------------
     // Sender Link MAC.

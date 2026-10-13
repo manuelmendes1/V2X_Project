@@ -1,5 +1,8 @@
 #include "sumo_traffic_light_timing_mapper.h"
 
+#include <vanetza/common/clock.hpp>
+#include <chrono>
+
 #include <cmath>
 #include <cstdint>
 #include <limits>
@@ -25,6 +28,91 @@ IsFiniteNonNegative(double value)
 
 namespace ns3
 {
+
+bool
+SumoTrafficLightTimingMapper::BuildReference(
+    const std::string& itsStartTime,
+    int64_t elapsedMicroseconds,
+    SumoSpatemTimeReference& output,
+    std::string& error)
+{
+    if (itsStartTime.empty())
+    {
+        error = "SPATEM requires an explicit ITS start time";
+        return false;
+    }
+
+    if (elapsedMicroseconds < 0)
+    {
+        error = "Simulation elapsed time must be non-negative";
+        return false;
+    }
+
+    std::string normalized = itsStartTime;
+    const auto separator = normalized.find('T');
+    if (separator != std::string::npos)
+    {
+        normalized[separator] = ' ';
+    }
+
+    try
+    {
+        const auto start = vanetza::Clock::at(normalized);
+        const auto startUs =
+            start.time_since_epoch().count();
+
+        if (startUs >
+            std::numeric_limits<vanetza::Clock::rep>::max()
+                - elapsedMicroseconds)
+        {
+            error = "Absolute ITS time overflows the Vanetza clock";
+            return false;
+        }
+
+        const auto current =
+            start + std::chrono::microseconds(elapsedMicroseconds);
+
+        const auto timestamp = vanetza::Clock::at(current);
+
+        if (timestamp.is_not_a_date_time())
+        {
+            error = "Absolute ITS time is not a valid date-time";
+            return false;
+        }
+
+        const auto date = timestamp.date();
+        const auto timeOfDay = timestamp.time_of_day();
+
+        const uint64_t minuteOfYear =
+            static_cast<uint64_t>(date.day_of_year() - 1) * 1440ULL
+            + static_cast<uint64_t>(timeOfDay.hours()) * 60ULL
+            + static_cast<uint64_t>(timeOfDay.minutes());
+
+        const int64_t dSecond =
+            timeOfDay.total_milliseconds() % 60000LL;
+
+        if (minuteOfYear >= 527040ULL ||
+            dSecond < 0 ||
+            dSecond > 59999LL)
+        {
+            error = "Absolute ITS time is outside SPATEM reference range";
+            return false;
+        }
+
+        output.minuteOfYear =
+            static_cast<uint32_t>(minuteOfYear);
+        output.dSecond =
+            static_cast<uint16_t>(dSecond);
+
+        error.clear();
+        return true;
+    }
+    catch (...)
+    {
+        error = "Unable to parse ITS start time: " + itsStartTime;
+        return false;
+    }
+}
 
 bool
 SumoTrafficLightTimingMapper::Map(

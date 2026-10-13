@@ -212,6 +212,8 @@ add_library(vanetza_spatem_obj OBJECT
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/spatem/vanetza_spatem_codec.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/spatem/service/spatem_service.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/spatem/emitter/spatem_emitter_endpoint.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/spatem/emitter/spatem_rsu_runtime.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/spatem/emitter/spatem_rsu_position_provider.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/spatem/emitter/its_station_network_builder.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/spatem/emitter/its_station_address_builder.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/spatem/rx/spatem_rx_pipeline.cc

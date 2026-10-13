@@ -1,0 +1,1412 @@
+title: "Etapa 9 — SPATEM — Plano de Implementação e Validação"
+status: "ACTIVE / REVALIDATED"
+type: "FUNCTIONAL DEVELOPMENT AND VALIDATION PLAN"
+date: 2026-10-04
+last_revalidated: "2026-10-13"
+project: "ns-3.47 + Vanetza + SUMO V2X Integration"
+stage: "ETAPA 9"
+scope: "SPATEM"
+baseline: "POST-P21"
+baseline_commit: "420db8a"
+previous_stage: "P21 CLOSED / VALIDATED"
+next_stage: "SPATEM-19 / Fase 9.14 — Robustness"
+related_state:
+
+"[[CURRENT_STATE]]"
+related_status:
+
+"[[DOCUMENT_STATUS]]"
+previous_rebaseline:
+
+"[[POST_P21_REBASELINE_2026-10-04]]"
+reference_plan:
+
+"[[ETAPA_8_DENM_PLANO]]"
+reference_state:
+
+"[[ETAPA_8_DENM_ESTADO_TECNICO_2026-09-18]]"
+
+Etapa 9 — SPATEM — Plano de Implementação e Validação
+
+1. Objetivo
+
+A Etapa 9 tem como objetivo introduzir suporte funcional a SPATEM — Signal Phase And Timing Extended Message na integração atual entre ns-3, Vanetza e SUMO.
+
+O objetivo principal é obter um primeiro fluxo SPATEM ponta-a-ponta real:
+
+signal-state source
+    -> SPATEM generation
+    -> ASN.1 / UPER
+    -> security
+    -> BTP
+    -> GeoNetworking
+    -> ns-3 access / channel
+    -> GeoNetworking RX
+    -> BTP RX
+    -> security verification
+    -> decode
+    -> semantic validation
+    -> reception
+    -> delivery
+
+
+A implementação deverá reutilizar a arquitetura consolidada para CAM e DENM.
+
+Não deverá ser criada uma arquitetura SPATEM paralela para identidade, PacketContext, logging, segurança, analyzer ou transporte.
+
+2. Princípios de implementação
+
+Mantêm-se os princípios demonstrados na Etapa 8:
+
+código plausível ≠ comportamento demonstrado
+build limpo ≠ funcionalidade validada
+run local ≠ interoperabilidade externa
+
+
+A sequência operacional será incremental:
+
+audit
+    -> model
+    -> timing semantics
+    -> codec
+    -> transport
+    -> TX
+    -> RX
+    -> security / replay
+    -> logging
+    -> analyzer
+    -> E2E
+    -> SUMO
+    -> regression
+    -> closeout
+
+
+Nenhuma alteração estrutural significativa deverá avançar sem evidência da fase anterior.
+
+Cada item técnico deverá seguir:
+
+problema / requisito
+    -> evidência atual
+    -> teste RED focado
+    -> alteração mínima
+    -> GREEN
+    -> acceptance
+    -> commit separado
+
+
+3. Estado de partida
+
+A Etapa 9 parte do rebaseline pós-P21:
+
+main
+HEAD = 420db8a
+P21 = CLOSED / VALIDATED
+working tree = CLEAN
+
+
+O projeto já possui arquitetura comum para:
+
+CAM
+DENM
+BTP
+GeoNetworking
+DCC
+security
+PacketContext
+RX pipeline
+logging
+v2x_analyzer
+SUMO / bridge
+
+
+A integração atual mantém separação entre domínio da aplicação e wrappers Vanetza.
+
+A estrutura conceptual existente inclui:
+
+scratch/vanetza_integration/
+├── cam/
+├── denm/
+├── context/
+├── rx/
+├── security/
+├── sumo_adapter/
+├── vanetza_runtime/
+├── wrappers/
+│   └── vanetza/
+└── tests/
+
+
+SPATEM deverá encaixar nessa estrutura.
+
+4. Escopo
+
+O primeiro marco será exclusivamente:
+
+SPATEM baseline funcional
+
+
+O baseline deverá demonstrar:
+
+SPATEM generation
+SPATEM ASN.1 construction
+UPER encode
+BTP transport
+GeoNetworking transport
+TX runtime
+RX runtime
+UPER decode
+semantic validation
+security path
+replay handling
+PacketContext
+logging
+analyzer
+E2E
+
+
+Ficam fora do primeiro baseline:
+
+MAPEM implementation
+SREM / SSEM
+controle de semáforos reais
+interoperabilidade OTA
+conformance certification
+hardware ITS-G5 real
+
+
+A relação SPATEM/MAPEM poderá ser tratada posteriormente. O primeiro objetivo é demonstrar SPATEM como mensagem funcional sem aumentar prematuramente o escopo.
+
+5. Questão arquitetural específica: origem SPATEM
+
+Antes de implementar SPATEM deverá ser resolvida uma questão que não existe da mesma forma no CAM/DENM atual:
+
+SPATEM originator
+    =
+ITS station / roadside infrastructure / signal controller
+
+
+O projeto atual tem uma arquitetura de identidade fortemente orientada para estações móveis/veículos.
+
+Portanto, a Etapa 9 não deverá simplesmente assumir:
+
+SPATEM = CAM de um veículo com outro payload
+
+
+Deverá existir uma decisão explícita sobre a representação do originador SPATEM.
+
+O primeiro gate deverá determinar se:
+
+A) o modelo de identidade existente suporta corretamente uma estação de infraestrutura
+
+
+ou:
+
+B) é necessária uma generalização mínima do modelo de identidade
+
+
+sem quebrar:
+
+VehicleIdentity
+stationId
+GN_ADDR
+credential binding
+PacketContext
+
+
+Nenhum código SPATEM dependente desta decisão deverá ser desenvolvido antes do encerramento deste gate.
+
+6. Sequência oficial
+
+A sequência proposta é:
+
+9.0  Freeze / verify post-P21 baseline
+ |
+9.1  Audit installed Vanetza SPATEM API
+ |
+9.2  Audit SPATEM origin identity / station role
+ |
+9.3  Define neutral SPATEM data model
+ |
+9.4  Define timing and signal-state model
+ |
+9.5  Implement ASN.1 / UPER codec
+ |
+9.6  Integrate BTP / GeoNetworking transport
+ |
+9.7  Implement SPATEM TX service
+ |
+9.8  Implement SPATEM RX
+ |
+9.9  Integrate security / replay
+ |
+9.10 Align PacketContext and logging
+ |
+9.11 Extend v2x_analyzer
+ |
+9.12 Synthetic SPATEM E2E
+ |
+9.13 SUMO traffic-light integration
+ |
+9.14 Robustness / multi-intersection validation
+ |
+9.15 CAM + DENM regression
+ |
+9.16 Closeout
+
+
+A ordem poderá ser alterada apenas por dependência técnica demonstrável.
+
+7. Fase 9.0 — Freeze / verify post-P21 baseline
+
+Objetivo
+
+Garantir que o ponto de partida SPATEM é reproduzível.
+
+Evidência
+
+Registar:
+
+git commit atual
+git status
+./ns3 build
+estado do analyzer
+CAM baseline
+DENM baseline
+P21 acceptance baseline
+
+
+Critério de saída
+
+O baseline deverá ser identificado por:
+
+HEAD = 420db8a
+main = origin/main
+working tree = CLEAN
+
+
+Nenhuma regressão anterior poderá ser atribuída à introdução de SPATEM.
+
+8. Fase 9.1 — Auditoria da API SPATEM instalada
+
+Esta fase é obrigatoriamente anterior à implementação.
+
+Não deverão ser assumidos nomes de classes, aliases, converters ou builders.
+
+A auditoria deverá pesquisar localmente:
+
+SPATEM
+SPAT
+SignalPhaseAndTiming
+IntersectionState
+IntersectionReferenceID
+MovementState
+MovementEvent
+SignalGroup
+TimeChangeDetails
+ItsPduHeader
+
+
+Também deverá verificar:
+
+ASN.1 generated types
+UPER encoder
+UPER decoder
+Vanetza aliases
+facilities APIs
+BTP ports
+ITS-AID
+message ID
+protocol version
+GeoNetworking transport support
+security integration
+
+
+Deverá produzir uma matriz:
+
+Elemento
+
+API/header local
+
+Estado
+
+SPATEM root
+
+TBD
+
+TBD
+
+SPAT
+
+TBD
+
+TBD
+
+Intersection state
+
+TBD
+
+TBD
+
+Movement state
+
+TBD
+
+TBD
+
+Signal group
+
+TBD
+
+TBD
+
+UPER encoder
+
+TBD
+
+TBD
+
+UPER decoder
+
+TBD
+
+TBD
+
+BTP SPATEM port
+
+TBD
+
+TBD
+
+ITS-AID
+
+TBD
+
+TBD
+
+GeoNetworking
+
+TBD
+
+TBD
+
+security
+
+TBD
+
+TBD
+
+Gate
+
+Se a instalação não fornecer uma API SPATEM utilizável, a implementação deverá parar neste ponto e produzir uma decisão técnica separada.
+
+9. Fase 9.2 — Origem, identidade e station role
+
+Objetivo
+
+Definir o originador lógico de SPATEM sem contaminar a arquitetura existente.
+
+Deverá ser separado:
+
+stationId
+GN_ADDR.MID
+Link MAC
+credential identity
+signal-controller role
+
+
+A regra permanece:
+
+Link MAC ≠ GN_ADDR.MID ≠ stationId
+
+
+A aceitação deverá demonstrar que o originador SPATEM não é inferido erradamente a partir do hop sender.
+
+O PacketContext deverá continuar a identificar o pacote físico independentemente da identidade semântica da estação.
+
+10. Fase 9.3 — Modelo de dados neutro
+
+O domínio da aplicação não deverá depender diretamente da ASN.1.
+
+O modelo conceptual inicial deverá representar, conforme suportado pela API local:
+
+SpatemInput
+├── station identity
+├── intersection reference
+├── intersection revision
+├── intersection status
+├── reference / generation time
+├── movement states
+├── signal group
+├── phase / event state
+├── timing information
+└── optional regulatory / topology information
+
+
+Os nomes e campos finais serão determinados após a auditoria.
+
+A fronteira deverá ser:
+
+signal-state application
+        |
+        v
+SpatemInput / SpatemMessage
+        |
+        v
+SPATEM wrapper
+        |
+        v
+ASN.1 / UPER
+
+
+11. Fase 9.4 — Modelo temporal e estado dos sinais
+
+Esta será uma fase própria porque o elemento central do SPATEM não é apenas a estrutura ASN.1: é a semântica temporal.
+
+Deverá ser definido:
+
+simulation time
+    ->
+SPATEM protocol time representation
+
+
+e:
+
+signal state
+    ->
+phase/event state
+    ->
+start/end/change timing
+
+
+O primeiro modelo deverá ser determinístico.
+
+Exemplo conceptual:
+
+RED
+ |
+ | duration
+ v
+GREEN
+ |
+ | duration
+ v
+YELLOW
+ |
+ v
+RED
+
+
+O modelo deverá permitir:
+
+phase transitions
+timing intervals
+signal-group association
+intersection revision
+periodic publication
+
+
+As conversões de unidades e quantização temporal deverão ser testadas isoladamente.
+
+Não deverá haver lógica temporal escondida dentro do encoder ASN.1.
+
+12. Fase 9.5 — ASN.1 / UPER codec
+
+O codec deverá permanecer dentro da fronteira Vanetza:
+
+scratch/vanetza_integration/wrappers/vanetza/
+    spatem/
+
+
+A estrutura conceptual será:
+
+spatem/
+├── spatem_asn1_builder
+├── spatem_codec
+└── converter
+
+
+Os nomes finais dependem da API local.
+
+Teste mínimo
+
+SpatemInput
+    -> encode
+    -> bytes
+    -> decode
+    -> SpatemMessage
+
+
+A aceitação deverá demonstrar round-trip dos campos essenciais:
+
+intersection
+revision
+signal group
+phase state
+timing
+station identity
+
+
+sem perda semântica.
+
+13. Fase 9.6 — BTP / GeoNetworking
+
+SPATEM deverá utilizar a abstração comum de transporte já estabelecida no projeto.
+
+Não deverá existir:
+
+SpatemBtpAdapter
+
+
+copiado estruturalmente do CAM.
+
+Deverá ser reutilizado:
+
+BtpTxRequest
+PacketContext
+GeoNetworking wrapper
+access adapter
+DCC path
+
+
+A porta BTP e o ITS-AID não deverão ser hard-coded antes da auditoria 9.1.
+
+A escolha do transporte:
+
+SHB / GBC / outro
+
+
+deverá ser explicitamente documentada e justificada pelo caso de uso implementado.
+
+14. Fase 9.7 — SPATEM TX
+
+O fluxo TX deverá ser:
+
+SIGNAL_STATE_CHANGE / SCHEDULER
+        ->
+GENERATE
+        ->
+ENCODE
+        ->
+SIGN
+        ->
+BTP_TX
+        ->
+GEONET_TX
+        ->
+ACCESS_TX
+        ->
+SEND
+        ->
+TX_COMPLETE
+
+
+O primeiro cenário será um único cruzamento determinístico.
+
+Não deverá depender inicialmente de SUMO.
+
+A primeira aceitação deverá demonstrar:
+
+SPATEM generation
+message ID correcto
+station ID correcto
+intersection state correcto
+signal group correcto
+timing correcto
+TX_COMPLETE RESULT=OK
+
+
+15. Fase 9.8 — SPATEM RX
+
+O RX utilizará a infraestrutura comum:
+
+RAW_RX
+    ->
+ACCESS_RX
+    ->
+GEONET_RX
+    ->
+BTP_RX
+    ->
+VERIFY
+    ->
+DECODE
+    ->
+REPLAY
+    ->
+RECEPTION
+    ->
+DELIVER
+
+
+O dispatch deverá distinguir:
+
+CAM
+DENM
+SPATEM
+
+
+sem perder os handlers existentes.
+
+O receiver deverá validar pelo menos:
+
+message type
+station identity
+intersection identity
+revision
+signal groups
+timing fields
+
+
+A validação não deverá usar apenas a porta BTP quando o messageID puder ser verificado no payload.
+
+16. Fase 9.9 — Security / Replay
+
+SPATEM deverá reutilizar a infraestrutura de segurança existente.
+
+Não deverá ser criada uma implementação criptográfica específica para SPATEM sem necessidade técnica demonstrada.
+
+A aceitação deverá separar:
+
+security source evidence
+security build evidence
+security runtime evidence
+
+
+e distinguir explicitamente:
+
+signature generation
+signature verification
+replay acceptance
+replay rejection
+
+
+Uma implementação de código sem observação runtime não será considerada prova.
+
+17. Fase 9.10 — PacketContext e logging
+
+SPATEM deverá utilizar a mesma taxonomia global.
+
+TX:
+
+GENERATE
+ENCODE
+SIGN
+BTP_TX
+GEONET_TX
+ACCESS_TX
+SEND
+TX_COMPLETE
+
+
+RX:
+
+RAW_RX
+ACCESS_RX
+GEONET_RX
+BTP_RX
+VERIFY
+DECODE
+REPLAY
+RECEPTION
+DELIVER
+
+
+Eventos específicos poderão existir como informação auxiliar:
+
+SPATEM_GENERATE_OK
+SPATEM_DECODE_OK
+SPATEM_RECEPTION_OK
+SPATEM_DELIVER_OK
+SPATEM_INVALID_TIMING
+SPATEM_UNKNOWN_INTERSECTION
+
+
+mas não deverão formar uma segunda taxonomia.
+
+O PacketContext será a fonte canónica de observabilidade por pacote.
+
+packetId deverá manter a semântica física estabelecida na validação do analyzer.
+
+18. Fase 9.11 — v2x_analyzer
+
+O analyzer deverá reconhecer explicitamente:
+
+CAM
+DENM
+SPATEM
+
+
+mantendo a arquitetura comum.
+
+As métricas mínimas deverão cobrir:
+
+TX
+├── GENERATE
+├── ENCODE
+├── SIGN
+├── BTP_TX
+├── GEONET_TX
+├── ACCESS_TX
+└── TX_COMPLETE
+
+RX
+├── RAW_RX
+├── ACCESS_RX
+├── GEONET_RX
+├── BTP_RX
+├── VERIFY
+├── DECODE
+├── REPLAY
+├── RECEPTION
+└── DELIVER
+
+
+e métricas SPATEM específicas:
+
+intersection count
+movement count
+signal-group count
+decode failures
+timing validation failures
+replay drops
+logical receptions
+physical packet duplicates
+
+
+A semântica de duplicados deverá continuar baseada em identidade física de pacote, não em estado lógico SPATEM.
+
+Os testes existentes do analyzer deverão continuar a passar.
+
+19. Fase 9.12 — Synthetic SPATEM E2E
+
+Antes de integrar SUMO, deverá existir um cenário puramente determinístico:
+
+Infrastructure Station A
+        |
+        | SPATEM
+        v
+ns-3 channel
+        |
+        v
+Vehicle / ITS Station B
+
+
+A evidência TX deverá demonstrar:
+
+GENERATE
+ENCODE
+SIGN
+BTP_TX
+GEONET_TX
+ACCESS_TX
+SEND
+TX_COMPLETE
+
+
+A evidência RX deverá demonstrar:
+
+RAW_RX
+ACCESS_RX
+GEONET_RX
+BTP_RX
+VERIFY
+DECODE
+REPLAY
+RECEPTION
+DELIVER
+
+
+Além disso deverá ser possível verificar semanticamente:
+
+intersection ID
+revision
+signal group
+phase state
+timing
+origin station
+
+
+Este será o primeiro marco E2E oficial da Etapa 9.
+
+20. Fase 9.13 — Integração SUMO
+
+Somente depois do SPATEM sintético estar validado deverá ser ligada a fonte real de estado de tráfego.
+
+Fluxo:
+
+SUMO traffic light state
+        |
+        v
+sumo_adapter / bridge
+        |
+        v
+SPATEM domain model
+        |
+        v
+SPATEM scheduler/service
+        |
+        v
+Vanetza / ns-3
+
+
+O primeiro objetivo será uma única interseção.
+
+Posteriormente poderão ser introduzidos:
+
+multiple intersections
+multiple signal groups
+phase transitions
+revision changes
+
+
+A introdução do SUMO não deverá alterar o caminho comum de transporte.
+
+21. Fase 9.14 — Robustez e validação estrutural
+
+Deverão ser testados pelo menos:
+
+invalid intersection reference
+invalid revision
+invalid signal group
+invalid timing
+missing mandatory state
+unsupported phase state
+malformed encoded payload
+wrong message ID
+wrong BTP dispatch
+duplicate physical packet
+replay event
+unknown sender
+self-origin behavior
+
+
+O teste deverá distinguir:
+
+decode failure
+semantic validation failure
+replay rejection
+routing failure
+delivery rejection
+
+
+Não deverão ser agregados todos estes casos sob um único FAIL.
+
+22. Fase 9.15 — Regressão CAM + DENM
+
+A integração SPATEM só poderá avançar para closeout depois de demonstrar que não degradou CAM e DENM.
+
+Deverão ser executados:
+
+CAM-only
+DENM-only
+SPATEM-only
+CAM + DENM
+CAM + SPATEM
+DENM + SPATEM
+CAM + DENM + SPATEM
+
+
+quando o cenário permitir.
+
+Deverão ser mantidos:
+
+CAM BTP port
+DENM BTP port
+SPATEM BTP port
+PacketContext semantics
+TX/RX taxonomy
+DCC behavior
+security behavior
+analyzer behavior
+
+
+23. Fase 9.16 — Closeout
+
+A Etapa 9 será considerada CLOSED somente quando:
+
+SPATEM API audit             PASS
+origin identity model        PASS
+neutral model                PASS
+timing model                 PASS
+ASN.1 / UPER                 PASS
+BTP / GN                     PASS
+TX runtime                   PASS
+RX runtime                   PASS
+security                     PASS / explicitly bounded
+replay                       PASS / explicitly bounded
+PacketContext                PASS
+logging                      PASS
+analyzer                     PASS
+synthetic E2E                PASS
+SUMO integration             PASS
+robustness                   PASS
+CAM regression               PASS
+DENM regression              PASS
+build                         PASS
+runtime evidence              PASS
+documentation                 PASS
+
+
+24. Matriz de aceitação
+
+ID
+
+Critério
+
+Evidência esperada
+
+Estado inicial
+
+SPATEM-01
+
+Post-P21 baseline
+
+420db8a, clean, build
+
+PASS
+
+SPATEM-02
+
+Vanetza API
+
+headers/símbolos locais
+
+PASS
+
+SPATEM-03
+
+Origin identity
+
+station role demonstrado
+
+PASS
+
+SPATEM-04
+
+Neutral model
+
+SpatemInput / SpatemMessage
+
+PASS
+
+SPATEM-05
+
+Timing model
+
+state/transition tests
+
+PASS
+
+SPATEM-06
+
+ASN.1
+
+valid SPATEM structure
+
+PASS
+
+SPATEM-07
+
+UPER
+
+encode/decode round-trip
+
+PASS
+
+SPATEM-08
+
+BTP
+
+port/payload verified
+
+PASS
+
+SPATEM-09
+
+GeoNetworking
+
+transport verified
+
+PASS
+
+SPATEM-10
+
+TX
+
+runtime TX complete
+
+PASS
+
+SPATEM-11
+
+RX
+
+runtime RX complete
+
+PASS
+
+SPATEM-12
+
+Security
+
+generation/verification evidence
+
+PASS
+
+SPATEM-13
+
+Replay
+
+duplicate rejection evidence
+
+PASS
+
+SPATEM-14
+
+PacketContext
+
+packet continuity verified
+
+PASS
+
+SPATEM-15
+
+Logging
+
+global taxonomy preserved
+
+PASS
+
+SPATEM-16
+
+Analyzer
+
+SPATEM metrics/tests
+
+PASS
+
+SPATEM-17
+
+Synthetic E2E
+
+infrastructure → receiver
+
+PASS
+
+SPATEM-18
+
+SUMO TLS
+
+real traffic-light state
+
+PASS
+
+SPATEM-19
+
+Robustness
+
+invalid-input matrix
+
+ACTIVE
+
+SPATEM-20
+
+CAM regression
+
+existing CAM baseline preserved
+
+PENDING
+
+SPATEM-21
+
+DENM regression
+
+existing DENM behavior preserved
+
+PENDING
+
+SPATEM-22
+
+Build
+
+./ns3 build PASS
+
+PASS
+
+SPATEM-23
+
+Runtime evidence
+
+logs/counts/semantic checks
+
+PASS
+
+SPATEM-24
+
+Closeout
+
+documentation complete
+
+PENDING
+25. Evidência mínima
+
+Cada fase deverá preservar:
+
+SOURCE EVIDENCE
+    -> código / API / diff
+
+BUILD EVIDENCE
+    -> compile / link
+
+RUNTIME EVIDENCE
+    -> comportamento observável
+
+
+Quando aplicável, guardar:
+
+comandos
+headers encontrados
+símbolos
+diff
+testes RED
+testes GREEN
+build
+logs
+contagens
+PacketContext
+packetId
+analyzer report
+E2E result
+SUMO correlation
+
+
+Nenhum critério deverá ser marcado PASS apenas porque uma classe ou adapter existe.
+
+26. Riscos principais
+
+26.1 API SPATEM inexistente na instalação
+
+Mitigação:
+
+9.1 audit gate
+
+
+26.2 Tratar SPATEM como mensagem de veículo
+
+Mitigação:
+
+9.2 identity / station-role gate
+
+
+26.3 Misturar simulation time com protocol time
+
+Mitigação:
+
+9.4 dedicated timing model
+
+
+26.4 Hard-code de BTP port / ITS-AID
+
+Mitigação:
+
+audit local + evidence from installed API
+
+
+26.5 Copiar CAM/DENM sem modelar semântica de interseção
+
+Mitigação:
+
+neutral SPATEM model
+signal-state model
+
+
+26.6 Tornar MAPEM uma dependência prematura
+
+Mitigação:
+
+SPATEM baseline sem MAPEM
+MAPEM apenas numa fase posterior se requisito demonstrado
+
+
+26.7 Quebrar CAM ou DENM
+
+Mitigação:
+
+dedicated regression gates
+
+
+26.8 Validar apenas por build
+
+Mitigação:
+
+synthetic E2E + SUMO E2E
+
+
+27. Organização esperada
+
+A estrutura conceptual deverá seguir o padrão já consolidado:
+
+scratch/vanetza_integration/
+├── spatem/
+│   ├── types/
+│   ├── builder/
+│   ├── timing/
+│   ├── scheduler/
+│   ├── sender/
+│   └── reception/
+│
+├── wrappers/
+│   └── vanetza/
+│       └── spatem/
+│
+├── context/
+├── rx/
+├── security/
+├── vanetza_runtime/
+├── sumo_adapter/
+├── tests/
+└── docs/
+
+
+Os nomes reais deverão seguir a convenção do código existente quando isso evitar duplicação estrutural.
+
+28. Estratégia de commits
+
+Cada fase funcional aprovada deverá gerar um commit separado.
+
+Exemplo:
+
+docs(spatem): define implementation plan
+test(spatem): establish timing model acceptance
+feat(spatem): add neutral data model
+test(spatem): validate codec roundtrip
+feat(spatem): add codec
+...
+
+
+Não deverá existir um único commit gigante para toda a Etapa 9.
+
+Cada commit deverá corresponder a uma alteração tecnicamente verificável.
+
+29. Definição de DONE
+
+SPATEM DONE significa:
+
+application state
+    ->
+valid SPATEM
+    ->
+UPER
+    ->
+security
+    ->
+BTP
+    ->
+GeoNetworking
+    ->
+ns-3 PHY/channel
+    ->
+GeoNetworking RX
+    ->
+BTP RX
+    ->
+verification
+    ->
+decode
+    ->
+semantic validation
+    ->
+delivery
+
+
+com:
+
+PacketContext
+logging
+analyzer
+synthetic E2E
+SUMO E2E
+robustness
+CAM regression
+DENM regression
+build evidence
+runtime evidence
+
+
+Interoperabilidade externa permanece uma dimensão separada.
+
+30. Gate para início da implementação
+
+Nenhum código SPATEM deverá ser criado antes de concluir:
+
+9.0  baseline verified
+9.1  installed SPATEM API audited
+9.2  origin identity / station role decided
+
+
+A primeira implementação efetiva deverá começar somente depois desses três gates estarem demonstrados.
+
+31. Decisão proposta (estado inicial; ver rebaseline na secção 32)
+
+A Etapa 9 — SPATEM — é proposta como o próximo ciclo técnico após o P21.
+
+O rebaseline pós-P21 não deverá ser reescrito retroativamente.
+
+A aprovação da presente especificação deverá resultar numa nova atualização documental:
+
+P21 = CLOSED / VALIDATED
+NEXT = SPATEM
+ETAPA 9 = APPROVED
+
+
+Essa atualização deverá ser feita em commit documental próprio antes da primeira alteração funcional de código.
+
+32. Rebaseline técnico e evidência — 2026-10-13
+
+Esta secção atualiza o estado operacional do plano original. A decisão
+de arranque descrita na secção 31 é histórica; não representa o estado
+atual da Etapa 9.
+
+Estado do plano: ACTIVE / REVALIDATED
+Branch: main
+HEAD imediatamente antes deste commit: cbe9145
+Baseline pós-P21 preservada: 420db8a
+Próximo gate: SPATEM-19 / Fase 9.14 — Robustness
+
+Estado da matriz:
+- SPATEM-01 a SPATEM-18: PASS, de acordo com o rebaseline técnico anterior.
+- SPATEM-19: ACTIVE; a matriz de robustez ainda não está concluída.
+- SPATEM-20 e SPATEM-21: PENDING; as regressões CAM/DENM continuam gates separados.
+- SPATEM-22: PASS.
+- SPATEM-23: PASS.
+- SPATEM-24: PENDING; não declarar a Etapa 9 fechada.
+
+Validação do build:
+- Comando: cmake --build cmake-cache --target ns3.47-v2x_sumo-default -j2
+- Código de saída: 0
+- Registo: scratch/test/Green/SPATEM/RSU/evidence/2026-10-13/build.log
+
+Testes estruturais:
+- Comando: python3 scratch/test/run_tests.py --suite all
+- Código de saída: 0
+- Registo: scratch/test/Green/SPATEM/RSU/evidence/2026-10-13/structural_tests.log
+
+E2E local SUMO TLS → RSU SPATEM TX:
+- SUMO TLS ID: 0; cenário sem veículos; 12 links controlados.
+- Registos TLS enviados pela bridge: 360.
+- Snapshots: 30; contagens de movimentos observadas: 12.
+- Eventos TX: SPATEM_GENERATE_OK=30, SPATEM_ENCODE_OK=30, BTP_TX_OK=30, GEONET_TX_OK=30, ACCESS_TX_OK=30, SEND_OK=30, TX_COMPLETE=30.
+- Logs: scratch/test/Green/SPATEM/RSU/evidence/2026-10-13/
+- Relatório detalhado: [[E2E_RSU_SUMO_TLS_2026-10-13]].
+
+Limites da evidência:
+Este resultado comprova a transmissão local no cenário ensaiado. Não comprova
+receção RX E2E por outra estação, interoperabilidade externa nem PKI de produção.
+As coordenadas fornecidas neste ensaio são placeholders de teste, não uma
+validação geográfica do cruzamento do mapa RiLSA.
+
+Âmbito do commit:
+A alteração atual agrega identidade/estação RSU, runtime de transmissão,
+integração SUMO TLS e testes associados. Não deve ser identificada como
+um commit exclusivo da Fase 9.2. A mensagem de commit proposta é:
+feat(spatem): integrate SUMO TLS RSU transmission path

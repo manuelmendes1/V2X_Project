@@ -3,7 +3,7 @@
 ## Metadados
 - Projeto: V2X_Project
 - Repositorio: ns-3.47
-- Branch de referencia: feature/spatem-etapa9-restart-2026-10-09
+- Branch de referencia: main
 - Estado: arquitetura de referencia
 - Ambito: integracao V2X, Vanetza, SUMO e testes CAM, DENM e SPATEM
 
@@ -19,7 +19,9 @@
 - `scratch/test/Red/CAM/`: testes negativos CAM.
 - `scratch/test/Red/DENM/`: testes negativos DENM.
 - `scratch/test/Red/SPATEM/`: testes negativos SPATEM.
-- `scratch/docs/SPATEM/`: plano, auditorias e evidencias SPATEM.
+- `scratch/vanetza_integration/docs/STAPEM.txt`: plano de referência SPATEM.
+- `scratch/test/run_tests.py`: executor oficial das suites unittest.
+- `scratch/test/Green/SPATEM/RSU/evidence/`: logs e evidência runtime.
 
 ## Principios arquiteturais
 

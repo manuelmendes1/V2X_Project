@@ -1,7 +1,22 @@
 #include "spatem_emitter_endpoint.h"
 
+#include <cmath>
+#include "vanetza_integration/context/station_registry/station_endpoint_registry.h"
+
 namespace ns3
 {
+
+SpatemEmitterEndpoint::~SpatemEmitterEndpoint()
+{
+    if (m_stationState.networkInitialized)
+    {
+        StationEndpointRegistry::Instance().UnregisterItsStation(
+            m_stationState.ipv4Address,
+            m_stationState.identity.logicalId,
+            m_stationState.identity.stationId);
+    }
+}
+
 
 std::unique_ptr<SpatemEmitterEndpoint>
 SpatemEmitterEndpoint::Create(
@@ -56,6 +71,16 @@ SpatemEmitterEndpoint::Validate(
     }
 
     if (config.intersectionId == 0)
+    {
+        return false;
+    }
+
+    if (!std::isfinite(config.latitudeDeg) ||
+        config.latitudeDeg < -90.0 ||
+        config.latitudeDeg > 90.0 ||
+        !std::isfinite(config.longitudeDeg) ||
+        config.longitudeDeg < -180.0 ||
+        config.longitudeDeg > 180.0)
     {
         return false;
     }
@@ -122,10 +147,28 @@ SpatemEmitterEndpoint::IsVehicle() const
     return false;
 }
 
+ItsStationState&
+SpatemEmitterEndpoint::StationState()
+{
+    return m_stationState;
+}
+
 const ItsStationState&
 SpatemEmitterEndpoint::StationState() const
 {
     return m_stationState;
+}
+
+double
+SpatemEmitterEndpoint::LatitudeDeg() const
+{
+    return m_config.latitudeDeg;
+}
+
+double
+SpatemEmitterEndpoint::LongitudeDeg() const
+{
+    return m_config.longitudeDeg;
 }
 
 bool
@@ -164,6 +207,17 @@ SpatemEmitterEndpoint::InitializeNetwork(
 
     m_stationState.linkMac =
         resources.linkMac;
+
+    NS_ABORT_MSG_IF(
+        !StationEndpointRegistry::Instance().RegisterItsStation(
+            m_stationState.identity.logicalId,
+            m_stationState.node->GetId(),
+            m_stationState.identity.stationId,
+            m_stationState.identity.stationType,
+            m_stationState.ipv4Address,
+            m_stationState.linkMac),
+        "[STATION_REGISTRY] Failed to register ITS station IPv4 endpoint: "
+            << m_stationState.identity.logicalId);
 
     m_stationState.networkInitialized = true;
 

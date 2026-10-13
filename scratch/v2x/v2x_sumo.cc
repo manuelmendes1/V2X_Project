@@ -1,3 +1,4 @@
+#include <limits>
 
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
@@ -27,6 +28,12 @@ int main(int argc, char* argv[]) {
     double simDurationSec = 60.0;
 
     bool enableDenm = false;
+    bool enableSpatem = false;
+    uint32_t spatemStationId = 0;
+    uint32_t spatemIntersectionId = 0;
+    std::string spatemTrafficLightId;
+    double spatemLatitudeDeg = std::numeric_limits<double>::quiet_NaN();
+    double spatemLongitudeDeg = std::numeric_limits<double>::quiet_NaN();
 
     double denmRadiusMeters = 1000.0;
 
@@ -62,7 +69,45 @@ int main(int argc, char* argv[]) {
         "(ISO-8601, por exemplo 2026-09-24T10:01:32)",
         itsStartTime);
 
+    cmd.AddValue(
+        "enableSpatem",
+        "Ativa a inicialização do endpoint de rede RSU SPATEM",
+        enableSpatem);
+
+    cmd.AddValue(
+        "spatemStationId",
+        "stationId exclusivo da RSU SPATEM",
+        spatemStationId);
+
+    cmd.AddValue(
+        "spatemIntersectionId",
+        "ID da interseção SPATEM (1..65535)",
+        spatemIntersectionId);
+
+    cmd.AddValue(
+        "spatemTrafficLightId",
+        "ID explícito do semáforo SUMO associado à RSU",
+        spatemTrafficLightId);
+
+    cmd.AddValue(
+        "spatemLatitudeDeg",
+        "Latitude geodésica da RSU, em graus (-90..90)",
+        spatemLatitudeDeg);
+
+    cmd.AddValue(
+        "spatemLongitudeDeg",
+        "Longitude geodésica da RSU, em graus (-180..180)",
+        spatemLongitudeDeg);
+
     cmd.Parse(argc, argv);
+
+    SimulationController::ConfigureSpatemEmitter(
+        enableSpatem,
+        spatemStationId,
+        spatemIntersectionId,
+        spatemTrafficLightId,
+        spatemLatitudeDeg,
+        spatemLongitudeDeg);
 
     SimulationContext::itsStartTime = itsStartTime;
 

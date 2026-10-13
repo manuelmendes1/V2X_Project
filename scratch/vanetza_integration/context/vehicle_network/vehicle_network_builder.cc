@@ -1,4 +1,6 @@
 #include "vehicle_network_builder.h"
+#include "vanetza_integration/spatem/emitter/spatem_emitter_endpoint.h"
+#include "vanetza_integration/context/station_registry/station_endpoint_registry.h"
 
 #include "vanetza_integration/context/vehicle_state.h"
 #include "vanetza_integration/context/vehicle_registry/vehicle_registry.h"
@@ -36,6 +38,27 @@ VehicleNetworkBuilder::Initialize(
     m_channel = channel;
     m_ipv4 = ipv4;
     m_rxCallback = rxCallback;
+}
+
+bool
+VehicleNetworkBuilder::InitializeSpatemEmitter(
+    SpatemEmitterEndpoint& endpoint)
+{
+    if (m_channel == nullptr)
+    {
+        NS_LOG_UNCOND(
+            "[NET] Cannot initialize SPATEM emitter: Wi-Fi channel is null");
+        return false;
+    }
+
+    // Este método usa m_ipv4 diretamente. Não cria uma cópia do
+    // alocador já avançado pelos endereços atribuídos aos veículos.
+    Callback<void, Ptr<Socket>> noReceiveCallback;
+
+    return endpoint.InitializeNetwork(
+        m_channel,
+        m_ipv4,
+        noReceiveCallback);
 }
 
 // ============================================================================
@@ -147,6 +170,18 @@ VehicleNetworkBuilder::BindLinkMac(
         VehicleRegistry::Instance().RegisterLinkMac(vehicle.linkMac, vehicle);
 
         VehicleRegistry::Instance().RegisterIpv4(vehicle.ipv4Address, vehicle);
+
+        NS_ABORT_MSG_IF(
+            !StationEndpointRegistry::Instance().RegisterVehicle(
+                vehicle.identity.vehId,
+                vehicle.identity.nodeId,
+                vehicle.identity.stationId,
+                vanetza::geonet::StationType::Passenger_Car,
+                vehicle.ipv4Address,
+                vehicle.linkMac,
+                vehicle.linkMacInitialized),
+            "[STATION_REGISTRY] Failed to register vehicle IPv4 endpoint: "
+                << vehicle.identity.vehId);
 
         foundWifi = true;
         break;

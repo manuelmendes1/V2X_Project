@@ -31,9 +31,10 @@ public:
     Ns3DccAdapter(
         Ns3AccessAdapter& access,
         vanetza::ManualRuntime& runtime,
-        std::string vehicleId,
+        std::string endpointId,
         uint32_t nodeId,
-        uint32_t stationId);
+        uint32_t stationId,
+        std::string identityLabel = "veh");
 
     ~Ns3DccAdapter() override;
 
@@ -78,9 +79,9 @@ private:
 
     vanetza::ManualRuntime& m_runtime;
 
-    // Diagnostic identity copied from the authoritative VehicleIdentity.
-    // This is not an alternative identity authority.
-    std::string m_vehicleId;
+    // Diagnostic label and identifier; neither is an identity authority.
+    std::string m_endpointId;
+    std::string m_identityLabel = "veh";
     uint32_t m_nodeId = 0;
     uint32_t m_stationId = 0;
 

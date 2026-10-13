@@ -1,0 +1,726 @@
+Step #0.00 (0ms ?*RT. ?UPS, TraCI: 3ms, vehicles TOT 0 ACT 0 BUF 0)                       Step #3.00 (0ms ?*RT. ?UPS, TraCI: 109ms, vehicles TOT 0 ACT 0 BUF 0)                     
+[14:42:33.475] Starting SUMO bridge...
+ Retrying in 1 seconds
+[14:42:34.489] [SUMO_TLS] ACTIVE tls_id=0 controlled_link_count=12
+[14:42:34.491] [SUMO_TLS_PUBLISH] tls_id=0 link_index=0 phase=0 state=r sim_time=0.000
+[14:42:34.491] SUMO -> NS3 | SUMO_TLS,0,0,r,0,31.000000,31.000000,0,0.000000
+[14:42:34.491] [SUMO_TLS_PUBLISH] tls_id=0 link_index=1 phase=0 state=r sim_time=0.000
+[14:42:34.491] SUMO -> NS3 | SUMO_TLS,0,1,r,0,31.000000,31.000000,0,0.000000
+[14:42:34.491] [SUMO_TLS_PUBLISH] tls_id=0 link_index=2 phase=0 state=r sim_time=0.000
+[14:42:34.491] SUMO -> NS3 | SUMO_TLS,0,2,r,0,31.000000,31.000000,0,0.000000
+[14:42:34.491] [SUMO_TLS_PUBLISH] tls_id=0 link_index=3 phase=0 state=G sim_time=0.000
+[14:42:34.491] SUMO -> NS3 | SUMO_TLS,0,3,G,0,31.000000,31.000000,0,0.000000
+[14:42:34.491] [SUMO_TLS_PUBLISH] tls_id=0 link_index=4 phase=0 state=G sim_time=0.000
+[14:42:34.491] SUMO -> NS3 | SUMO_TLS,0,4,G,0,31.000000,31.000000,0,0.000000
+[14:42:34.491] [SUMO_TLS_PUBLISH] tls_id=0 link_index=5 phase=0 state=g sim_time=0.000
+[14:42:34.491] SUMO -> NS3 | SUMO_TLS,0,5,g,0,31.000000,31.000000,0,0.000000
+[14:42:34.491] [SUMO_TLS_PUBLISH] tls_id=0 link_index=6 phase=0 state=r sim_time=0.000
+[14:42:34.491] SUMO -> NS3 | SUMO_TLS,0,6,r,0,31.000000,31.000000,0,0.000000
+[14:42:34.491] [SUMO_TLS_PUBLISH] tls_id=0 link_index=7 phase=0 state=r sim_time=0.000
+[14:42:34.491] SUMO -> NS3 | SUMO_TLS,0,7,r,0,31.000000,31.000000,0,0.000000
+[14:42:34.491] [SUMO_TLS_PUBLISH] tls_id=0 link_index=8 phase=0 state=r sim_time=0.000
+[14:42:34.491] SUMO -> NS3 | SUMO_TLS,0,8,r,0,31.000000,31.000000,0,0.000000
+[14:42:34.491] [SUMO_TLS_PUBLISH] tls_id=0 link_index=9 phase=0 state=G sim_time=0.000
+[14:42:34.491] SUMO -> NS3 | SUMO_TLS,0,9,G,0,31.000000,31.000000,0,0.000000
+[14:42:34.491] [SUMO_TLS_PUBLISH] tls_id=0 link_index=10 phase=0 state=G sim_time=0.000
+[14:42:34.491] SUMO -> NS3 | SUMO_TLS,0,10,G,0,31.000000,31.000000,0,0.000000
+[14:42:34.491] [SUMO_TLS_PUBLISH] tls_id=0 link_index=11 phase=0 state=g sim_time=0.000
+[14:42:34.491] SUMO -> NS3 | SUMO_TLS,0,11,g,0,31.000000,31.000000,0,0.000000
+[14:42:34.596] [SUMO_TLS_PUBLISH] tls_id=0 link_index=0 phase=0 state=r sim_time=0.100
+[14:42:34.596] SUMO -> NS3 | SUMO_TLS,0,0,r,0,31.000000,31.000000,0,0.100000
+[14:42:34.596] [SUMO_TLS_PUBLISH] tls_id=0 link_index=1 phase=0 state=r sim_time=0.100
+[14:42:34.596] SUMO -> NS3 | SUMO_TLS,0,1,r,0,31.000000,31.000000,0,0.100000
+[14:42:34.596] [SUMO_TLS_PUBLISH] tls_id=0 link_index=2 phase=0 state=r sim_time=0.100
+[14:42:34.596] SUMO -> NS3 | SUMO_TLS,0,2,r,0,31.000000,31.000000,0,0.100000
+[14:42:34.596] [SUMO_TLS_PUBLISH] tls_id=0 link_index=3 phase=0 state=G sim_time=0.100
+[14:42:34.596] SUMO -> NS3 | SUMO_TLS,0,3,G,0,31.000000,31.000000,0,0.100000
+[14:42:34.596] [SUMO_TLS_PUBLISH] tls_id=0 link_index=4 phase=0 state=G sim_time=0.100
+[14:42:34.596] SUMO -> NS3 | SUMO_TLS,0,4,G,0,31.000000,31.000000,0,0.100000
+[14:42:34.596] [SUMO_TLS_PUBLISH] tls_id=0 link_index=5 phase=0 state=g sim_time=0.100
+[14:42:34.596] SUMO -> NS3 | SUMO_TLS,0,5,g,0,31.000000,31.000000,0,0.100000
+[14:42:34.596] [SUMO_TLS_PUBLISH] tls_id=0 link_index=6 phase=0 state=r sim_time=0.100
+[14:42:34.596] SUMO -> NS3 | SUMO_TLS,0,6,r,0,31.000000,31.000000,0,0.100000
+[14:42:34.596] [SUMO_TLS_PUBLISH] tls_id=0 link_index=7 phase=0 state=r sim_time=0.100
+[14:42:34.596] SUMO -> NS3 | SUMO_TLS,0,7,r,0,31.000000,31.000000,0,0.100000
+[14:42:34.596] [SUMO_TLS_PUBLISH] tls_id=0 link_index=8 phase=0 state=r sim_time=0.100
+[14:42:34.596] SUMO -> NS3 | SUMO_TLS,0,8,r,0,31.000000,31.000000,0,0.100000
+[14:42:34.596] [SUMO_TLS_PUBLISH] tls_id=0 link_index=9 phase=0 state=G sim_time=0.100
+[14:42:34.596] SUMO -> NS3 | SUMO_TLS,0,9,G,0,31.000000,31.000000,0,0.100000
+[14:42:34.596] [SUMO_TLS_PUBLISH] tls_id=0 link_index=10 phase=0 state=G sim_time=0.100
+[14:42:34.596] SUMO -> NS3 | SUMO_TLS,0,10,G,0,31.000000,31.000000,0,0.100000
+[14:42:34.596] [SUMO_TLS_PUBLISH] tls_id=0 link_index=11 phase=0 state=g sim_time=0.100
+[14:42:34.596] SUMO -> NS3 | SUMO_TLS,0,11,g,0,31.000000,31.000000,0,0.100000
+[14:42:34.699] [SUMO_TLS_PUBLISH] tls_id=0 link_index=0 phase=0 state=r sim_time=0.200
+[14:42:34.699] SUMO -> NS3 | SUMO_TLS,0,0,r,0,31.000000,31.000000,0,0.200000
+[14:42:34.699] [SUMO_TLS_PUBLISH] tls_id=0 link_index=1 phase=0 state=r sim_time=0.200
+[14:42:34.699] SUMO -> NS3 | SUMO_TLS,0,1,r,0,31.000000,31.000000,0,0.200000
+[14:42:34.699] [SUMO_TLS_PUBLISH] tls_id=0 link_index=2 phase=0 state=r sim_time=0.200
+[14:42:34.699] SUMO -> NS3 | SUMO_TLS,0,2,r,0,31.000000,31.000000,0,0.200000
+[14:42:34.699] [SUMO_TLS_PUBLISH] tls_id=0 link_index=3 phase=0 state=G sim_time=0.200
+[14:42:34.699] SUMO -> NS3 | SUMO_TLS,0,3,G,0,31.000000,31.000000,0,0.200000
+[14:42:34.699] [SUMO_TLS_PUBLISH] tls_id=0 link_index=4 phase=0 state=G sim_time=0.200
+[14:42:34.699] SUMO -> NS3 | SUMO_TLS,0,4,G,0,31.000000,31.000000,0,0.200000
+[14:42:34.699] [SUMO_TLS_PUBLISH] tls_id=0 link_index=5 phase=0 state=g sim_time=0.200
+[14:42:34.699] SUMO -> NS3 | SUMO_TLS,0,5,g,0,31.000000,31.000000,0,0.200000
+[14:42:34.699] [SUMO_TLS_PUBLISH] tls_id=0 link_index=6 phase=0 state=r sim_time=0.200
+[14:42:34.699] SUMO -> NS3 | SUMO_TLS,0,6,r,0,31.000000,31.000000,0,0.200000
+[14:42:34.699] [SUMO_TLS_PUBLISH] tls_id=0 link_index=7 phase=0 state=r sim_time=0.200
+[14:42:34.699] SUMO -> NS3 | SUMO_TLS,0,7,r,0,31.000000,31.000000,0,0.200000
+[14:42:34.699] [SUMO_TLS_PUBLISH] tls_id=0 link_index=8 phase=0 state=r sim_time=0.200
+[14:42:34.699] SUMO -> NS3 | SUMO_TLS,0,8,r,0,31.000000,31.000000,0,0.200000
+[14:42:34.699] [SUMO_TLS_PUBLISH] tls_id=0 link_index=9 phase=0 state=G sim_time=0.200
+[14:42:34.699] SUMO -> NS3 | SUMO_TLS,0,9,G,0,31.000000,31.000000,0,0.200000
+[14:42:34.699] [SUMO_TLS_PUBLISH] tls_id=0 link_index=10 phase=0 state=G sim_time=0.200
+[14:42:34.699] SUMO -> NS3 | SUMO_TLS,0,10,G,0,31.000000,31.000000,0,0.200000
+[14:42:34.699] [SUMO_TLS_PUBLISH] tls_id=0 link_index=11 phase=0 state=g sim_time=0.200
+[14:42:34.699] SUMO -> NS3 | SUMO_TLS,0,11,g,0,31.000000,31.000000,0,0.200000
+[14:42:34.800] [SUMO_TLS_PUBLISH] tls_id=0 link_index=0 phase=0 state=r sim_time=0.300
+[14:42:34.800] SUMO -> NS3 | SUMO_TLS,0,0,r,0,31.000000,31.000000,0,0.300000
+[14:42:34.800] [SUMO_TLS_PUBLISH] tls_id=0 link_index=1 phase=0 state=r sim_time=0.300
+[14:42:34.800] SUMO -> NS3 | SUMO_TLS,0,1,r,0,31.000000,31.000000,0,0.300000
+[14:42:34.800] [SUMO_TLS_PUBLISH] tls_id=0 link_index=2 phase=0 state=r sim_time=0.300
+[14:42:34.800] SUMO -> NS3 | SUMO_TLS,0,2,r,0,31.000000,31.000000,0,0.300000
+[14:42:34.800] [SUMO_TLS_PUBLISH] tls_id=0 link_index=3 phase=0 state=G sim_time=0.300
+[14:42:34.800] SUMO -> NS3 | SUMO_TLS,0,3,G,0,31.000000,31.000000,0,0.300000
+[14:42:34.800] [SUMO_TLS_PUBLISH] tls_id=0 link_index=4 phase=0 state=G sim_time=0.300
+[14:42:34.800] SUMO -> NS3 | SUMO_TLS,0,4,G,0,31.000000,31.000000,0,0.300000
+[14:42:34.800] [SUMO_TLS_PUBLISH] tls_id=0 link_index=5 phase=0 state=g sim_time=0.300
+[14:42:34.800] SUMO -> NS3 | SUMO_TLS,0,5,g,0,31.000000,31.000000,0,0.300000
+[14:42:34.800] [SUMO_TLS_PUBLISH] tls_id=0 link_index=6 phase=0 state=r sim_time=0.300
+[14:42:34.800] SUMO -> NS3 | SUMO_TLS,0,6,r,0,31.000000,31.000000,0,0.300000
+[14:42:34.800] [SUMO_TLS_PUBLISH] tls_id=0 link_index=7 phase=0 state=r sim_time=0.300
+[14:42:34.800] SUMO -> NS3 | SUMO_TLS,0,7,r,0,31.000000,31.000000,0,0.300000
+[14:42:34.800] [SUMO_TLS_PUBLISH] tls_id=0 link_index=8 phase=0 state=r sim_time=0.300
+[14:42:34.800] SUMO -> NS3 | SUMO_TLS,0,8,r,0,31.000000,31.000000,0,0.300000
+[14:42:34.800] [SUMO_TLS_PUBLISH] tls_id=0 link_index=9 phase=0 state=G sim_time=0.300
+[14:42:34.800] SUMO -> NS3 | SUMO_TLS,0,9,G,0,31.000000,31.000000,0,0.300000
+[14:42:34.800] [SUMO_TLS_PUBLISH] tls_id=0 link_index=10 phase=0 state=G sim_time=0.300
+[14:42:34.800] SUMO -> NS3 | SUMO_TLS,0,10,G,0,31.000000,31.000000,0,0.300000
+[14:42:34.800] [SUMO_TLS_PUBLISH] tls_id=0 link_index=11 phase=0 state=g sim_time=0.300
+[14:42:34.800] SUMO -> NS3 | SUMO_TLS,0,11,g,0,31.000000,31.000000,0,0.300000
+[14:42:34.901] [SUMO_TLS_PUBLISH] tls_id=0 link_index=0 phase=0 state=r sim_time=0.400
+[14:42:34.901] SUMO -> NS3 | SUMO_TLS,0,0,r,0,31.000000,31.000000,0,0.400000
+[14:42:34.901] [SUMO_TLS_PUBLISH] tls_id=0 link_index=1 phase=0 state=r sim_time=0.400
+[14:42:34.901] SUMO -> NS3 | SUMO_TLS,0,1,r,0,31.000000,31.000000,0,0.400000
+[14:42:34.901] [SUMO_TLS_PUBLISH] tls_id=0 link_index=2 phase=0 state=r sim_time=0.400
+[14:42:34.901] SUMO -> NS3 | SUMO_TLS,0,2,r,0,31.000000,31.000000,0,0.400000
+[14:42:34.901] [SUMO_TLS_PUBLISH] tls_id=0 link_index=3 phase=0 state=G sim_time=0.400
+[14:42:34.901] SUMO -> NS3 | SUMO_TLS,0,3,G,0,31.000000,31.000000,0,0.400000
+[14:42:34.901] [SUMO_TLS_PUBLISH] tls_id=0 link_index=4 phase=0 state=G sim_time=0.400
+[14:42:34.901] SUMO -> NS3 | SUMO_TLS,0,4,G,0,31.000000,31.000000,0,0.400000
+[14:42:34.901] [SUMO_TLS_PUBLISH] tls_id=0 link_index=5 phase=0 state=g sim_time=0.400
+[14:42:34.901] SUMO -> NS3 | SUMO_TLS,0,5,g,0,31.000000,31.000000,0,0.400000
+[14:42:34.901] [SUMO_TLS_PUBLISH] tls_id=0 link_index=6 phase=0 state=r sim_time=0.400
+[14:42:34.901] SUMO -> NS3 | SUMO_TLS,0,6,r,0,31.000000,31.000000,0,0.400000
+[14:42:34.901] [SUMO_TLS_PUBLISH] tls_id=0 link_index=7 phase=0 state=r sim_time=0.400
+[14:42:34.901] SUMO -> NS3 | SUMO_TLS,0,7,r,0,31.000000,31.000000,0,0.400000
+[14:42:34.901] [SUMO_TLS_PUBLISH] tls_id=0 link_index=8 phase=0 state=r sim_time=0.400
+[14:42:34.901] SUMO -> NS3 | SUMO_TLS,0,8,r,0,31.000000,31.000000,0,0.400000
+[14:42:34.901] [SUMO_TLS_PUBLISH] tls_id=0 link_index=9 phase=0 state=G sim_time=0.400
+[14:42:34.901] SUMO -> NS3 | SUMO_TLS,0,9,G,0,31.000000,31.000000,0,0.400000
+[14:42:34.901] [SUMO_TLS_PUBLISH] tls_id=0 link_index=10 phase=0 state=G sim_time=0.400
+[14:42:34.901] SUMO -> NS3 | SUMO_TLS,0,10,G,0,31.000000,31.000000,0,0.400000
+[14:42:34.901] [SUMO_TLS_PUBLISH] tls_id=0 link_index=11 phase=0 state=g sim_time=0.400
+[14:42:34.901] SUMO -> NS3 | SUMO_TLS,0,11,g,0,31.000000,31.000000,0,0.400000
+[14:42:35.001] [SUMO_TLS_PUBLISH] tls_id=0 link_index=0 phase=0 state=r sim_time=0.500
+[14:42:35.001] SUMO -> NS3 | SUMO_TLS,0,0,r,0,31.000000,31.000000,0,0.500000
+[14:42:35.001] [SUMO_TLS_PUBLISH] tls_id=0 link_index=1 phase=0 state=r sim_time=0.500
+[14:42:35.001] SUMO -> NS3 | SUMO_TLS,0,1,r,0,31.000000,31.000000,0,0.500000
+[14:42:35.001] [SUMO_TLS_PUBLISH] tls_id=0 link_index=2 phase=0 state=r sim_time=0.500
+[14:42:35.001] SUMO -> NS3 | SUMO_TLS,0,2,r,0,31.000000,31.000000,0,0.500000
+[14:42:35.001] [SUMO_TLS_PUBLISH] tls_id=0 link_index=3 phase=0 state=G sim_time=0.500
+[14:42:35.001] SUMO -> NS3 | SUMO_TLS,0,3,G,0,31.000000,31.000000,0,0.500000
+[14:42:35.001] [SUMO_TLS_PUBLISH] tls_id=0 link_index=4 phase=0 state=G sim_time=0.500
+[14:42:35.001] SUMO -> NS3 | SUMO_TLS,0,4,G,0,31.000000,31.000000,0,0.500000
+[14:42:35.001] [SUMO_TLS_PUBLISH] tls_id=0 link_index=5 phase=0 state=g sim_time=0.500
+[14:42:35.001] SUMO -> NS3 | SUMO_TLS,0,5,g,0,31.000000,31.000000,0,0.500000
+[14:42:35.001] [SUMO_TLS_PUBLISH] tls_id=0 link_index=6 phase=0 state=r sim_time=0.500
+[14:42:35.001] SUMO -> NS3 | SUMO_TLS,0,6,r,0,31.000000,31.000000,0,0.500000
+[14:42:35.001] [SUMO_TLS_PUBLISH] tls_id=0 link_index=7 phase=0 state=r sim_time=0.500
+[14:42:35.001] SUMO -> NS3 | SUMO_TLS,0,7,r,0,31.000000,31.000000,0,0.500000
+[14:42:35.001] [SUMO_TLS_PUBLISH] tls_id=0 link_index=8 phase=0 state=r sim_time=0.500
+[14:42:35.001] SUMO -> NS3 | SUMO_TLS,0,8,r,0,31.000000,31.000000,0,0.500000
+[14:42:35.001] [SUMO_TLS_PUBLISH] tls_id=0 link_index=9 phase=0 state=G sim_time=0.500
+[14:42:35.001] SUMO -> NS3 | SUMO_TLS,0,9,G,0,31.000000,31.000000,0,0.500000
+[14:42:35.001] [SUMO_TLS_PUBLISH] tls_id=0 link_index=10 phase=0 state=G sim_time=0.500
+[14:42:35.001] SUMO -> NS3 | SUMO_TLS,0,10,G,0,31.000000,31.000000,0,0.500000
+[14:42:35.001] [SUMO_TLS_PUBLISH] tls_id=0 link_index=11 phase=0 state=g sim_time=0.500
+[14:42:35.001] SUMO -> NS3 | SUMO_TLS,0,11,g,0,31.000000,31.000000,0,0.500000
+[14:42:35.105] [SUMO_TLS_PUBLISH] tls_id=0 link_index=0 phase=0 state=r sim_time=0.600
+[14:42:35.105] SUMO -> NS3 | SUMO_TLS,0,0,r,0,31.000000,31.000000,0,0.600000
+[14:42:35.105] [SUMO_TLS_PUBLISH] tls_id=0 link_index=1 phase=0 state=r sim_time=0.600
+[14:42:35.105] SUMO -> NS3 | SUMO_TLS,0,1,r,0,31.000000,31.000000,0,0.600000
+[14:42:35.105] [SUMO_TLS_PUBLISH] tls_id=0 link_index=2 phase=0 state=r sim_time=0.600
+[14:42:35.105] SUMO -> NS3 | SUMO_TLS,0,2,r,0,31.000000,31.000000,0,0.600000
+[14:42:35.105] [SUMO_TLS_PUBLISH] tls_id=0 link_index=3 phase=0 state=G sim_time=0.600
+[14:42:35.105] SUMO -> NS3 | SUMO_TLS,0,3,G,0,31.000000,31.000000,0,0.600000
+[14:42:35.105] [SUMO_TLS_PUBLISH] tls_id=0 link_index=4 phase=0 state=G sim_time=0.600
+[14:42:35.105] SUMO -> NS3 | SUMO_TLS,0,4,G,0,31.000000,31.000000,0,0.600000
+[14:42:35.105] [SUMO_TLS_PUBLISH] tls_id=0 link_index=5 phase=0 state=g sim_time=0.600
+[14:42:35.105] SUMO -> NS3 | SUMO_TLS,0,5,g,0,31.000000,31.000000,0,0.600000
+[14:42:35.105] [SUMO_TLS_PUBLISH] tls_id=0 link_index=6 phase=0 state=r sim_time=0.600
+[14:42:35.105] SUMO -> NS3 | SUMO_TLS,0,6,r,0,31.000000,31.000000,0,0.600000
+[14:42:35.105] [SUMO_TLS_PUBLISH] tls_id=0 link_index=7 phase=0 state=r sim_time=0.600
+[14:42:35.105] SUMO -> NS3 | SUMO_TLS,0,7,r,0,31.000000,31.000000,0,0.600000
+[14:42:35.105] [SUMO_TLS_PUBLISH] tls_id=0 link_index=8 phase=0 state=r sim_time=0.600
+[14:42:35.105] SUMO -> NS3 | SUMO_TLS,0,8,r,0,31.000000,31.000000,0,0.600000
+[14:42:35.105] [SUMO_TLS_PUBLISH] tls_id=0 link_index=9 phase=0 state=G sim_time=0.600
+[14:42:35.105] SUMO -> NS3 | SUMO_TLS,0,9,G,0,31.000000,31.000000,0,0.600000
+[14:42:35.105] [SUMO_TLS_PUBLISH] tls_id=0 link_index=10 phase=0 state=G sim_time=0.600
+[14:42:35.105] SUMO -> NS3 | SUMO_TLS,0,10,G,0,31.000000,31.000000,0,0.600000
+[14:42:35.105] [SUMO_TLS_PUBLISH] tls_id=0 link_index=11 phase=0 state=g sim_time=0.600
+[14:42:35.105] SUMO -> NS3 | SUMO_TLS,0,11,g,0,31.000000,31.000000,0,0.600000
+[14:42:35.206] [SUMO_TLS_PUBLISH] tls_id=0 link_index=0 phase=0 state=r sim_time=0.700
+[14:42:35.206] SUMO -> NS3 | SUMO_TLS,0,0,r,0,31.000000,31.000000,0,0.700000
+[14:42:35.206] [SUMO_TLS_PUBLISH] tls_id=0 link_index=1 phase=0 state=r sim_time=0.700
+[14:42:35.206] SUMO -> NS3 | SUMO_TLS,0,1,r,0,31.000000,31.000000,0,0.700000
+[14:42:35.206] [SUMO_TLS_PUBLISH] tls_id=0 link_index=2 phase=0 state=r sim_time=0.700
+[14:42:35.206] SUMO -> NS3 | SUMO_TLS,0,2,r,0,31.000000,31.000000,0,0.700000
+[14:42:35.206] [SUMO_TLS_PUBLISH] tls_id=0 link_index=3 phase=0 state=G sim_time=0.700
+[14:42:35.206] SUMO -> NS3 | SUMO_TLS,0,3,G,0,31.000000,31.000000,0,0.700000
+[14:42:35.206] [SUMO_TLS_PUBLISH] tls_id=0 link_index=4 phase=0 state=G sim_time=0.700
+[14:42:35.206] SUMO -> NS3 | SUMO_TLS,0,4,G,0,31.000000,31.000000,0,0.700000
+[14:42:35.206] [SUMO_TLS_PUBLISH] tls_id=0 link_index=5 phase=0 state=g sim_time=0.700
+[14:42:35.206] SUMO -> NS3 | SUMO_TLS,0,5,g,0,31.000000,31.000000,0,0.700000
+[14:42:35.206] [SUMO_TLS_PUBLISH] tls_id=0 link_index=6 phase=0 state=r sim_time=0.700
+[14:42:35.206] SUMO -> NS3 | SUMO_TLS,0,6,r,0,31.000000,31.000000,0,0.700000
+[14:42:35.206] [SUMO_TLS_PUBLISH] tls_id=0 link_index=7 phase=0 state=r sim_time=0.700
+[14:42:35.206] SUMO -> NS3 | SUMO_TLS,0,7,r,0,31.000000,31.000000,0,0.700000
+[14:42:35.206] [SUMO_TLS_PUBLISH] tls_id=0 link_index=8 phase=0 state=r sim_time=0.700
+[14:42:35.206] SUMO -> NS3 | SUMO_TLS,0,8,r,0,31.000000,31.000000,0,0.700000
+[14:42:35.206] [SUMO_TLS_PUBLISH] tls_id=0 link_index=9 phase=0 state=G sim_time=0.700
+[14:42:35.206] SUMO -> NS3 | SUMO_TLS,0,9,G,0,31.000000,31.000000,0,0.700000
+[14:42:35.206] [SUMO_TLS_PUBLISH] tls_id=0 link_index=10 phase=0 state=G sim_time=0.700
+[14:42:35.206] SUMO -> NS3 | SUMO_TLS,0,10,G,0,31.000000,31.000000,0,0.700000
+[14:42:35.206] [SUMO_TLS_PUBLISH] tls_id=0 link_index=11 phase=0 state=g sim_time=0.700
+[14:42:35.206] SUMO -> NS3 | SUMO_TLS,0,11,g,0,31.000000,31.000000,0,0.700000
+[14:42:35.323] [SUMO_TLS_PUBLISH] tls_id=0 link_index=0 phase=0 state=r sim_time=0.800
+[14:42:35.323] SUMO -> NS3 | SUMO_TLS,0,0,r,0,31.000000,31.000000,0,0.800000
+[14:42:35.323] [SUMO_TLS_PUBLISH] tls_id=0 link_index=1 phase=0 state=r sim_time=0.800
+[14:42:35.323] SUMO -> NS3 | SUMO_TLS,0,1,r,0,31.000000,31.000000,0,0.800000
+[14:42:35.323] [SUMO_TLS_PUBLISH] tls_id=0 link_index=2 phase=0 state=r sim_time=0.800
+[14:42:35.323] SUMO -> NS3 | SUMO_TLS,0,2,r,0,31.000000,31.000000,0,0.800000
+[14:42:35.323] [SUMO_TLS_PUBLISH] tls_id=0 link_index=3 phase=0 state=G sim_time=0.800
+[14:42:35.323] SUMO -> NS3 | SUMO_TLS,0,3,G,0,31.000000,31.000000,0,0.800000
+[14:42:35.324] [SUMO_TLS_PUBLISH] tls_id=0 link_index=4 phase=0 state=G sim_time=0.800
+[14:42:35.324] SUMO -> NS3 | SUMO_TLS,0,4,G,0,31.000000,31.000000,0,0.800000
+[14:42:35.324] [SUMO_TLS_PUBLISH] tls_id=0 link_index=5 phase=0 state=g sim_time=0.800
+[14:42:35.324] SUMO -> NS3 | SUMO_TLS,0,5,g,0,31.000000,31.000000,0,0.800000
+[14:42:35.324] [SUMO_TLS_PUBLISH] tls_id=0 link_index=6 phase=0 state=r sim_time=0.800
+[14:42:35.324] SUMO -> NS3 | SUMO_TLS,0,6,r,0,31.000000,31.000000,0,0.800000
+[14:42:35.324] [SUMO_TLS_PUBLISH] tls_id=0 link_index=7 phase=0 state=r sim_time=0.800
+[14:42:35.324] SUMO -> NS3 | SUMO_TLS,0,7,r,0,31.000000,31.000000,0,0.800000
+[14:42:35.324] [SUMO_TLS_PUBLISH] tls_id=0 link_index=8 phase=0 state=r sim_time=0.800
+[14:42:35.324] SUMO -> NS3 | SUMO_TLS,0,8,r,0,31.000000,31.000000,0,0.800000
+[14:42:35.324] [SUMO_TLS_PUBLISH] tls_id=0 link_index=9 phase=0 state=G sim_time=0.800
+[14:42:35.324] SUMO -> NS3 | SUMO_TLS,0,9,G,0,31.000000,31.000000,0,0.800000
+[14:42:35.324] [SUMO_TLS_PUBLISH] tls_id=0 link_index=10 phase=0 state=G sim_time=0.800
+[14:42:35.324] SUMO -> NS3 | SUMO_TLS,0,10,G,0,31.000000,31.000000,0,0.800000
+[14:42:35.324] [SUMO_TLS_PUBLISH] tls_id=0 link_index=11 phase=0 state=g sim_time=0.800
+[14:42:35.324] SUMO -> NS3 | SUMO_TLS,0,11,g,0,31.000000,31.000000,0,0.800000
+[14:42:35.427] [SUMO_TLS_PUBLISH] tls_id=0 link_index=0 phase=0 state=r sim_time=0.900
+[14:42:35.427] SUMO -> NS3 | SUMO_TLS,0,0,r,0,31.000000,31.000000,0,0.900000
+[14:42:35.427] [SUMO_TLS_PUBLISH] tls_id=0 link_index=1 phase=0 state=r sim_time=0.900
+[14:42:35.427] SUMO -> NS3 | SUMO_TLS,0,1,r,0,31.000000,31.000000,0,0.900000
+[14:42:35.427] [SUMO_TLS_PUBLISH] tls_id=0 link_index=2 phase=0 state=r sim_time=0.900
+[14:42:35.427] SUMO -> NS3 | SUMO_TLS,0,2,r,0,31.000000,31.000000,0,0.900000
+[14:42:35.427] [SUMO_TLS_PUBLISH] tls_id=0 link_index=3 phase=0 state=G sim_time=0.900
+[14:42:35.427] SUMO -> NS3 | SUMO_TLS,0,3,G,0,31.000000,31.000000,0,0.900000
+[14:42:35.427] [SUMO_TLS_PUBLISH] tls_id=0 link_index=4 phase=0 state=G sim_time=0.900
+[14:42:35.427] SUMO -> NS3 | SUMO_TLS,0,4,G,0,31.000000,31.000000,0,0.900000
+[14:42:35.427] [SUMO_TLS_PUBLISH] tls_id=0 link_index=5 phase=0 state=g sim_time=0.900
+[14:42:35.427] SUMO -> NS3 | SUMO_TLS,0,5,g,0,31.000000,31.000000,0,0.900000
+[14:42:35.427] [SUMO_TLS_PUBLISH] tls_id=0 link_index=6 phase=0 state=r sim_time=0.900
+[14:42:35.427] SUMO -> NS3 | SUMO_TLS,0,6,r,0,31.000000,31.000000,0,0.900000
+[14:42:35.427] [SUMO_TLS_PUBLISH] tls_id=0 link_index=7 phase=0 state=r sim_time=0.900
+[14:42:35.427] SUMO -> NS3 | SUMO_TLS,0,7,r,0,31.000000,31.000000,0,0.900000
+[14:42:35.427] [SUMO_TLS_PUBLISH] tls_id=0 link_index=8 phase=0 state=r sim_time=0.900
+[14:42:35.427] SUMO -> NS3 | SUMO_TLS,0,8,r,0,31.000000,31.000000,0,0.900000
+[14:42:35.427] [SUMO_TLS_PUBLISH] tls_id=0 link_index=9 phase=0 state=G sim_time=0.900
+[14:42:35.427] SUMO -> NS3 | SUMO_TLS,0,9,G,0,31.000000,31.000000,0,0.900000
+[14:42:35.427] [SUMO_TLS_PUBLISH] tls_id=0 link_index=10 phase=0 state=G sim_time=0.900
+[14:42:35.427] SUMO -> NS3 | SUMO_TLS,0,10,G,0,31.000000,31.000000,0,0.900000
+[14:42:35.427] [SUMO_TLS_PUBLISH] tls_id=0 link_index=11 phase=0 state=g sim_time=0.900
+[14:42:35.427] SUMO -> NS3 | SUMO_TLS,0,11,g,0,31.000000,31.000000,0,0.900000
+[14:42:35.531] [SUMO_TLS_PUBLISH] tls_id=0 link_index=0 phase=0 state=r sim_time=1.000
+[14:42:35.531] SUMO -> NS3 | SUMO_TLS,0,0,r,0,31.000000,31.000000,0,1.000000
+[14:42:35.531] [SUMO_TLS_PUBLISH] tls_id=0 link_index=1 phase=0 state=r sim_time=1.000
+[14:42:35.531] SUMO -> NS3 | SUMO_TLS,0,1,r,0,31.000000,31.000000,0,1.000000
+[14:42:35.531] [SUMO_TLS_PUBLISH] tls_id=0 link_index=2 phase=0 state=r sim_time=1.000
+[14:42:35.531] SUMO -> NS3 | SUMO_TLS,0,2,r,0,31.000000,31.000000,0,1.000000
+[14:42:35.531] [SUMO_TLS_PUBLISH] tls_id=0 link_index=3 phase=0 state=G sim_time=1.000
+[14:42:35.531] SUMO -> NS3 | SUMO_TLS,0,3,G,0,31.000000,31.000000,0,1.000000
+[14:42:35.531] [SUMO_TLS_PUBLISH] tls_id=0 link_index=4 phase=0 state=G sim_time=1.000
+[14:42:35.531] SUMO -> NS3 | SUMO_TLS,0,4,G,0,31.000000,31.000000,0,1.000000
+[14:42:35.531] [SUMO_TLS_PUBLISH] tls_id=0 link_index=5 phase=0 state=g sim_time=1.000
+[14:42:35.531] SUMO -> NS3 | SUMO_TLS,0,5,g,0,31.000000,31.000000,0,1.000000
+[14:42:35.531] [SUMO_TLS_PUBLISH] tls_id=0 link_index=6 phase=0 state=r sim_time=1.000
+[14:42:35.531] SUMO -> NS3 | SUMO_TLS,0,6,r,0,31.000000,31.000000,0,1.000000
+[14:42:35.531] [SUMO_TLS_PUBLISH] tls_id=0 link_index=7 phase=0 state=r sim_time=1.000
+[14:42:35.531] SUMO -> NS3 | SUMO_TLS,0,7,r,0,31.000000,31.000000,0,1.000000
+[14:42:35.531] [SUMO_TLS_PUBLISH] tls_id=0 link_index=8 phase=0 state=r sim_time=1.000
+[14:42:35.531] SUMO -> NS3 | SUMO_TLS,0,8,r,0,31.000000,31.000000,0,1.000000
+[14:42:35.531] [SUMO_TLS_PUBLISH] tls_id=0 link_index=9 phase=0 state=G sim_time=1.000
+[14:42:35.531] SUMO -> NS3 | SUMO_TLS,0,9,G,0,31.000000,31.000000,0,1.000000
+[14:42:35.531] [SUMO_TLS_PUBLISH] tls_id=0 link_index=10 phase=0 state=G sim_time=1.000
+[14:42:35.531] SUMO -> NS3 | SUMO_TLS,0,10,G,0,31.000000,31.000000,0,1.000000
+[14:42:35.531] [SUMO_TLS_PUBLISH] tls_id=0 link_index=11 phase=0 state=g sim_time=1.000
+[14:42:35.531] SUMO -> NS3 | SUMO_TLS,0,11,g,0,31.000000,31.000000,0,1.000000
+[14:42:35.640] [SUMO_TLS_PUBLISH] tls_id=0 link_index=0 phase=0 state=r sim_time=1.100
+[14:42:35.640] SUMO -> NS3 | SUMO_TLS,0,0,r,0,31.000000,31.000000,0,1.100000
+[14:42:35.640] [SUMO_TLS_PUBLISH] tls_id=0 link_index=1 phase=0 state=r sim_time=1.100
+[14:42:35.640] SUMO -> NS3 | SUMO_TLS,0,1,r,0,31.000000,31.000000,0,1.100000
+[14:42:35.640] [SUMO_TLS_PUBLISH] tls_id=0 link_index=2 phase=0 state=r sim_time=1.100
+[14:42:35.640] SUMO -> NS3 | SUMO_TLS,0,2,r,0,31.000000,31.000000,0,1.100000
+[14:42:35.640] [SUMO_TLS_PUBLISH] tls_id=0 link_index=3 phase=0 state=G sim_time=1.100
+[14:42:35.640] SUMO -> NS3 | SUMO_TLS,0,3,G,0,31.000000,31.000000,0,1.100000
+[14:42:35.640] [SUMO_TLS_PUBLISH] tls_id=0 link_index=4 phase=0 state=G sim_time=1.100
+[14:42:35.640] SUMO -> NS3 | SUMO_TLS,0,4,G,0,31.000000,31.000000,0,1.100000
+[14:42:35.640] [SUMO_TLS_PUBLISH] tls_id=0 link_index=5 phase=0 state=g sim_time=1.100
+[14:42:35.640] SUMO -> NS3 | SUMO_TLS,0,5,g,0,31.000000,31.000000,0,1.100000
+[14:42:35.640] [SUMO_TLS_PUBLISH] tls_id=0 link_index=6 phase=0 state=r sim_time=1.100
+[14:42:35.640] SUMO -> NS3 | SUMO_TLS,0,6,r,0,31.000000,31.000000,0,1.100000
+[14:42:35.640] [SUMO_TLS_PUBLISH] tls_id=0 link_index=7 phase=0 state=r sim_time=1.100
+[14:42:35.640] SUMO -> NS3 | SUMO_TLS,0,7,r,0,31.000000,31.000000,0,1.100000
+[14:42:35.640] [SUMO_TLS_PUBLISH] tls_id=0 link_index=8 phase=0 state=r sim_time=1.100
+[14:42:35.640] SUMO -> NS3 | SUMO_TLS,0,8,r,0,31.000000,31.000000,0,1.100000
+[14:42:35.640] [SUMO_TLS_PUBLISH] tls_id=0 link_index=9 phase=0 state=G sim_time=1.100
+[14:42:35.640] SUMO -> NS3 | SUMO_TLS,0,9,G,0,31.000000,31.000000,0,1.100000
+[14:42:35.640] [SUMO_TLS_PUBLISH] tls_id=0 link_index=10 phase=0 state=G sim_time=1.100
+[14:42:35.640] SUMO -> NS3 | SUMO_TLS,0,10,G,0,31.000000,31.000000,0,1.100000
+[14:42:35.640] [SUMO_TLS_PUBLISH] tls_id=0 link_index=11 phase=0 state=g sim_time=1.100
+[14:42:35.640] SUMO -> NS3 | SUMO_TLS,0,11,g,0,31.000000,31.000000,0,1.100000
+[14:42:35.743] [SUMO_TLS_PUBLISH] tls_id=0 link_index=0 phase=0 state=r sim_time=1.200
+[14:42:35.743] SUMO -> NS3 | SUMO_TLS,0,0,r,0,31.000000,31.000000,0,1.200000
+[14:42:35.743] [SUMO_TLS_PUBLISH] tls_id=0 link_index=1 phase=0 state=r sim_time=1.200
+[14:42:35.743] SUMO -> NS3 | SUMO_TLS,0,1,r,0,31.000000,31.000000,0,1.200000
+[14:42:35.743] [SUMO_TLS_PUBLISH] tls_id=0 link_index=2 phase=0 state=r sim_time=1.200
+[14:42:35.743] SUMO -> NS3 | SUMO_TLS,0,2,r,0,31.000000,31.000000,0,1.200000
+[14:42:35.743] [SUMO_TLS_PUBLISH] tls_id=0 link_index=3 phase=0 state=G sim_time=1.200
+[14:42:35.743] SUMO -> NS3 | SUMO_TLS,0,3,G,0,31.000000,31.000000,0,1.200000
+[14:42:35.743] [SUMO_TLS_PUBLISH] tls_id=0 link_index=4 phase=0 state=G sim_time=1.200
+[14:42:35.743] SUMO -> NS3 | SUMO_TLS,0,4,G,0,31.000000,31.000000,0,1.200000
+[14:42:35.743] [SUMO_TLS_PUBLISH] tls_id=0 link_index=5 phase=0 state=g sim_time=1.200
+[14:42:35.743] SUMO -> NS3 | SUMO_TLS,0,5,g,0,31.000000,31.000000,0,1.200000
+[14:42:35.743] [SUMO_TLS_PUBLISH] tls_id=0 link_index=6 phase=0 state=r sim_time=1.200
+[14:42:35.743] SUMO -> NS3 | SUMO_TLS,0,6,r,0,31.000000,31.000000,0,1.200000
+[14:42:35.743] [SUMO_TLS_PUBLISH] tls_id=0 link_index=7 phase=0 state=r sim_time=1.200
+[14:42:35.743] SUMO -> NS3 | SUMO_TLS,0,7,r,0,31.000000,31.000000,0,1.200000
+[14:42:35.743] [SUMO_TLS_PUBLISH] tls_id=0 link_index=8 phase=0 state=r sim_time=1.200
+[14:42:35.743] SUMO -> NS3 | SUMO_TLS,0,8,r,0,31.000000,31.000000,0,1.200000
+[14:42:35.743] [SUMO_TLS_PUBLISH] tls_id=0 link_index=9 phase=0 state=G sim_time=1.200
+[14:42:35.743] SUMO -> NS3 | SUMO_TLS,0,9,G,0,31.000000,31.000000,0,1.200000
+[14:42:35.743] [SUMO_TLS_PUBLISH] tls_id=0 link_index=10 phase=0 state=G sim_time=1.200
+[14:42:35.743] SUMO -> NS3 | SUMO_TLS,0,10,G,0,31.000000,31.000000,0,1.200000
+[14:42:35.743] [SUMO_TLS_PUBLISH] tls_id=0 link_index=11 phase=0 state=g sim_time=1.200
+[14:42:35.743] SUMO -> NS3 | SUMO_TLS,0,11,g,0,31.000000,31.000000,0,1.200000
+[14:42:35.845] [SUMO_TLS_PUBLISH] tls_id=0 link_index=0 phase=0 state=r sim_time=1.300
+[14:42:35.845] SUMO -> NS3 | SUMO_TLS,0,0,r,0,31.000000,31.000000,0,1.300000
+[14:42:35.845] [SUMO_TLS_PUBLISH] tls_id=0 link_index=1 phase=0 state=r sim_time=1.300
+[14:42:35.845] SUMO -> NS3 | SUMO_TLS,0,1,r,0,31.000000,31.000000,0,1.300000
+[14:42:35.845] [SUMO_TLS_PUBLISH] tls_id=0 link_index=2 phase=0 state=r sim_time=1.300
+[14:42:35.845] SUMO -> NS3 | SUMO_TLS,0,2,r,0,31.000000,31.000000,0,1.300000
+[14:42:35.845] [SUMO_TLS_PUBLISH] tls_id=0 link_index=3 phase=0 state=G sim_time=1.300
+[14:42:35.845] SUMO -> NS3 | SUMO_TLS,0,3,G,0,31.000000,31.000000,0,1.300000
+[14:42:35.845] [SUMO_TLS_PUBLISH] tls_id=0 link_index=4 phase=0 state=G sim_time=1.300
+[14:42:35.845] SUMO -> NS3 | SUMO_TLS,0,4,G,0,31.000000,31.000000,0,1.300000
+[14:42:35.845] [SUMO_TLS_PUBLISH] tls_id=0 link_index=5 phase=0 state=g sim_time=1.300
+[14:42:35.845] SUMO -> NS3 | SUMO_TLS,0,5,g,0,31.000000,31.000000,0,1.300000
+[14:42:35.845] [SUMO_TLS_PUBLISH] tls_id=0 link_index=6 phase=0 state=r sim_time=1.300
+[14:42:35.845] SUMO -> NS3 | SUMO_TLS,0,6,r,0,31.000000,31.000000,0,1.300000
+[14:42:35.845] [SUMO_TLS_PUBLISH] tls_id=0 link_index=7 phase=0 state=r sim_time=1.300
+[14:42:35.845] SUMO -> NS3 | SUMO_TLS,0,7,r,0,31.000000,31.000000,0,1.300000
+[14:42:35.845] [SUMO_TLS_PUBLISH] tls_id=0 link_index=8 phase=0 state=r sim_time=1.300
+[14:42:35.845] SUMO -> NS3 | SUMO_TLS,0,8,r,0,31.000000,31.000000,0,1.300000
+[14:42:35.845] [SUMO_TLS_PUBLISH] tls_id=0 link_index=9 phase=0 state=G sim_time=1.300
+[14:42:35.845] SUMO -> NS3 | SUMO_TLS,0,9,G,0,31.000000,31.000000,0,1.300000
+[14:42:35.845] [SUMO_TLS_PUBLISH] tls_id=0 link_index=10 phase=0 state=G sim_time=1.300
+[14:42:35.845] SUMO -> NS3 | SUMO_TLS,0,10,G,0,31.000000,31.000000,0,1.300000
+[14:42:35.845] [SUMO_TLS_PUBLISH] tls_id=0 link_index=11 phase=0 state=g sim_time=1.300
+[14:42:35.845] SUMO -> NS3 | SUMO_TLS,0,11,g,0,31.000000,31.000000,0,1.300000
+[14:42:35.946] [SUMO_TLS_PUBLISH] tls_id=0 link_index=0 phase=0 state=r sim_time=1.400
+[14:42:35.946] SUMO -> NS3 | SUMO_TLS,0,0,r,0,31.000000,31.000000,0,1.400000
+[14:42:35.946] [SUMO_TLS_PUBLISH] tls_id=0 link_index=1 phase=0 state=r sim_time=1.400
+[14:42:35.946] SUMO -> NS3 | SUMO_TLS,0,1,r,0,31.000000,31.000000,0,1.400000
+[14:42:35.946] [SUMO_TLS_PUBLISH] tls_id=0 link_index=2 phase=0 state=r sim_time=1.400
+[14:42:35.946] SUMO -> NS3 | SUMO_TLS,0,2,r,0,31.000000,31.000000,0,1.400000
+[14:42:35.946] [SUMO_TLS_PUBLISH] tls_id=0 link_index=3 phase=0 state=G sim_time=1.400
+[14:42:35.946] SUMO -> NS3 | SUMO_TLS,0,3,G,0,31.000000,31.000000,0,1.400000
+[14:42:35.946] [SUMO_TLS_PUBLISH] tls_id=0 link_index=4 phase=0 state=G sim_time=1.400
+[14:42:35.946] SUMO -> NS3 | SUMO_TLS,0,4,G,0,31.000000,31.000000,0,1.400000
+[14:42:35.946] [SUMO_TLS_PUBLISH] tls_id=0 link_index=5 phase=0 state=g sim_time=1.400
+[14:42:35.946] SUMO -> NS3 | SUMO_TLS,0,5,g,0,31.000000,31.000000,0,1.400000
+[14:42:35.946] [SUMO_TLS_PUBLISH] tls_id=0 link_index=6 phase=0 state=r sim_time=1.400
+[14:42:35.946] SUMO -> NS3 | SUMO_TLS,0,6,r,0,31.000000,31.000000,0,1.400000
+[14:42:35.946] [SUMO_TLS_PUBLISH] tls_id=0 link_index=7 phase=0 state=r sim_time=1.400
+[14:42:35.946] SUMO -> NS3 | SUMO_TLS,0,7,r,0,31.000000,31.000000,0,1.400000
+[14:42:35.946] [SUMO_TLS_PUBLISH] tls_id=0 link_index=8 phase=0 state=r sim_time=1.400
+[14:42:35.946] SUMO -> NS3 | SUMO_TLS,0,8,r,0,31.000000,31.000000,0,1.400000
+[14:42:35.946] [SUMO_TLS_PUBLISH] tls_id=0 link_index=9 phase=0 state=G sim_time=1.400
+[14:42:35.946] SUMO -> NS3 | SUMO_TLS,0,9,G,0,31.000000,31.000000,0,1.400000
+[14:42:35.946] [SUMO_TLS_PUBLISH] tls_id=0 link_index=10 phase=0 state=G sim_time=1.400
+[14:42:35.946] SUMO -> NS3 | SUMO_TLS,0,10,G,0,31.000000,31.000000,0,1.400000
+[14:42:35.946] [SUMO_TLS_PUBLISH] tls_id=0 link_index=11 phase=0 state=g sim_time=1.400
+[14:42:35.946] SUMO -> NS3 | SUMO_TLS,0,11,g,0,31.000000,31.000000,0,1.400000
+[14:42:36.051] [SUMO_TLS_PUBLISH] tls_id=0 link_index=0 phase=0 state=r sim_time=1.500
+[14:42:36.052] SUMO -> NS3 | SUMO_TLS,0,0,r,0,31.000000,31.000000,0,1.500000
+[14:42:36.052] [SUMO_TLS_PUBLISH] tls_id=0 link_index=1 phase=0 state=r sim_time=1.500
+[14:42:36.052] SUMO -> NS3 | SUMO_TLS,0,1,r,0,31.000000,31.000000,0,1.500000
+[14:42:36.052] [SUMO_TLS_PUBLISH] tls_id=0 link_index=2 phase=0 state=r sim_time=1.500
+[14:42:36.052] SUMO -> NS3 | SUMO_TLS,0,2,r,0,31.000000,31.000000,0,1.500000
+[14:42:36.052] [SUMO_TLS_PUBLISH] tls_id=0 link_index=3 phase=0 state=G sim_time=1.500
+[14:42:36.052] SUMO -> NS3 | SUMO_TLS,0,3,G,0,31.000000,31.000000,0,1.500000
+[14:42:36.052] [SUMO_TLS_PUBLISH] tls_id=0 link_index=4 phase=0 state=G sim_time=1.500
+[14:42:36.052] SUMO -> NS3 | SUMO_TLS,0,4,G,0,31.000000,31.000000,0,1.500000
+[14:42:36.052] [SUMO_TLS_PUBLISH] tls_id=0 link_index=5 phase=0 state=g sim_time=1.500
+[14:42:36.052] SUMO -> NS3 | SUMO_TLS,0,5,g,0,31.000000,31.000000,0,1.500000
+[14:42:36.052] [SUMO_TLS_PUBLISH] tls_id=0 link_index=6 phase=0 state=r sim_time=1.500
+[14:42:36.052] SUMO -> NS3 | SUMO_TLS,0,6,r,0,31.000000,31.000000,0,1.500000
+[14:42:36.052] [SUMO_TLS_PUBLISH] tls_id=0 link_index=7 phase=0 state=r sim_time=1.500
+[14:42:36.052] SUMO -> NS3 | SUMO_TLS,0,7,r,0,31.000000,31.000000,0,1.500000
+[14:42:36.052] [SUMO_TLS_PUBLISH] tls_id=0 link_index=8 phase=0 state=r sim_time=1.500
+[14:42:36.052] SUMO -> NS3 | SUMO_TLS,0,8,r,0,31.000000,31.000000,0,1.500000
+[14:42:36.052] [SUMO_TLS_PUBLISH] tls_id=0 link_index=9 phase=0 state=G sim_time=1.500
+[14:42:36.052] SUMO -> NS3 | SUMO_TLS,0,9,G,0,31.000000,31.000000,0,1.500000
+[14:42:36.052] [SUMO_TLS_PUBLISH] tls_id=0 link_index=10 phase=0 state=G sim_time=1.500
+[14:42:36.052] SUMO -> NS3 | SUMO_TLS,0,10,G,0,31.000000,31.000000,0,1.500000
+[14:42:36.052] [SUMO_TLS_PUBLISH] tls_id=0 link_index=11 phase=0 state=g sim_time=1.500
+[14:42:36.052] SUMO -> NS3 | SUMO_TLS,0,11,g,0,31.000000,31.000000,0,1.500000
+[14:42:36.149] [SUMO_TLS_PUBLISH] tls_id=0 link_index=0 phase=0 state=r sim_time=1.600
+[14:42:36.149] SUMO -> NS3 | SUMO_TLS,0,0,r,0,31.000000,31.000000,0,1.600000
+[14:42:36.149] [SUMO_TLS_PUBLISH] tls_id=0 link_index=1 phase=0 state=r sim_time=1.600
+[14:42:36.149] SUMO -> NS3 | SUMO_TLS,0,1,r,0,31.000000,31.000000,0,1.600000
+[14:42:36.149] [SUMO_TLS_PUBLISH] tls_id=0 link_index=2 phase=0 state=r sim_time=1.600
+[14:42:36.149] SUMO -> NS3 | SUMO_TLS,0,2,r,0,31.000000,31.000000,0,1.600000
+[14:42:36.149] [SUMO_TLS_PUBLISH] tls_id=0 link_index=3 phase=0 state=G sim_time=1.600
+[14:42:36.149] SUMO -> NS3 | SUMO_TLS,0,3,G,0,31.000000,31.000000,0,1.600000
+[14:42:36.149] [SUMO_TLS_PUBLISH] tls_id=0 link_index=4 phase=0 state=G sim_time=1.600
+[14:42:36.149] SUMO -> NS3 | SUMO_TLS,0,4,G,0,31.000000,31.000000,0,1.600000
+[14:42:36.149] [SUMO_TLS_PUBLISH] tls_id=0 link_index=5 phase=0 state=g sim_time=1.600
+[14:42:36.149] SUMO -> NS3 | SUMO_TLS,0,5,g,0,31.000000,31.000000,0,1.600000
+[14:42:36.149] [SUMO_TLS_PUBLISH] tls_id=0 link_index=6 phase=0 state=r sim_time=1.600
+[14:42:36.149] SUMO -> NS3 | SUMO_TLS,0,6,r,0,31.000000,31.000000,0,1.600000
+[14:42:36.149] [SUMO_TLS_PUBLISH] tls_id=0 link_index=7 phase=0 state=r sim_time=1.600
+[14:42:36.149] SUMO -> NS3 | SUMO_TLS,0,7,r,0,31.000000,31.000000,0,1.600000
+[14:42:36.149] [SUMO_TLS_PUBLISH] tls_id=0 link_index=8 phase=0 state=r sim_time=1.600
+[14:42:36.149] SUMO -> NS3 | SUMO_TLS,0,8,r,0,31.000000,31.000000,0,1.600000
+[14:42:36.149] [SUMO_TLS_PUBLISH] tls_id=0 link_index=9 phase=0 state=G sim_time=1.600
+[14:42:36.149] SUMO -> NS3 | SUMO_TLS,0,9,G,0,31.000000,31.000000,0,1.600000
+[14:42:36.149] [SUMO_TLS_PUBLISH] tls_id=0 link_index=10 phase=0 state=G sim_time=1.600
+[14:42:36.149] SUMO -> NS3 | SUMO_TLS,0,10,G,0,31.000000,31.000000,0,1.600000
+[14:42:36.149] [SUMO_TLS_PUBLISH] tls_id=0 link_index=11 phase=0 state=g sim_time=1.600
+[14:42:36.149] SUMO -> NS3 | SUMO_TLS,0,11,g,0,31.000000,31.000000,0,1.600000
+[14:42:36.251] [SUMO_TLS_PUBLISH] tls_id=0 link_index=0 phase=0 state=r sim_time=1.700
+[14:42:36.251] SUMO -> NS3 | SUMO_TLS,0,0,r,0,31.000000,31.000000,0,1.700000
+[14:42:36.251] [SUMO_TLS_PUBLISH] tls_id=0 link_index=1 phase=0 state=r sim_time=1.700
+[14:42:36.251] SUMO -> NS3 | SUMO_TLS,0,1,r,0,31.000000,31.000000,0,1.700000
+[14:42:36.251] [SUMO_TLS_PUBLISH] tls_id=0 link_index=2 phase=0 state=r sim_time=1.700
+[14:42:36.251] SUMO -> NS3 | SUMO_TLS,0,2,r,0,31.000000,31.000000,0,1.700000
+[14:42:36.251] [SUMO_TLS_PUBLISH] tls_id=0 link_index=3 phase=0 state=G sim_time=1.700
+[14:42:36.251] SUMO -> NS3 | SUMO_TLS,0,3,G,0,31.000000,31.000000,0,1.700000
+[14:42:36.251] [SUMO_TLS_PUBLISH] tls_id=0 link_index=4 phase=0 state=G sim_time=1.700
+[14:42:36.251] SUMO -> NS3 | SUMO_TLS,0,4,G,0,31.000000,31.000000,0,1.700000
+[14:42:36.251] [SUMO_TLS_PUBLISH] tls_id=0 link_index=5 phase=0 state=g sim_time=1.700
+[14:42:36.251] SUMO -> NS3 | SUMO_TLS,0,5,g,0,31.000000,31.000000,0,1.700000
+[14:42:36.251] [SUMO_TLS_PUBLISH] tls_id=0 link_index=6 phase=0 state=r sim_time=1.700
+[14:42:36.251] SUMO -> NS3 | SUMO_TLS,0,6,r,0,31.000000,31.000000,0,1.700000
+[14:42:36.251] [SUMO_TLS_PUBLISH] tls_id=0 link_index=7 phase=0 state=r sim_time=1.700
+[14:42:36.251] SUMO -> NS3 | SUMO_TLS,0,7,r,0,31.000000,31.000000,0,1.700000
+[14:42:36.251] [SUMO_TLS_PUBLISH] tls_id=0 link_index=8 phase=0 state=r sim_time=1.700
+[14:42:36.251] SUMO -> NS3 | SUMO_TLS,0,8,r,0,31.000000,31.000000,0,1.700000
+[14:42:36.251] [SUMO_TLS_PUBLISH] tls_id=0 link_index=9 phase=0 state=G sim_time=1.700
+[14:42:36.251] SUMO -> NS3 | SUMO_TLS,0,9,G,0,31.000000,31.000000,0,1.700000
+[14:42:36.251] [SUMO_TLS_PUBLISH] tls_id=0 link_index=10 phase=0 state=G sim_time=1.700
+[14:42:36.251] SUMO -> NS3 | SUMO_TLS,0,10,G,0,31.000000,31.000000,0,1.700000
+[14:42:36.251] [SUMO_TLS_PUBLISH] tls_id=0 link_index=11 phase=0 state=g sim_time=1.700
+[14:42:36.251] SUMO -> NS3 | SUMO_TLS,0,11,g,0,31.000000,31.000000,0,1.700000
+[14:42:36.353] [SUMO_TLS_PUBLISH] tls_id=0 link_index=0 phase=0 state=r sim_time=1.800
+[14:42:36.353] SUMO -> NS3 | SUMO_TLS,0,0,r,0,31.000000,31.000000,0,1.800000
+[14:42:36.353] [SUMO_TLS_PUBLISH] tls_id=0 link_index=1 phase=0 state=r sim_time=1.800
+[14:42:36.353] SUMO -> NS3 | SUMO_TLS,0,1,r,0,31.000000,31.000000,0,1.800000
+[14:42:36.353] [SUMO_TLS_PUBLISH] tls_id=0 link_index=2 phase=0 state=r sim_time=1.800
+[14:42:36.353] SUMO -> NS3 | SUMO_TLS,0,2,r,0,31.000000,31.000000,0,1.800000
+[14:42:36.353] [SUMO_TLS_PUBLISH] tls_id=0 link_index=3 phase=0 state=G sim_time=1.800
+[14:42:36.353] SUMO -> NS3 | SUMO_TLS,0,3,G,0,31.000000,31.000000,0,1.800000
+[14:42:36.353] [SUMO_TLS_PUBLISH] tls_id=0 link_index=4 phase=0 state=G sim_time=1.800
+[14:42:36.353] SUMO -> NS3 | SUMO_TLS,0,4,G,0,31.000000,31.000000,0,1.800000
+[14:42:36.353] [SUMO_TLS_PUBLISH] tls_id=0 link_index=5 phase=0 state=g sim_time=1.800
+[14:42:36.353] SUMO -> NS3 | SUMO_TLS,0,5,g,0,31.000000,31.000000,0,1.800000
+[14:42:36.353] [SUMO_TLS_PUBLISH] tls_id=0 link_index=6 phase=0 state=r sim_time=1.800
+[14:42:36.353] SUMO -> NS3 | SUMO_TLS,0,6,r,0,31.000000,31.000000,0,1.800000
+[14:42:36.353] [SUMO_TLS_PUBLISH] tls_id=0 link_index=7 phase=0 state=r sim_time=1.800
+[14:42:36.353] SUMO -> NS3 | SUMO_TLS,0,7,r,0,31.000000,31.000000,0,1.800000
+[14:42:36.353] [SUMO_TLS_PUBLISH] tls_id=0 link_index=8 phase=0 state=r sim_time=1.800
+[14:42:36.353] SUMO -> NS3 | SUMO_TLS,0,8,r,0,31.000000,31.000000,0,1.800000
+[14:42:36.353] [SUMO_TLS_PUBLISH] tls_id=0 link_index=9 phase=0 state=G sim_time=1.800
+[14:42:36.353] SUMO -> NS3 | SUMO_TLS,0,9,G,0,31.000000,31.000000,0,1.800000
+[14:42:36.353] [SUMO_TLS_PUBLISH] tls_id=0 link_index=10 phase=0 state=G sim_time=1.800
+[14:42:36.353] SUMO -> NS3 | SUMO_TLS,0,10,G,0,31.000000,31.000000,0,1.800000
+[14:42:36.353] [SUMO_TLS_PUBLISH] tls_id=0 link_index=11 phase=0 state=g sim_time=1.800
+[14:42:36.353] SUMO -> NS3 | SUMO_TLS,0,11,g,0,31.000000,31.000000,0,1.800000
+[14:42:36.453] [SUMO_TLS_PUBLISH] tls_id=0 link_index=0 phase=0 state=r sim_time=1.900
+[14:42:36.453] SUMO -> NS3 | SUMO_TLS,0,0,r,0,31.000000,31.000000,0,1.900000
+[14:42:36.453] [SUMO_TLS_PUBLISH] tls_id=0 link_index=1 phase=0 state=r sim_time=1.900
+[14:42:36.453] SUMO -> NS3 | SUMO_TLS,0,1,r,0,31.000000,31.000000,0,1.900000
+[14:42:36.453] [SUMO_TLS_PUBLISH] tls_id=0 link_index=2 phase=0 state=r sim_time=1.900
+[14:42:36.453] SUMO -> NS3 | SUMO_TLS,0,2,r,0,31.000000,31.000000,0,1.900000
+[14:42:36.453] [SUMO_TLS_PUBLISH] tls_id=0 link_index=3 phase=0 state=G sim_time=1.900
+[14:42:36.453] SUMO -> NS3 | SUMO_TLS,0,3,G,0,31.000000,31.000000,0,1.900000
+[14:42:36.453] [SUMO_TLS_PUBLISH] tls_id=0 link_index=4 phase=0 state=G sim_time=1.900
+[14:42:36.453] SUMO -> NS3 | SUMO_TLS,0,4,G,0,31.000000,31.000000,0,1.900000
+[14:42:36.453] [SUMO_TLS_PUBLISH] tls_id=0 link_index=5 phase=0 state=g sim_time=1.900
+[14:42:36.453] SUMO -> NS3 | SUMO_TLS,0,5,g,0,31.000000,31.000000,0,1.900000
+[14:42:36.453] [SUMO_TLS_PUBLISH] tls_id=0 link_index=6 phase=0 state=r sim_time=1.900
+[14:42:36.453] SUMO -> NS3 | SUMO_TLS,0,6,r,0,31.000000,31.000000,0,1.900000
+[14:42:36.453] [SUMO_TLS_PUBLISH] tls_id=0 link_index=7 phase=0 state=r sim_time=1.900
+[14:42:36.453] SUMO -> NS3 | SUMO_TLS,0,7,r,0,31.000000,31.000000,0,1.900000
+[14:42:36.453] [SUMO_TLS_PUBLISH] tls_id=0 link_index=8 phase=0 state=r sim_time=1.900
+[14:42:36.453] SUMO -> NS3 | SUMO_TLS,0,8,r,0,31.000000,31.000000,0,1.900000
+[14:42:36.453] [SUMO_TLS_PUBLISH] tls_id=0 link_index=9 phase=0 state=G sim_time=1.900
+[14:42:36.453] SUMO -> NS3 | SUMO_TLS,0,9,G,0,31.000000,31.000000,0,1.900000
+[14:42:36.453] [SUMO_TLS_PUBLISH] tls_id=0 link_index=10 phase=0 state=G sim_time=1.900
+[14:42:36.453] SUMO -> NS3 | SUMO_TLS,0,10,G,0,31.000000,31.000000,0,1.900000
+[14:42:36.453] [SUMO_TLS_PUBLISH] tls_id=0 link_index=11 phase=0 state=g sim_time=1.900
+[14:42:36.453] SUMO -> NS3 | SUMO_TLS,0,11,g,0,31.000000,31.000000,0,1.900000
+[14:42:36.557] [SUMO_TLS_PUBLISH] tls_id=0 link_index=0 phase=0 state=r sim_time=2.000
+[14:42:36.557] SUMO -> NS3 | SUMO_TLS,0,0,r,0,31.000000,31.000000,0,2.000000
+[14:42:36.557] [SUMO_TLS_PUBLISH] tls_id=0 link_index=1 phase=0 state=r sim_time=2.000
+[14:42:36.557] SUMO -> NS3 | SUMO_TLS,0,1,r,0,31.000000,31.000000,0,2.000000
+[14:42:36.557] [SUMO_TLS_PUBLISH] tls_id=0 link_index=2 phase=0 state=r sim_time=2.000
+[14:42:36.557] SUMO -> NS3 | SUMO_TLS,0,2,r,0,31.000000,31.000000,0,2.000000
+[14:42:36.557] [SUMO_TLS_PUBLISH] tls_id=0 link_index=3 phase=0 state=G sim_time=2.000
+[14:42:36.557] SUMO -> NS3 | SUMO_TLS,0,3,G,0,31.000000,31.000000,0,2.000000
+[14:42:36.557] [SUMO_TLS_PUBLISH] tls_id=0 link_index=4 phase=0 state=G sim_time=2.000
+[14:42:36.557] SUMO -> NS3 | SUMO_TLS,0,4,G,0,31.000000,31.000000,0,2.000000
+[14:42:36.557] [SUMO_TLS_PUBLISH] tls_id=0 link_index=5 phase=0 state=g sim_time=2.000
+[14:42:36.557] SUMO -> NS3 | SUMO_TLS,0,5,g,0,31.000000,31.000000,0,2.000000
+[14:42:36.557] [SUMO_TLS_PUBLISH] tls_id=0 link_index=6 phase=0 state=r sim_time=2.000
+[14:42:36.557] SUMO -> NS3 | SUMO_TLS,0,6,r,0,31.000000,31.000000,0,2.000000
+[14:42:36.557] [SUMO_TLS_PUBLISH] tls_id=0 link_index=7 phase=0 state=r sim_time=2.000
+[14:42:36.557] SUMO -> NS3 | SUMO_TLS,0,7,r,0,31.000000,31.000000,0,2.000000
+[14:42:36.557] [SUMO_TLS_PUBLISH] tls_id=0 link_index=8 phase=0 state=r sim_time=2.000
+[14:42:36.557] SUMO -> NS3 | SUMO_TLS,0,8,r,0,31.000000,31.000000,0,2.000000
+[14:42:36.557] [SUMO_TLS_PUBLISH] tls_id=0 link_index=9 phase=0 state=G sim_time=2.000
+[14:42:36.557] SUMO -> NS3 | SUMO_TLS,0,9,G,0,31.000000,31.000000,0,2.000000
+[14:42:36.557] [SUMO_TLS_PUBLISH] tls_id=0 link_index=10 phase=0 state=G sim_time=2.000
+[14:42:36.557] SUMO -> NS3 | SUMO_TLS,0,10,G,0,31.000000,31.000000,0,2.000000
+[14:42:36.557] [SUMO_TLS_PUBLISH] tls_id=0 link_index=11 phase=0 state=g sim_time=2.000
+[14:42:36.557] SUMO -> NS3 | SUMO_TLS,0,11,g,0,31.000000,31.000000,0,2.000000
+[14:42:36.657] [SUMO_TLS_PUBLISH] tls_id=0 link_index=0 phase=0 state=r sim_time=2.100
+[14:42:36.657] SUMO -> NS3 | SUMO_TLS,0,0,r,0,31.000000,31.000000,0,2.100000
+[14:42:36.657] [SUMO_TLS_PUBLISH] tls_id=0 link_index=1 phase=0 state=r sim_time=2.100
+[14:42:36.657] SUMO -> NS3 | SUMO_TLS,0,1,r,0,31.000000,31.000000,0,2.100000
+[14:42:36.657] [SUMO_TLS_PUBLISH] tls_id=0 link_index=2 phase=0 state=r sim_time=2.100
+[14:42:36.657] SUMO -> NS3 | SUMO_TLS,0,2,r,0,31.000000,31.000000,0,2.100000
+[14:42:36.657] [SUMO_TLS_PUBLISH] tls_id=0 link_index=3 phase=0 state=G sim_time=2.100
+[14:42:36.657] SUMO -> NS3 | SUMO_TLS,0,3,G,0,31.000000,31.000000,0,2.100000
+[14:42:36.657] [SUMO_TLS_PUBLISH] tls_id=0 link_index=4 phase=0 state=G sim_time=2.100
+[14:42:36.657] SUMO -> NS3 | SUMO_TLS,0,4,G,0,31.000000,31.000000,0,2.100000
+[14:42:36.657] [SUMO_TLS_PUBLISH] tls_id=0 link_index=5 phase=0 state=g sim_time=2.100
+[14:42:36.657] SUMO -> NS3 | SUMO_TLS,0,5,g,0,31.000000,31.000000,0,2.100000
+[14:42:36.657] [SUMO_TLS_PUBLISH] tls_id=0 link_index=6 phase=0 state=r sim_time=2.100
+[14:42:36.657] SUMO -> NS3 | SUMO_TLS,0,6,r,0,31.000000,31.000000,0,2.100000
+[14:42:36.657] [SUMO_TLS_PUBLISH] tls_id=0 link_index=7 phase=0 state=r sim_time=2.100
+[14:42:36.657] SUMO -> NS3 | SUMO_TLS,0,7,r,0,31.000000,31.000000,0,2.100000
+[14:42:36.657] [SUMO_TLS_PUBLISH] tls_id=0 link_index=8 phase=0 state=r sim_time=2.100
+[14:42:36.657] SUMO -> NS3 | SUMO_TLS,0,8,r,0,31.000000,31.000000,0,2.100000
+[14:42:36.657] [SUMO_TLS_PUBLISH] tls_id=0 link_index=9 phase=0 state=G sim_time=2.100
+[14:42:36.657] SUMO -> NS3 | SUMO_TLS,0,9,G,0,31.000000,31.000000,0,2.100000
+[14:42:36.657] [SUMO_TLS_PUBLISH] tls_id=0 link_index=10 phase=0 state=G sim_time=2.100
+[14:42:36.657] SUMO -> NS3 | SUMO_TLS,0,10,G,0,31.000000,31.000000,0,2.100000
+[14:42:36.657] [SUMO_TLS_PUBLISH] tls_id=0 link_index=11 phase=0 state=g sim_time=2.100
+[14:42:36.657] SUMO -> NS3 | SUMO_TLS,0,11,g,0,31.000000,31.000000,0,2.100000
+[14:42:36.759] [SUMO_TLS_PUBLISH] tls_id=0 link_index=0 phase=0 state=r sim_time=2.200
+[14:42:36.759] SUMO -> NS3 | SUMO_TLS,0,0,r,0,31.000000,31.000000,0,2.200000
+[14:42:36.759] [SUMO_TLS_PUBLISH] tls_id=0 link_index=1 phase=0 state=r sim_time=2.200
+[14:42:36.759] SUMO -> NS3 | SUMO_TLS,0,1,r,0,31.000000,31.000000,0,2.200000
+[14:42:36.759] [SUMO_TLS_PUBLISH] tls_id=0 link_index=2 phase=0 state=r sim_time=2.200
+[14:42:36.759] SUMO -> NS3 | SUMO_TLS,0,2,r,0,31.000000,31.000000,0,2.200000
+[14:42:36.759] [SUMO_TLS_PUBLISH] tls_id=0 link_index=3 phase=0 state=G sim_time=2.200
+[14:42:36.759] SUMO -> NS3 | SUMO_TLS,0,3,G,0,31.000000,31.000000,0,2.200000
+[14:42:36.759] [SUMO_TLS_PUBLISH] tls_id=0 link_index=4 phase=0 state=G sim_time=2.200
+[14:42:36.759] SUMO -> NS3 | SUMO_TLS,0,4,G,0,31.000000,31.000000,0,2.200000
+[14:42:36.759] [SUMO_TLS_PUBLISH] tls_id=0 link_index=5 phase=0 state=g sim_time=2.200
+[14:42:36.759] SUMO -> NS3 | SUMO_TLS,0,5,g,0,31.000000,31.000000,0,2.200000
+[14:42:36.759] [SUMO_TLS_PUBLISH] tls_id=0 link_index=6 phase=0 state=r sim_time=2.200
+[14:42:36.759] SUMO -> NS3 | SUMO_TLS,0,6,r,0,31.000000,31.000000,0,2.200000
+[14:42:36.759] [SUMO_TLS_PUBLISH] tls_id=0 link_index=7 phase=0 state=r sim_time=2.200
+[14:42:36.759] SUMO -> NS3 | SUMO_TLS,0,7,r,0,31.000000,31.000000,0,2.200000
+[14:42:36.759] [SUMO_TLS_PUBLISH] tls_id=0 link_index=8 phase=0 state=r sim_time=2.200
+[14:42:36.759] SUMO -> NS3 | SUMO_TLS,0,8,r,0,31.000000,31.000000,0,2.200000
+[14:42:36.759] [SUMO_TLS_PUBLISH] tls_id=0 link_index=9 phase=0 state=G sim_time=2.200
+[14:42:36.759] SUMO -> NS3 | SUMO_TLS,0,9,G,0,31.000000,31.000000,0,2.200000
+[14:42:36.759] [SUMO_TLS_PUBLISH] tls_id=0 link_index=10 phase=0 state=G sim_time=2.200
+[14:42:36.759] SUMO -> NS3 | SUMO_TLS,0,10,G,0,31.000000,31.000000,0,2.200000
+[14:42:36.759] [SUMO_TLS_PUBLISH] tls_id=0 link_index=11 phase=0 state=g sim_time=2.200
+[14:42:36.759] SUMO -> NS3 | SUMO_TLS,0,11,g,0,31.000000,31.000000,0,2.200000
+[14:42:36.911] [SUMO_TLS_PUBLISH] tls_id=0 link_index=0 phase=0 state=r sim_time=2.300
+[14:42:36.911] SUMO -> NS3 | SUMO_TLS,0,0,r,0,31.000000,31.000000,0,2.300000
+[14:42:36.911] [SUMO_TLS_PUBLISH] tls_id=0 link_index=1 phase=0 state=r sim_time=2.300
+[14:42:36.911] SUMO -> NS3 | SUMO_TLS,0,1,r,0,31.000000,31.000000,0,2.300000
+[14:42:36.911] [SUMO_TLS_PUBLISH] tls_id=0 link_index=2 phase=0 state=r sim_time=2.300
+[14:42:36.911] SUMO -> NS3 | SUMO_TLS,0,2,r,0,31.000000,31.000000,0,2.300000
+[14:42:36.911] [SUMO_TLS_PUBLISH] tls_id=0 link_index=3 phase=0 state=G sim_time=2.300
+[14:42:36.911] SUMO -> NS3 | SUMO_TLS,0,3,G,0,31.000000,31.000000,0,2.300000
+[14:42:36.911] [SUMO_TLS_PUBLISH] tls_id=0 link_index=4 phase=0 state=G sim_time=2.300
+[14:42:36.911] SUMO -> NS3 | SUMO_TLS,0,4,G,0,31.000000,31.000000,0,2.300000
+[14:42:36.911] [SUMO_TLS_PUBLISH] tls_id=0 link_index=5 phase=0 state=g sim_time=2.300
+[14:42:36.911] SUMO -> NS3 | SUMO_TLS,0,5,g,0,31.000000,31.000000,0,2.300000
+[14:42:36.911] [SUMO_TLS_PUBLISH] tls_id=0 link_index=6 phase=0 state=r sim_time=2.300
+[14:42:36.911] SUMO -> NS3 | SUMO_TLS,0,6,r,0,31.000000,31.000000,0,2.300000
+[14:42:36.911] [SUMO_TLS_PUBLISH] tls_id=0 link_index=7 phase=0 state=r sim_time=2.300
+[14:42:36.911] SUMO -> NS3 | SUMO_TLS,0,7,r,0,31.000000,31.000000,0,2.300000
+[14:42:36.911] [SUMO_TLS_PUBLISH] tls_id=0 link_index=8 phase=0 state=r sim_time=2.300
+[14:42:36.911] SUMO -> NS3 | SUMO_TLS,0,8,r,0,31.000000,31.000000,0,2.300000
+[14:42:36.911] [SUMO_TLS_PUBLISH] tls_id=0 link_index=9 phase=0 state=G sim_time=2.300
+[14:42:36.911] SUMO -> NS3 | SUMO_TLS,0,9,G,0,31.000000,31.000000,0,2.300000
+[14:42:36.911] [SUMO_TLS_PUBLISH] tls_id=0 link_index=10 phase=0 state=G sim_time=2.300
+[14:42:36.911] SUMO -> NS3 | SUMO_TLS,0,10,G,0,31.000000,31.000000,0,2.300000
+[14:42:36.911] [SUMO_TLS_PUBLISH] tls_id=0 link_index=11 phase=0 state=g sim_time=2.300
+[14:42:36.911] SUMO -> NS3 | SUMO_TLS,0,11,g,0,31.000000,31.000000,0,2.300000
+[14:42:37.012] [SUMO_TLS_PUBLISH] tls_id=0 link_index=0 phase=0 state=r sim_time=2.400
+[14:42:37.012] SUMO -> NS3 | SUMO_TLS,0,0,r,0,31.000000,31.000000,0,2.400000
+[14:42:37.012] [SUMO_TLS_PUBLISH] tls_id=0 link_index=1 phase=0 state=r sim_time=2.400
+[14:42:37.012] SUMO -> NS3 | SUMO_TLS,0,1,r,0,31.000000,31.000000,0,2.400000
+[14:42:37.012] [SUMO_TLS_PUBLISH] tls_id=0 link_index=2 phase=0 state=r sim_time=2.400
+[14:42:37.012] SUMO -> NS3 | SUMO_TLS,0,2,r,0,31.000000,31.000000,0,2.400000
+[14:42:37.012] [SUMO_TLS_PUBLISH] tls_id=0 link_index=3 phase=0 state=G sim_time=2.400
+[14:42:37.012] SUMO -> NS3 | SUMO_TLS,0,3,G,0,31.000000,31.000000,0,2.400000
+[14:42:37.012] [SUMO_TLS_PUBLISH] tls_id=0 link_index=4 phase=0 state=G sim_time=2.400
+[14:42:37.012] SUMO -> NS3 | SUMO_TLS,0,4,G,0,31.000000,31.000000,0,2.400000
+[14:42:37.012] [SUMO_TLS_PUBLISH] tls_id=0 link_index=5 phase=0 state=g sim_time=2.400
+[14:42:37.012] SUMO -> NS3 | SUMO_TLS,0,5,g,0,31.000000,31.000000,0,2.400000
+[14:42:37.012] [SUMO_TLS_PUBLISH] tls_id=0 link_index=6 phase=0 state=r sim_time=2.400
+[14:42:37.012] SUMO -> NS3 | SUMO_TLS,0,6,r,0,31.000000,31.000000,0,2.400000
+[14:42:37.012] [SUMO_TLS_PUBLISH] tls_id=0 link_index=7 phase=0 state=r sim_time=2.400
+[14:42:37.012] SUMO -> NS3 | SUMO_TLS,0,7,r,0,31.000000,31.000000,0,2.400000
+[14:42:37.012] [SUMO_TLS_PUBLISH] tls_id=0 link_index=8 phase=0 state=r sim_time=2.400
+[14:42:37.012] SUMO -> NS3 | SUMO_TLS,0,8,r,0,31.000000,31.000000,0,2.400000
+[14:42:37.012] [SUMO_TLS_PUBLISH] tls_id=0 link_index=9 phase=0 state=G sim_time=2.400
+[14:42:37.012] SUMO -> NS3 | SUMO_TLS,0,9,G,0,31.000000,31.000000,0,2.400000
+[14:42:37.012] [SUMO_TLS_PUBLISH] tls_id=0 link_index=10 phase=0 state=G sim_time=2.400
+[14:42:37.012] SUMO -> NS3 | SUMO_TLS,0,10,G,0,31.000000,31.000000,0,2.400000
+[14:42:37.012] [SUMO_TLS_PUBLISH] tls_id=0 link_index=11 phase=0 state=g sim_time=2.400
+[14:42:37.012] SUMO -> NS3 | SUMO_TLS,0,11,g,0,31.000000,31.000000,0,2.400000
+[14:42:37.171] [SUMO_TLS_PUBLISH] tls_id=0 link_index=0 phase=0 state=r sim_time=2.500
+[14:42:37.171] SUMO -> NS3 | SUMO_TLS,0,0,r,0,31.000000,31.000000,0,2.500000
+[14:42:37.171] [SUMO_TLS_PUBLISH] tls_id=0 link_index=1 phase=0 state=r sim_time=2.500
+[14:42:37.171] SUMO -> NS3 | SUMO_TLS,0,1,r,0,31.000000,31.000000,0,2.500000
+[14:42:37.171] [SUMO_TLS_PUBLISH] tls_id=0 link_index=2 phase=0 state=r sim_time=2.500
+[14:42:37.171] SUMO -> NS3 | SUMO_TLS,0,2,r,0,31.000000,31.000000,0,2.500000
+[14:42:37.171] [SUMO_TLS_PUBLISH] tls_id=0 link_index=3 phase=0 state=G sim_time=2.500
+[14:42:37.171] SUMO -> NS3 | SUMO_TLS,0,3,G,0,31.000000,31.000000,0,2.500000
+[14:42:37.171] [SUMO_TLS_PUBLISH] tls_id=0 link_index=4 phase=0 state=G sim_time=2.500
+[14:42:37.171] SUMO -> NS3 | SUMO_TLS,0,4,G,0,31.000000,31.000000,0,2.500000
+[14:42:37.171] [SUMO_TLS_PUBLISH] tls_id=0 link_index=5 phase=0 state=g sim_time=2.500
+[14:42:37.171] SUMO -> NS3 | SUMO_TLS,0,5,g,0,31.000000,31.000000,0,2.500000
+[14:42:37.171] [SUMO_TLS_PUBLISH] tls_id=0 link_index=6 phase=0 state=r sim_time=2.500
+[14:42:37.171] SUMO -> NS3 | SUMO_TLS,0,6,r,0,31.000000,31.000000,0,2.500000
+[14:42:37.171] [SUMO_TLS_PUBLISH] tls_id=0 link_index=7 phase=0 state=r sim_time=2.500
+[14:42:37.171] SUMO -> NS3 | SUMO_TLS,0,7,r,0,31.000000,31.000000,0,2.500000
+[14:42:37.171] [SUMO_TLS_PUBLISH] tls_id=0 link_index=8 phase=0 state=r sim_time=2.500
+[14:42:37.171] SUMO -> NS3 | SUMO_TLS,0,8,r,0,31.000000,31.000000,0,2.500000
+[14:42:37.171] [SUMO_TLS_PUBLISH] tls_id=0 link_index=9 phase=0 state=G sim_time=2.500
+[14:42:37.171] SUMO -> NS3 | SUMO_TLS,0,9,G,0,31.000000,31.000000,0,2.500000
+[14:42:37.171] [SUMO_TLS_PUBLISH] tls_id=0 link_index=10 phase=0 state=G sim_time=2.500
+[14:42:37.171] SUMO -> NS3 | SUMO_TLS,0,10,G,0,31.000000,31.000000,0,2.500000
+[14:42:37.171] [SUMO_TLS_PUBLISH] tls_id=0 link_index=11 phase=0 state=g sim_time=2.500
+[14:42:37.171] SUMO -> NS3 | SUMO_TLS,0,11,g,0,31.000000,31.000000,0,2.500000
+[14:42:37.331] [SUMO_TLS_PUBLISH] tls_id=0 link_index=0 phase=0 state=r sim_time=2.600
+[14:42:37.331] SUMO -> NS3 | SUMO_TLS,0,0,r,0,31.000000,31.000000,0,2.600000
+[14:42:37.331] [SUMO_TLS_PUBLISH] tls_id=0 link_index=1 phase=0 state=r sim_time=2.600
+[14:42:37.331] SUMO -> NS3 | SUMO_TLS,0,1,r,0,31.000000,31.000000,0,2.600000
+[14:42:37.331] [SUMO_TLS_PUBLISH] tls_id=0 link_index=2 phase=0 state=r sim_time=2.600
+[14:42:37.331] SUMO -> NS3 | SUMO_TLS,0,2,r,0,31.000000,31.000000,0,2.600000
+[14:42:37.331] [SUMO_TLS_PUBLISH] tls_id=0 link_index=3 phase=0 state=G sim_time=2.600
+[14:42:37.331] SUMO -> NS3 | SUMO_TLS,0,3,G,0,31.000000,31.000000,0,2.600000
+[14:42:37.331] [SUMO_TLS_PUBLISH] tls_id=0 link_index=4 phase=0 state=G sim_time=2.600
+[14:42:37.331] SUMO -> NS3 | SUMO_TLS,0,4,G,0,31.000000,31.000000,0,2.600000
+[14:42:37.331] [SUMO_TLS_PUBLISH] tls_id=0 link_index=5 phase=0 state=g sim_time=2.600
+[14:42:37.331] SUMO -> NS3 | SUMO_TLS,0,5,g,0,31.000000,31.000000,0,2.600000
+[14:42:37.331] [SUMO_TLS_PUBLISH] tls_id=0 link_index=6 phase=0 state=r sim_time=2.600
+[14:42:37.331] SUMO -> NS3 | SUMO_TLS,0,6,r,0,31.000000,31.000000,0,2.600000
+[14:42:37.331] [SUMO_TLS_PUBLISH] tls_id=0 link_index=7 phase=0 state=r sim_time=2.600
+[14:42:37.331] SUMO -> NS3 | SUMO_TLS,0,7,r,0,31.000000,31.000000,0,2.600000
+[14:42:37.331] [SUMO_TLS_PUBLISH] tls_id=0 link_index=8 phase=0 state=r sim_time=2.600
+[14:42:37.331] SUMO -> NS3 | SUMO_TLS,0,8,r,0,31.000000,31.000000,0,2.600000
+[14:42:37.331] [SUMO_TLS_PUBLISH] tls_id=0 link_index=9 phase=0 state=G sim_time=2.600
+[14:42:37.331] SUMO -> NS3 | SUMO_TLS,0,9,G,0,31.000000,31.000000,0,2.600000
+[14:42:37.331] [SUMO_TLS_PUBLISH] tls_id=0 link_index=10 phase=0 state=G sim_time=2.600
+[14:42:37.331] SUMO -> NS3 | SUMO_TLS,0,10,G,0,31.000000,31.000000,0,2.600000
+[14:42:37.331] [SUMO_TLS_PUBLISH] tls_id=0 link_index=11 phase=0 state=g sim_time=2.600
+[14:42:37.331] SUMO -> NS3 | SUMO_TLS,0,11,g,0,31.000000,31.000000,0,2.600000
+[14:42:37.434] [SUMO_TLS_PUBLISH] tls_id=0 link_index=0 phase=0 state=r sim_time=2.700
+[14:42:37.434] SUMO -> NS3 | SUMO_TLS,0,0,r,0,31.000000,31.000000,0,2.700000
+[14:42:37.434] [SUMO_TLS_PUBLISH] tls_id=0 link_index=1 phase=0 state=r sim_time=2.700
+[14:42:37.434] SUMO -> NS3 | SUMO_TLS,0,1,r,0,31.000000,31.000000,0,2.700000
+[14:42:37.434] [SUMO_TLS_PUBLISH] tls_id=0 link_index=2 phase=0 state=r sim_time=2.700
+[14:42:37.434] SUMO -> NS3 | SUMO_TLS,0,2,r,0,31.000000,31.000000,0,2.700000
+[14:42:37.434] [SUMO_TLS_PUBLISH] tls_id=0 link_index=3 phase=0 state=G sim_time=2.700
+[14:42:37.434] SUMO -> NS3 | SUMO_TLS,0,3,G,0,31.000000,31.000000,0,2.700000
+[14:42:37.434] [SUMO_TLS_PUBLISH] tls_id=0 link_index=4 phase=0 state=G sim_time=2.700
+[14:42:37.434] SUMO -> NS3 | SUMO_TLS,0,4,G,0,31.000000,31.000000,0,2.700000
+[14:42:37.434] [SUMO_TLS_PUBLISH] tls_id=0 link_index=5 phase=0 state=g sim_time=2.700
+[14:42:37.434] SUMO -> NS3 | SUMO_TLS,0,5,g,0,31.000000,31.000000,0,2.700000
+[14:42:37.434] [SUMO_TLS_PUBLISH] tls_id=0 link_index=6 phase=0 state=r sim_time=2.700
+[14:42:37.434] SUMO -> NS3 | SUMO_TLS,0,6,r,0,31.000000,31.000000,0,2.700000
+[14:42:37.434] [SUMO_TLS_PUBLISH] tls_id=0 link_index=7 phase=0 state=r sim_time=2.700
+[14:42:37.434] SUMO -> NS3 | SUMO_TLS,0,7,r,0,31.000000,31.000000,0,2.700000
+[14:42:37.434] [SUMO_TLS_PUBLISH] tls_id=0 link_index=8 phase=0 state=r sim_time=2.700
+[14:42:37.434] SUMO -> NS3 | SUMO_TLS,0,8,r,0,31.000000,31.000000,0,2.700000
+[14:42:37.434] [SUMO_TLS_PUBLISH] tls_id=0 link_index=9 phase=0 state=G sim_time=2.700
+[14:42:37.434] SUMO -> NS3 | SUMO_TLS,0,9,G,0,31.000000,31.000000,0,2.700000
+[14:42:37.434] [SUMO_TLS_PUBLISH] tls_id=0 link_index=10 phase=0 state=G sim_time=2.700
+[14:42:37.434] SUMO -> NS3 | SUMO_TLS,0,10,G,0,31.000000,31.000000,0,2.700000
+[14:42:37.434] [SUMO_TLS_PUBLISH] tls_id=0 link_index=11 phase=0 state=g sim_time=2.700
+[14:42:37.434] SUMO -> NS3 | SUMO_TLS,0,11,g,0,31.000000,31.000000,0,2.700000
+[14:42:37.549] [SUMO_TLS_PUBLISH] tls_id=0 link_index=0 phase=0 state=r sim_time=2.800
+[14:42:37.549] SUMO -> NS3 | SUMO_TLS,0,0,r,0,31.000000,31.000000,0,2.800000
+[14:42:37.549] [SUMO_TLS_PUBLISH] tls_id=0 link_index=1 phase=0 state=r sim_time=2.800
+[14:42:37.549] SUMO -> NS3 | SUMO_TLS,0,1,r,0,31.000000,31.000000,0,2.800000
+[14:42:37.549] [SUMO_TLS_PUBLISH] tls_id=0 link_index=2 phase=0 state=r sim_time=2.800
+[14:42:37.549] SUMO -> NS3 | SUMO_TLS,0,2,r,0,31.000000,31.000000,0,2.800000
+[14:42:37.549] [SUMO_TLS_PUBLISH] tls_id=0 link_index=3 phase=0 state=G sim_time=2.800
+[14:42:37.549] SUMO -> NS3 | SUMO_TLS,0,3,G,0,31.000000,31.000000,0,2.800000
+[14:42:37.549] [SUMO_TLS_PUBLISH] tls_id=0 link_index=4 phase=0 state=G sim_time=2.800
+[14:42:37.549] SUMO -> NS3 | SUMO_TLS,0,4,G,0,31.000000,31.000000,0,2.800000
+[14:42:37.549] [SUMO_TLS_PUBLISH] tls_id=0 link_index=5 phase=0 state=g sim_time=2.800
+[14:42:37.549] SUMO -> NS3 | SUMO_TLS,0,5,g,0,31.000000,31.000000,0,2.800000
+[14:42:37.549] [SUMO_TLS_PUBLISH] tls_id=0 link_index=6 phase=0 state=r sim_time=2.800
+[14:42:37.549] SUMO -> NS3 | SUMO_TLS,0,6,r,0,31.000000,31.000000,0,2.800000
+[14:42:37.549] [SUMO_TLS_PUBLISH] tls_id=0 link_index=7 phase=0 state=r sim_time=2.800
+[14:42:37.549] SUMO -> NS3 | SUMO_TLS,0,7,r,0,31.000000,31.000000,0,2.800000
+[14:42:37.549] [SUMO_TLS_PUBLISH] tls_id=0 link_index=8 phase=0 state=r sim_time=2.800
+[14:42:37.549] SUMO -> NS3 | SUMO_TLS,0,8,r,0,31.000000,31.000000,0,2.800000
+[14:42:37.549] [SUMO_TLS_PUBLISH] tls_id=0 link_index=9 phase=0 state=G sim_time=2.800
+[14:42:37.549] SUMO -> NS3 | SUMO_TLS,0,9,G,0,31.000000,31.000000,0,2.800000
+[14:42:37.549] [SUMO_TLS_PUBLISH] tls_id=0 link_index=10 phase=0 state=G sim_time=2.800
+[14:42:37.549] SUMO -> NS3 | SUMO_TLS,0,10,G,0,31.000000,31.000000,0,2.800000
+[14:42:37.549] [SUMO_TLS_PUBLISH] tls_id=0 link_index=11 phase=0 state=g sim_time=2.800
+[14:42:37.549] SUMO -> NS3 | SUMO_TLS,0,11,g,0,31.000000,31.000000,0,2.800000
+[14:42:37.673] [SUMO_TLS_PUBLISH] tls_id=0 link_index=0 phase=0 state=r sim_time=2.900
+[14:42:37.673] SUMO -> NS3 | SUMO_TLS,0,0,r,0,31.000000,31.000000,0,2.900000
+[14:42:37.673] [SUMO_TLS_PUBLISH] tls_id=0 link_index=1 phase=0 state=r sim_time=2.900
+[14:42:37.673] SUMO -> NS3 | SUMO_TLS,0,1,r,0,31.000000,31.000000,0,2.900000
+[14:42:37.673] [SUMO_TLS_PUBLISH] tls_id=0 link_index=2 phase=0 state=r sim_time=2.900
+[14:42:37.673] SUMO -> NS3 | SUMO_TLS,0,2,r,0,31.000000,31.000000,0,2.900000
+[14:42:37.673] [SUMO_TLS_PUBLISH] tls_id=0 link_index=3 phase=0 state=G sim_time=2.900
+[14:42:37.673] SUMO -> NS3 | SUMO_TLS,0,3,G,0,31.000000,31.000000,0,2.900000
+[14:42:37.673] [SUMO_TLS_PUBLISH] tls_id=0 link_index=4 phase=0 state=G sim_time=2.900
+[14:42:37.673] SUMO -> NS3 | SUMO_TLS,0,4,G,0,31.000000,31.000000,0,2.900000
+[14:42:37.673] [SUMO_TLS_PUBLISH] tls_id=0 link_index=5 phase=0 state=g sim_time=2.900
+[14:42:37.673] SUMO -> NS3 | SUMO_TLS,0,5,g,0,31.000000,31.000000,0,2.900000
+[14:42:37.673] [SUMO_TLS_PUBLISH] tls_id=0 link_index=6 phase=0 state=r sim_time=2.900
+[14:42:37.673] SUMO -> NS3 | SUMO_TLS,0,6,r,0,31.000000,31.000000,0,2.900000
+[14:42:37.673] [SUMO_TLS_PUBLISH] tls_id=0 link_index=7 phase=0 state=r sim_time=2.900
+[14:42:37.673] SUMO -> NS3 | SUMO_TLS,0,7,r,0,31.000000,31.000000,0,2.900000
+[14:42:37.673] [SUMO_TLS_PUBLISH] tls_id=0 link_index=8 phase=0 state=r sim_time=2.900
+[14:42:37.673] SUMO -> NS3 | SUMO_TLS,0,8,r,0,31.000000,31.000000,0,2.900000
+[14:42:37.673] [SUMO_TLS_PUBLISH] tls_id=0 link_index=9 phase=0 state=G sim_time=2.900
+[14:42:37.673] SUMO -> NS3 | SUMO_TLS,0,9,G,0,31.000000,31.000000,0,2.900000
+[14:42:37.673] [SUMO_TLS_PUBLISH] tls_id=0 link_index=10 phase=0 state=G sim_time=2.900
+[14:42:37.673] SUMO -> NS3 | SUMO_TLS,0,10,G,0,31.000000,31.000000,0,2.900000
+[14:42:37.673] [SUMO_TLS_PUBLISH] tls_id=0 link_index=11 phase=0 state=g sim_time=2.900
+[14:42:37.673] SUMO -> NS3 | SUMO_TLS,0,11,g,0,31.000000,31.000000,0,2.900000
+[14:42:37.787] [SUMO_TLS] TLS_RECORDS_SENT=360
+[14:42:37.787] Bridge terminated cleanly

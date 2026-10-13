@@ -17,12 +17,14 @@ namespace ns3
 Ns3DccAdapter::Ns3DccAdapter(
     Ns3AccessAdapter& access,
     vanetza::ManualRuntime& runtime,
-    std::string vehicleId,
+    std::string endpointId,
     uint32_t nodeId,
-    uint32_t stationId)
+    uint32_t stationId,
+    std::string identityLabel)
     : m_access(access),
       m_runtime(runtime),
-      m_vehicleId(std::move(vehicleId)),
+      m_endpointId(std::move(endpointId)),
+      m_identityLabel(std::move(identityLabel)),
       m_nodeId(nodeId),
       m_stationId(stationId),
       m_stateMachine(vanetza::dcc::etsiStates1ms),
@@ -456,7 +458,7 @@ Ns3DccAdapter::UpdateChannelLoad()
 
     std::cout
         << "[DCC_CBR]"
-        << " veh=" << m_vehicleId
+        << " " << m_identityLabel << "=" << m_endpointId
         << " node=" << m_nodeId
         << " station=" << m_stationId
         << " sim_us="
@@ -535,7 +537,7 @@ Ns3DccAdapter::UpdateChannelLoad()
     {
         std::cout
             << "[DCC_RESCHEDULE]"
-            << " veh=" << m_vehicleId
+            << " " << m_identityLabel << "=" << m_endpointId
             << " node=" << m_nodeId
             << " station=" << m_stationId
             << " sim_us="

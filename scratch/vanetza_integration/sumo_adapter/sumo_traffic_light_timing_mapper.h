@@ -18,6 +18,12 @@ struct SumoSpatemTimeReference
 class SumoTrafficLightTimingMapper
 {
 public:
+    static bool BuildReference(
+        const std::string& itsStartTime,
+        int64_t elapsedMicroseconds,
+        SumoSpatemTimeReference& output,
+        std::string& error);
+
     static bool Map(
         const SumoTrafficLightState& input,
         const SumoSpatemTimeReference& reference,

@@ -1,4 +1,14 @@
+#include <cmath>
 #include "simulation_controller.h"
+#include "vanetza_integration/spatem/emitter/spatem_emitter_endpoint.h"
+#include "vanetza_integration/context/packet/packet_context.h"
+#include "vanetza_integration/context/packet/packet_id_manager.h"
+#include "vanetza_integration/spatem/emitter/spatem_rsu_runtime.h"
+#include "vanetza_integration/sumo_adapter/sumo_traffic_light_spatem_intersection_builder.h"
+#include "vanetza_integration/sumo_adapter/sumo_traffic_light_timing_mapper.h"
+#include <limits>
+#include <memory>
+#include "vanetza_integration/context/vehicle_network/vehicle_network_builder.h"
 
 #include "vanetza_integration/cam/scheduler/cam_scheduler.h"
 #include "vanetza_integration/context/vehicle_security/vehicle_security_initializer/vehicle_security_initializer.h"
@@ -15,6 +25,7 @@
 
 #include <cstdint>
 #include <iostream>
+#include <utility>
 
 namespace ns3
 {
@@ -26,6 +37,17 @@ bool SimulationController::m_denmEnabled = false;
 double SimulationController::m_denmRadiusMeters = 1000.0;
 
 DenmScenarioEventSource SimulationController::m_denmScenarioEvents{};
+
+bool SimulationController::m_spatemEnabled = false;
+bool SimulationController::m_spatemDirty = false;
+uint32_t SimulationController::m_spatemStationId = 0;
+uint16_t SimulationController::m_spatemIntersectionId = 0;
+std::string SimulationController::m_spatemTrafficLightId;
+double SimulationController::m_spatemLatitudeDeg = 0.0;
+double SimulationController::m_spatemLongitudeDeg = 0.0;
+std::unique_ptr<SpatemEmitterEndpoint> SimulationController::m_spatemEmitter;
+std::unique_ptr<SpatemRsuRuntime> SimulationController::m_spatemRuntime;
+std::unique_ptr<SumoTrafficLightSpatemIntersectionBuilder> SimulationController::m_spatemIntersectionBuilder;
 
 
 // ============================================================================
@@ -86,6 +108,8 @@ void
 SimulationController::PollLoop()
 {
     SumoAdapter::Poll();
+
+    SendSpatemSnapshot();
 
     SimulationStep();
 
@@ -175,6 +199,53 @@ SimulationController::SimulationStep()
 // ============================================================================
 
 void
+SimulationController::ConfigureSpatemEmitter(
+    bool enabled,
+    uint32_t stationId,
+    uint32_t intersectionId,
+    const std::string& trafficLightId,
+    double latitudeDeg,
+    double longitudeDeg)
+{
+    NS_ABORT_MSG_IF(
+        enabled &&
+            (stationId == 0 ||
+             intersectionId == 0 ||
+             intersectionId > 65535U ||
+             trafficLightId.empty() ||
+             !std::isfinite(latitudeDeg) ||
+             latitudeDeg < -90.0 || latitudeDeg > 90.0 ||
+             !std::isfinite(longitudeDeg) ||
+             longitudeDeg < -180.0 || longitudeDeg > 180.0),
+        "[SPATEM_RSU] Enabled SPATEM requires station/intersection IDs, "
+        "trafficLightId and finite geographic coordinates in range");
+
+    m_spatemEnabled = enabled;
+    m_spatemStationId = stationId;
+    m_spatemIntersectionId =
+        static_cast<uint16_t>(intersectionId);
+    m_spatemTrafficLightId = trafficLightId;
+    m_spatemLatitudeDeg = latitudeDeg;
+    m_spatemLongitudeDeg = longitudeDeg;
+
+    m_spatemRuntime.reset();
+    m_spatemIntersectionBuilder.reset();
+    m_spatemEmitter.reset();
+
+    NS_LOG_UNCOND(
+        "[SPATEM_RSU] configuration enabled="
+        << m_spatemEnabled
+        << " station_id="
+        << m_spatemStationId
+        << " intersection_id="
+        << m_spatemIntersectionId
+        << " traffic_light="
+        << m_spatemTrafficLightId
+        << " latitude_deg=" << m_spatemLatitudeDeg
+        << " longitude_deg=" << m_spatemLongitudeDeg);
+}
+
+void
 SimulationController::ConfigureSumoAdapterCallbacks()
 {
     SumoAdapter::SetVehicleUpdateCallback(
@@ -182,6 +253,205 @@ SimulationController::ConfigureSumoAdapterCallbacks()
 
     SumoAdapter::SetDenmEventCallback(
         &SimulationController::HandleDenmEventFromSumo);
+
+    SumoAdapter::SetTrafficLightUpdateCallback(
+        &SimulationController::HandleTrafficLightUpdateFromSumo);
+}
+
+void
+SimulationController::HandleTrafficLightUpdateFromSumo(
+    const SumoTrafficLightState& state)
+{
+    if (!m_spatemEnabled ||
+        state.trafficLightId != m_spatemTrafficLightId)
+    {
+        return;
+    }
+
+    // Create the RSU endpoint and its runtime only once.
+    // Later SUMO updates continue through the same endpoint.
+    if (!m_spatemEmitter)
+    {
+        SpatemEmitterConfig config;
+        config.logicalId = "spatem-rsu-" + m_spatemTrafficLightId;
+        config.stationId = m_spatemStationId;
+        config.trafficLightId = m_spatemTrafficLightId;
+        config.intersectionId = m_spatemIntersectionId;
+        config.latitudeDeg = m_spatemLatitudeDeg;
+        config.longitudeDeg = m_spatemLongitudeDeg;
+
+        auto endpoint = SpatemEmitterEndpoint::Create(config);
+        if (!endpoint)
+        {
+            NS_LOG_UNCOND(
+                "[SPATEM_RSU] ERROR: endpoint configuration rejected"
+                << " traffic_light=" << m_spatemTrafficLightId);
+            return;
+        }
+
+        if (!VehicleNetworkBuilder::InitializeSpatemEmitter(*endpoint))
+        {
+            NS_LOG_UNCOND(
+                "[SPATEM_RSU] ERROR: network initialization failed"
+                << " traffic_light=" << m_spatemTrafficLightId);
+            return;
+        }
+
+        m_spatemEmitter = std::move(endpoint);
+
+        auto runtime =
+            std::make_unique<SpatemRsuRuntime>(*m_spatemEmitter);
+
+        if (!runtime->Initialize())
+        {
+            NS_LOG_UNCOND(
+                "[SPATEM_RSU] ERROR: GeoNetworking runtime initialization failed");
+            runtime.reset();
+            m_spatemEmitter.reset();
+            return;
+        }
+
+        m_spatemRuntime = std::move(runtime);
+
+        SumoSpatemIntersectionConfig intersectionConfig;
+        intersectionConfig.trafficLightId =
+            m_spatemEmitter->TrafficLightId();
+        intersectionConfig.intersectionId =
+            m_spatemEmitter->IntersectionId();
+        intersectionConfig.revision =
+            m_spatemEmitter->Revision();
+        intersectionConfig.statusBits =
+            m_spatemEmitter->StatusBits();
+        intersectionConfig.region =
+            m_spatemEmitter->Region();
+
+        m_spatemIntersectionBuilder =
+            std::make_unique<SumoTrafficLightSpatemIntersectionBuilder>(
+                intersectionConfig);
+
+        NS_LOG_UNCOND(
+            "[SPATEM_RSU] ENDPOINT_READY"
+            << " logical_id=" << m_spatemEmitter->LogicalId()
+            << " station_id=" << m_spatemEmitter->StationId()
+            << " node_id=" << m_spatemEmitter->GetNode()->GetId()
+            << " ipv4=" << m_spatemEmitter->GetIpv4Address()
+            << " link_mac=" << m_spatemEmitter->GetLinkMac()
+            << " traffic_light=" << m_spatemEmitter->TrafficLightId());
+    }
+
+    if (!m_spatemRuntime ||
+        !m_spatemRuntime->IsInitialized() ||
+        !m_spatemIntersectionBuilder)
+    {
+        return;
+    }
+
+    if (!std::isfinite(state.simulationTime) ||
+        state.simulationTime < 0.0)
+    {
+        NS_LOG_UNCOND(
+            "[SPATEM_RSU] ERROR: invalid SUMO simulation time"
+            << " traffic_light=" << state.trafficLightId
+            << " time_s=" << state.simulationTime);
+        return;
+    }
+
+    const long double elapsedUsExact =
+        static_cast<long double>(state.simulationTime) * 1000000.0L;
+
+    if (elapsedUsExact >= static_cast<long double>(
+            std::numeric_limits<int64_t>::max()))
+    {
+        NS_LOG_UNCOND(
+            "[SPATEM_RSU] ERROR: SUMO simulation time exceeds ITS clock range");
+        return;
+    }
+
+    const int64_t elapsedUs =
+        static_cast<int64_t>(std::llround(elapsedUsExact));
+
+    SumoSpatemTimeReference reference;
+    std::string error;
+
+    if (!SumoTrafficLightTimingMapper::BuildReference(
+            SimulationContext::itsStartTime,
+            elapsedUs,
+            reference,
+            error))
+    {
+        NS_LOG_UNCOND(
+            "[SPATEM_RSU] ERROR: time reference rejected: " << error);
+        return;
+    }
+
+    if (!m_spatemIntersectionBuilder->Update(state, reference, error))
+    {
+        NS_LOG_UNCOND(
+            "[SPATEM_RSU] ERROR: SUMO-to-SPATEM mapping failed"
+            << " traffic_light=" << state.trafficLightId
+            << " link_index=" << state.linkIndex
+            << " raw_state=" << state.rawState
+            << " reason=" << error);
+        return;
+    }
+
+    // The poll loop sends one snapshot after all available UDP records
+    // have updated the accumulated intersection state.
+    m_spatemDirty = true;
+}
+
+void
+SimulationController::SendSpatemSnapshot()
+{
+    if (!m_spatemEnabled ||
+        !m_spatemDirty ||
+        !m_spatemEmitter ||
+        !m_spatemRuntime ||
+        !m_spatemRuntime->IsInitialized() ||
+        !m_spatemIntersectionBuilder)
+    {
+        return;
+    }
+
+    const auto& intersection =
+        m_spatemIntersectionBuilder->GetIntersection();
+
+    if (intersection.movements.empty())
+    {
+        return;
+    }
+
+    SpatemInput input;
+    input.stationId = m_spatemEmitter->StationId();
+    input.intersections.push_back(intersection);
+
+    auto context = std::make_shared<PacketContext>();
+    context->senderNodeId = m_spatemEmitter->GetNode()->GetId();
+    context->senderStationId = m_spatemEmitter->StationId();
+    context->packetId = PacketIdManager::Instance().NextPacketId();
+    context->sequenceId =
+        PacketIdManager::Instance().NextSequenceId(
+            m_spatemEmitter->LogicalId(),
+            PayloadType::SPATEM);
+
+    const bool accepted =
+        m_spatemRuntime->Send(context, input);
+
+    // Keep the snapshot dirty when a send request is rejected so that
+    // the next poll can retry the accumulated intersection state.
+    if (accepted)
+    {
+        m_spatemDirty = false;
+    }
+
+    NS_LOG_UNCOND(
+        "[SPATEM_RSU] TX_SNAPSHOT"
+        << " result=" << (accepted ? "ACCEPTED" : "FAILED")
+        << " packet_id=" << context->packetId
+        << " station_id=" << context->senderStationId
+        << " intersection_id=" << m_spatemIntersectionId
+        << " movement_count=" << intersection.movements.size()
+        << " sim_time_s=" << Simulator::Now().GetSeconds());
 }
 
 void

@@ -1,0 +1,14 @@
+Diretoria de testes: /home/mmendes/final/ns-3.47/scratch/vanetza_integration/test
+Ficheiros encontrados: 1
+  red/spatem/rsu/test_rsu_ipv4_sender_resolution.py
+test_ipv4_sender_resolution_is_not_vehicle_only (vanetza_test_0_test_rsu_ipv4_sender_resolution.TestRsuIpv4SenderResolution.test_ipv4_sender_resolution_is_not_vehicle_only)
+O caminho RX não deve exigir VehicleState para resolver qualquer emissor. ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.022s
+
+OK
+
+Resumo: 1 executado(s), 0 falha(s), 0 erro(s).
+
+TEST_EXIT_CODE=0

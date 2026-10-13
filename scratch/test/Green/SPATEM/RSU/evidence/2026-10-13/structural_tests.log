@@ -1,0 +1,21 @@
+test_ipv4_sender_resolution_is_not_vehicle_only (ns3_test_0_test_rsu_ipv4_sender_resolution.TestRsuIpv4SenderResolution.test_ipv4_sender_resolution_is_not_vehicle_only)
+O caminho RX não deve exigir VehicleState para resolver qualquer emissor. ... ok
+test_poll_sends_snapshot_after_draining_udp_batch (ns3_test_1_test_spatem_poll_batch.TestSpatemPollBatch.test_poll_sends_snapshot_after_draining_udp_batch) ... ok
+test_snapshot_sender_transmits_accumulated_intersection (ns3_test_1_test_spatem_poll_batch.TestSpatemPollBatch.test_snapshot_sender_transmits_accumulated_intersection) ... ok
+test_tls_callback_updates_builder_without_sending_each_record (ns3_test_1_test_spatem_poll_batch.TestSpatemPollBatch.test_tls_callback_updates_builder_without_sending_each_record) ... ok
+test_constant_position_mobility_is_installed_before_wifi (ns3_test_2_test_spatem_rsu_mobility.TestSpatemRsuMobility.test_constant_position_mobility_is_installed_before_wifi) ... ok
+test_spatem_service_has_an_active_call_site (ns3_test_3_test_spatem_tx_dispatch.TestSpatemTxDispatch.test_spatem_service_has_an_active_call_site) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.038s
+
+OK
+Diretoria de testes: /home/mmendes/final/ns-3.47/scratch/test
+Ficheiros encontrados: 4
+  Green/SPATEM/RSU/test_rsu_ipv4_sender_resolution.py
+  Green/SPATEM/RSU/test_spatem_poll_batch.py
+  Green/SPATEM/RSU/test_spatem_rsu_mobility.py
+  Green/SPATEM/RSU/test_spatem_tx_dispatch.py
+
+Resumo: 6 executado(s), 0 falha(s), 0 erro(s).
+TEST_EXIT_CODE=0

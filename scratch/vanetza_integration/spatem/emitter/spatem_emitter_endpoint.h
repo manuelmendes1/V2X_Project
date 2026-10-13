@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <limits>
 #include <optional>
 #include <string>
 
@@ -25,6 +26,8 @@ struct SpatemEmitterConfig
     std::string trafficLightId;
 
     uint16_t intersectionId = 0;
+    double latitudeDeg = std::numeric_limits<double>::quiet_NaN();
+    double longitudeDeg = std::numeric_limits<double>::quiet_NaN();
     uint8_t revision = 0;
     uint16_t statusBits = 0;
 
@@ -36,6 +39,8 @@ class SpatemEmitterEndpoint
 public:
     static std::unique_ptr<SpatemEmitterEndpoint>
     Create(const SpatemEmitterConfig& config);
+
+    ~SpatemEmitterEndpoint();
 
     const std::string& LogicalId() const;
 
@@ -55,7 +60,11 @@ public:
 
     bool IsVehicle() const;
 
+    ItsStationState& StationState();
     const ItsStationState& StationState() const;
+
+    double LatitudeDeg() const;
+    double LongitudeDeg() const;
 
     bool InitializeNetwork(
         Ptr<YansWifiChannel> channel,

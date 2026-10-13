@@ -10,6 +10,8 @@
 namespace ns3
 {
 
+class SpatemEmitterEndpoint;
+
 struct VehicleState;
 
 class VehicleNetworkBuilder
@@ -20,6 +22,11 @@ public:
         Ptr<YansWifiChannel> channel,
         const Ipv4AddressHelper& ipv4,
         const Callback<void, Ptr<Socket>>& rxCallback);
+
+    // Inicializa a rede de um endpoint RSU usando o mesmo
+    // canal Wi-Fi e o mesmo alocador IPv4 que os veículos.
+    static bool InitializeSpatemEmitter(
+        SpatemEmitterEndpoint& endpoint);
 
     static Ptr<Socket> Build(
         Ptr<Node> node);

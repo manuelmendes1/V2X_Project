@@ -3,6 +3,7 @@
 #include "ns3/inet-socket-address.h"
 #include "ns3/internet-module.h"
 #include "ns3/log.h"
+#include "ns3/mobility-module.h"
 #include "ns3/network-module.h"
 #include "ns3/traffic-control-module.h"
 #include "ns3/udp-socket-factory.h"
@@ -54,6 +55,13 @@ ItsStationNetworkBuilder::ConfigureNetworking(
     NS_ABORT_MSG_IF(
         node == nullptr,
         "[ITS_STATION_NET] node is null");
+
+    // The RSU needs a MobilityModel before its Wi-Fi PHY can transmit.
+    // This ns-3 position is independent of the GeoNetworking latitude/longitude.
+    MobilityHelper mobility;
+    mobility.SetMobilityModel(
+        "ns3::ConstantPositionMobilityModel");
+    mobility.Install(node);
 
     InternetStackHelper internet;
     internet.Install(node);
