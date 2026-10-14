@@ -3,6 +3,7 @@
 
 #include "vanetza_integration/spatem/rx/spatem_rx_pipeline.h"
 #include "vanetza_integration/context/packet/packet_id_manager.h"
+#include "vanetza_integration/core/packet_id_tag/packet_id_tag.h"
 #include "vanetza_integration/context/rx_bridge/rx_bridge_context.h"
 #include "vanetza_integration/context/vehicle_state.h"
 #include "vanetza_integration/context/vehicle_registry/vehicle_registry.h"
@@ -851,19 +852,44 @@ VanetzaRuntime::ReceivePacket(
         m_vehicle.identity.stationId;
 
     //-------------------------------------------------------------------------
-    // Allocate RX-local observability identifier.
+    // Recover the simulation-only packet ID from PacketIdTag.
     //
-    // RX must not consume TX-side vehicle counters.
-    // packetId identifies this received context.
-    // vehiclePacketId and sequenceId are TX metadata and are not
-    // reconstructed on RX because they are not present in the CAM ASN.1.
+    // Packets without a valid tag receive a local fallback ID.
+    // vehiclePacketId and sequenceId remain unset on RX because they are
+    // internal TX metadata and are not reconstructed from the ASN.1 payload.
     //-------------------------------------------------------------------------
+
+
+    PacketIdTag rxTag;
+
+    const bool hasPacketIdTag =
+        packet->PeekPacketTag(rxTag);
+
+    const auto taggedPacketId =
+        hasPacketIdTag ? rxTag.GetPacketId() : 0;
 
     auto& packetIds =
         PacketIdManager::Instance();
 
-    ctx.packetId =
-        packetIds.NextPacketId();
+    if (taggedPacketId != 0)
+    {
+        ctx.packetId = taggedPacketId;
+
+        NS_LOG_UNCOND(
+            "[RX_PACKET_ID_TAG] packet_id="
+            << ctx.packetId);
+    }
+    else
+    {
+        // Fallback: this ID identifies the local RX context only.
+        ctx.packetId = packetIds.NextPacketId();
+
+        NS_LOG_UNCOND(
+            "[RX_PACKET_ID_TAG_MISSING] reason="
+            << (hasPacketIdTag ? "zero_id" : "not_present")
+            << " fallback_packet_id="
+            << ctx.packetId);
+    }
 
     ctx.vehiclePacketId = 0;
     ctx.sequenceId = 0;

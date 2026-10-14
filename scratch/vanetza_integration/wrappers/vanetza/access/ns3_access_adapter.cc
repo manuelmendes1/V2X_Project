@@ -3,6 +3,7 @@
 #include "vanetza_integration/context/vehicle_state.h"
 #include "vanetza_integration/context/tx_bridge/tx_bridge_context.h"
 #include "vanetza_integration/core/v2x_log.h"
+#include "vanetza_integration/core/packet_id_tag/packet_id_tag.h"
 
 #include "ns3/inet-socket-address.h"
 #include "ns3/ipv4-address.h"
@@ -2289,6 +2290,16 @@ Ns3AccessAdapter::request(
         Create<Packet>(
             frame.data(),
             frame.size());
+
+    if (ctx && ctx->packetId != 0)
+    {
+        PacketIdTag tag(ctx->packetId);
+        ns3Packet->AddPacketTag(tag);
+
+        NS_LOG_UNCOND(
+            "[TX_PACKET_ID_TAG] packet_id="
+            << ctx->packetId);
+    }
 
     NS_LOG_UNCOND(
         "[TX_BYTELEVEL] ns3::Packet created size="
