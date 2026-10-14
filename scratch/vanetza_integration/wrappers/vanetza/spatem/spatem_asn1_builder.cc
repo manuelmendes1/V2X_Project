@@ -183,11 +183,6 @@ bool BuildMovement(
         return false;
     }
 
-    if (input.signalGroup > 255)
-    {
-        return false;
-    }
-
     movement.signalGroup =
         static_cast<SignalGroupID_t>(
             input.signalGroup);
@@ -265,6 +260,12 @@ bool BuildIntersection(
     intersection.id.id =
         static_cast<IntersectionID_t>(
             input.intersectionId);
+
+    // MsgCount is constrained by ASN.1 to the range 0..127.
+    if (input.revision > 127U)
+    {
+        return false;
+    }
 
     intersection.revision =
         static_cast<MsgCount_t>(

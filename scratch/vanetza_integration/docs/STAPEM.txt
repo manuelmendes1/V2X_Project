@@ -1,7 +1,10 @@
+---
 title: "Etapa 9 — SPATEM — Plano de Implementação e Validação"
+aliases:
+  - ETAPA_9_SPATEM_PLANO
 status: "ACTIVE / REVALIDATED"
 type: "FUNCTIONAL DEVELOPMENT AND VALIDATION PLAN"
-date: 2026-10-04
+date: "2026-10-04"
 last_revalidated: "2026-10-13"
 project: "ns-3.47 + Vanetza + SUMO V2X Integration"
 stage: "ETAPA 9"
@@ -10,23 +13,19 @@ baseline: "POST-P21"
 baseline_commit: "420db8a"
 previous_stage: "P21 CLOSED / VALIDATED"
 next_stage: "SPATEM-19 / Fase 9.14 — Robustness"
-related_state:
+related_state: "[[CURRENT_STATE]]"
+related_status: "[[DOCUMENT_STATUS]]"
+previous_rebaseline: "[[POST_P21_REBASELINE_2026-10-04]]"
+reference_plan: "[[ETAPA_8_DENM_PLANO]]"
+reference_state: "[[ETAPA_8_DENM_ESTADO_TECNICO_2026-09-18]]"
+tags:
+  - V2X
+  - SPATEM
+  - planning
+  - validation
+---
 
-"[[CURRENT_STATE]]"
-related_status:
-
-"[[DOCUMENT_STATUS]]"
-previous_rebaseline:
-
-"[[POST_P21_REBASELINE_2026-10-04]]"
-reference_plan:
-
-"[[ETAPA_8_DENM_PLANO]]"
-reference_state:
-
-"[[ETAPA_8_DENM_ESTADO_TECNICO_2026-09-18]]"
-
-Etapa 9 — SPATEM — Plano de Implementação e Validação
+# Etapa 9 — SPATEM — Plano de Implementação e Validação
 
 1. Objetivo
 
@@ -1410,3 +1409,144 @@ A alteração atual agrega identidade/estação RSU, runtime de transmissão,
 integração SUMO TLS e testes associados. Não deve ser identificada como
 um commit exclusivo da Fase 9.2. A mensagem de commit proposta é:
 feat(spatem): integrate SUMO TLS RSU transmission path
+
+33. Fase 9.14 — cobertura inicial do builder ASN.1 (2026-10-13)
+
+Teste:
+scratch/test/Red/SPATEM/test_spatem_asn1_builder_negative.cc
+scratch/test/Red/SPATEM/test_spatem_asn1_builder_negative.py
+
+Execução:
+python3 scratch/test/run_tests.py --test Red/SPATEM/test_spatem_asn1_builder_negative.py
+
+Resultado observado:
+22 verificações C++ executadas; 22 passaram; zero falhas.
+A cobertura invoca diretamente SpatemAsn1Builder::Build() e verifica
+rejeição de inputs inválidos para interseção, movimentos, estado,
+campos temporais e limites de cardinalidade, além de controlos válidos.
+
+Evidência detalhada:
+[[SPATEM_ASN1_BUILDER_NEGATIVE_2026-10-13]].
+
+Limites:
+Este resultado é parcial. Não demonstra robustez completa do codec UPER,
+dispatch BTP, identidade RX, replay ou entrega. Permanecem por cobrir
+explicitamente, entre outros, mais de 16 eventos por movimento,
+maxEndTime fora do domínio e likelyTime superior a maxEndTime.
+
+Estado:
+SPATEM-19 / Fase 9.14 = ACTIVE.
+Não avançar para CLOSEOUT com base apenas neste teste. Os casos restantes
+devem seguir RED → GREEN → evidência, distinguindo falhas de decode,
+validação semântica, replay, encaminhamento e entrega.
+34. Fase 9.14 — validação da revisão e fronteira SUMO (2026-10-13)
+
+Correção do builder ASN.1:
+- SpatemAsn1Builder::Build() rejeita revision > 127 antes de atribuir
+  o valor a MsgCount_t.
+- revision=128 é rejeitada e revision=127 é aceite.
+- Foi demonstrada a preservação de duas interseções distintas: IDs 42 e 43,
+  revisões 7 e 8.
+- Resultado atual do teste do builder: 25 verificações, 25 PASS, 0 FAIL.
+- O teste RED inicial demonstrou que revision=128 era aceite antes da
+  correção; o mesmo teste passou após a alteração.
+
+Fronteira SUMO -> SPATEM:
+- SumoTrafficLightState::linkIndex é uint32_t; SpatemMovement::signalGroup
+  é uint8_t.
+- A condição input.signalGroup > 255 foi removida de BuildMovement(),
+  porque o campo já não consegue representar valores superiores a 255.
+- A rejeição do índice fora do domínio permanece em
+  SumoTrafficLightSpatemIntersectionBuilder::Update(), antes da conversão.
+- linkIndex=7 é aceite; linkIndex=256 é rejeitado.
+- O teste confirma que a rejeição de linkIndex=256 não altera o estado
+  previamente construído.
+- Resultado do teste de fronteira: 2 verificações, 2 PASS, 0 FAIL.
+
+Regressão e build após as alterações:
+- Builder ASN.1: PASS, 25/25.
+- Fronteira SUMO -> SPATEM: PASS, 2/2.
+- Testes estruturais: PASS — dispatch TX (1), resolução IPv4 (1),
+  poll/batch (3) e mobilidade RSU (1).
+- Build: cmake --build cmake-cache --target ns3.47-v2x_sumo-default -j2
+  terminou com código de saída 0.
+- git diff --check: código de saída 0.
+
+Evidência:
+- [[SPATEM_ASN1_BUILDER_NEGATIVE_2026-10-13]]
+- [[SUMO_SPATEM_INTERSECTION_BUILDER_BOUNDARY_2026-10-13]]
+- Código do teste de fronteira:
+  scratch/test/Red/SPATEM/test_sumo_spatem_intersection_builder_boundary.cc
+- Harness Python:
+  scratch/test/Red/SPATEM/test_sumo_spatem_intersection_builder_boundary.py
+
+Limites:
+Esta validação não cobre ainda todos os critérios da matriz 9.14, incluindo
+payload codificado malformado, mensagem errada, dispatch BTP incorreto,
+duplicados físicos, replay, emissor desconhecido e comportamento self-origin.
+O build e os testes acima não equivalem a uma nova execução E2E após a
+alteração, nem demonstram interoperabilidade com outra estação.
+
+Estado:
+SPATEM-19 / Fase 9.14 = ACTIVE.
+Continuar RED -> GREEN -> evidência para os critérios pendentes.
+35. Fase 9.14 — cobertura temporal adicional (2026-10-13)
+
+Foram adicionados dois casos ao teste real de SpatemAsn1Builder::Build():
+
+- maxEndTime=36002: rejeitado por exceder o domínio TimeMark testado.
+- minEndTime=100, maxEndTime=200, likelyTime=201: rejeitado por
+  likelyTime exceder maxEndTime.
+- Teste do builder: 27 verificações, 27 PASS, 0 FAIL.
+- Teste da fronteira SUMO -> SPATEM: 2 verificações, 2 PASS, 0 FAIL.
+- Testes estruturais RSU e build de produção permanecem aprovados nos
+  resultados registados na secção 34. Nesta etapa foram alterados testes e
+  documentação, não o código de produção.
+
+Evidência:
+- [[SPATEM_ASN1_BUILDER_NEGATIVE_2026-10-13]]
+- [[SUMO_SPATEM_INTERSECTION_BUILDER_BOUNDARY_2026-10-13]]
+
+Estado:
+SPATEM-19 / Fase 9.14 = ACTIVE.
+A matriz ainda exige cobertura de payload malformado, message ID incorreto,
+dispatch BTP incorreto, duplicados físicos, replay, emissor desconhecido
+e self-origin behavior, entre outros critérios do plano.
+
+
+36. Fase 9.14 — validação consolidada dos testes (2026-10-14)
+
+Suite oficial:
+- Comando: python3 scratch/test/run_tests.py --suite all.
+- Resultado: 10 testes executados, zero falhas e zero erros.
+- Duração registada: 8,040 segundos.
+
+Testes negativos:
+- ASN.1 Builder: 27/27 casos aprovados.
+- Codec com payload malformado: 2/2 casos aprovados.
+- UPER Decoder com payload malformado: 2/2 casos aprovados.
+- SUMO Intersection Builder: 2/2 casos aprovados.
+- Total: 33/33 casos aprovados.
+
+Compilação:
+- Comando: cmake --build cmake-cache --target ns3.47-v2x_sumo-default
+  --clean-first -j2.
+- Resultado: código de saída 0; 1094 etapas concluídas e executável ligado.
+
+Evidência:
+- [[SPATEM_ASN1_BUILDER_NEGATIVE_2026-10-13]]
+- [[SUMO_SPATEM_INTERSECTION_BUILDER_BOUNDARY_2026-10-13]]
+- scratch/test/Red/SPATEM/test_spatem_codec_malformed.py
+- scratch/test/Red/SPATEM/test_spatem_uper_decoder_malformed.py
+- Log da suite: /tmp/v2x_test_suite_all_20261014.log
+- Log da compilação: /tmp/spatem19_clean_build.log
+
+Limitações:
+Os testes não demonstram a pipeline RX ponta a ponta, dispatch BTP
+incorreto, duplicados físicos, replay, emissor desconhecido, comportamento
+self-origin ou entrega a uma estação remota. A suite atual não contém
+testes específicos de regressão CAM/DENM.
+
+Estado:
+SPATEM-19 / Fase 9.14 = ACTIVE.
+Não declarar CLOSEOUT antes de demonstrar os critérios restantes.
