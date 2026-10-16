@@ -7,6 +7,10 @@
 namespace
 {
 
+// Without a semantic sender timestamp, only near-identical arrivals can
+// be suppressed safely. This bounded window is not long-term replay proof.
+constexpr uint64_t NON_SEMANTIC_DUPLICATE_WINDOW_US = 1000ULL;
+
 uint64_t
 Fnv1a64(const std::vector<uint8_t>& bytes)
 {
@@ -66,10 +70,14 @@ SpatemReplayProtection::Process(
     for (const auto& intersection :
          message.intersections)
     {
+        const bool semanticTimestamp =
+            HasSemanticTimestamp(intersection);
+
         SpatemReplayKey key{
             message.stationId,
             intersection.region,
-            intersection.intersectionId};
+            intersection.intersectionId,
+            semanticTimestamp};
 
         auto it =
             replay.database.find(key);
@@ -81,9 +89,6 @@ SpatemReplayProtection::Process(
 
         const SpatemReplayEntry& entry =
             it->second;
-
-        const bool semanticTimestamp =
-            HasSemanticTimestamp(intersection);
 
         const uint64_t timestamp =
             semanticTimestamp
@@ -115,9 +120,28 @@ SpatemReplayProtection::Process(
             return false;
         }
 
-        if (timestamp == entry.timestamp &&
-            entry.fingerprints.find(fingerprint) !=
-                entry.fingerprints.end())
+        bool duplicateFingerprint = false;
+
+        if (semanticTimestamp)
+        {
+            duplicateFingerprint =
+                timestamp == entry.timestamp &&
+                entry.fingerprints.find(fingerprint) !=
+                    entry.fingerprints.end();
+        }
+        else
+        {
+            const auto seen =
+                entry.fingerprintReceiveTimestamps.find(fingerprint);
+
+            duplicateFingerprint =
+                seen != entry.fingerprintReceiveTimestamps.end() &&
+                timestamp >= seen->second &&
+                timestamp - seen->second <=
+                    NON_SEMANTIC_DUPLICATE_WINDOW_US;
+        }
+
+        if (duplicateFingerprint)
         {
             context.MarkDrop();
             context.reason =
@@ -144,33 +168,63 @@ SpatemReplayProtection::Process(
     for (const auto& intersection :
          message.intersections)
     {
+        const bool semanticTimestamp =
+            HasSemanticTimestamp(intersection);
+
         SpatemReplayKey key{
             message.stationId,
             intersection.region,
-            intersection.intersectionId};
+            intersection.intersectionId,
+            semanticTimestamp};
 
         SpatemReplayEntry& entry =
             replay.database[key];
-
-        const bool semanticTimestamp =
-            HasSemanticTimestamp(intersection);
 
         const uint64_t timestamp =
             semanticTimestamp
                 ? SemanticTimestamp(intersection)
                 : context.timestamp;
 
-        if (!entry.hasTimestamp ||
-            timestamp > entry.timestamp)
+        if (semanticTimestamp)
         {
-            entry.hasTimestamp = true;
-            entry.semanticTimestamp =
-                semanticTimestamp;
-            entry.timestamp = timestamp;
-            entry.fingerprints.clear();
-        }
+            if (!entry.hasTimestamp ||
+                timestamp > entry.timestamp)
+            {
+                entry.hasTimestamp = true;
+                entry.semanticTimestamp = true;
+                entry.timestamp = timestamp;
+                entry.fingerprints.clear();
+                entry.fingerprintReceiveTimestamps.clear();
+            }
 
-        entry.fingerprints.insert(fingerprint);
+            entry.fingerprints.insert(fingerprint);
+        }
+        else
+        {
+            // Retain recent fingerprints independently so an intervening
+            // different payload does not hide a near-term duplicate.
+            for (auto seen = entry.fingerprintReceiveTimestamps.begin();
+                 seen != entry.fingerprintReceiveTimestamps.end();)
+            {
+                if (timestamp >= seen->second &&
+                    timestamp - seen->second >
+                        NON_SEMANTIC_DUPLICATE_WINDOW_US)
+                {
+                    entry.fingerprints.erase(seen->first);
+                    seen = entry.fingerprintReceiveTimestamps.erase(seen);
+                }
+                else
+                {
+                    ++seen;
+                }
+            }
+
+            entry.hasTimestamp = true;
+            entry.semanticTimestamp = false;
+            entry.timestamp = timestamp;
+            entry.fingerprints.insert(fingerprint);
+            entry.fingerprintReceiveTimestamps[fingerprint] = timestamp;
+        }
     }
 
     context.MarkSuccess();

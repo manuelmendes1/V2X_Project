@@ -141,3 +141,9 @@ scratch/test/**/*.py[cod]
 scratch/test/**/.pytest_cache/
 scratch/test/**/CMakeFiles/
 scratch/test/**/build/
+
+# Official SPATEM plan: allow only the canonical document path.
+!scratch/
+!scratch/docs/
+!scratch/docs/SPATEM/
+!scratch/docs/SPATEM/ETAPA_9_SPATEM_PLANO.txt

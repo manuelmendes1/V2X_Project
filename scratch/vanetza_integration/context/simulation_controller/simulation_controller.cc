@@ -26,6 +26,8 @@
 #include <cstdint>
 #include <iostream>
 #include <utility>
+#include <cstdlib>
+#include <cerrno>
 
 namespace ns3
 {
@@ -45,6 +47,8 @@ uint16_t SimulationController::m_spatemIntersectionId = 0;
 std::string SimulationController::m_spatemTrafficLightId;
 double SimulationController::m_spatemLatitudeDeg = 0.0;
 double SimulationController::m_spatemLongitudeDeg = 0.0;
+double SimulationController::m_spatemNs3X = 0.0;
+double SimulationController::m_spatemNs3Y = 0.0;
 std::unique_ptr<SpatemEmitterEndpoint> SimulationController::m_spatemEmitter;
 std::unique_ptr<SpatemRsuRuntime> SimulationController::m_spatemRuntime;
 std::unique_ptr<SumoTrafficLightSpatemIntersectionBuilder> SimulationController::m_spatemIntersectionBuilder;
@@ -64,8 +68,61 @@ SimulationController::Start(Time stepLength)
         &SimulationController::PollLoop);
 
     // CAM passa a ter um scheduler independente.
-    Simulator::ScheduleNow(
-        &SimulationController::SendCam);
+    // O offset inicial opcional destina-se a ensaios controlados;
+    // sem configuração, o scheduler mantém o arranque imediato.
+    const char* camInitialDelayEnv =
+        std::getenv("V2X_CAM_INITIAL_DELAY_US");
+
+    long long camInitialDelayUs = 0;
+
+    if (camInitialDelayEnv != nullptr && *camInitialDelayEnv != '\0')
+    {
+        char* end = nullptr;
+        errno = 0;
+
+        const long long parsedDelayUs =
+            std::strtoll(camInitialDelayEnv, &end, 10);
+
+        if (errno == 0 &&
+            end != camInitialDelayEnv &&
+            *end == '\0' &&
+            parsedDelayUs >= 0)
+        {
+            camInitialDelayUs = parsedDelayUs;
+        }
+        else
+        {
+            NS_LOG_UNCOND(
+                "[CAM_SCHEDULER] invalid V2X_CAM_INITIAL_DELAY_US; "
+                "using 0");
+        }
+    }
+
+    const auto camScheduleBaseUs =
+        Simulator::Now().GetMicroSeconds();
+
+    NS_LOG_UNCOND(
+        "[CAM_SCHEDULER] schedule_base_sim_us="
+        << camScheduleBaseUs
+        << " initial_delay_us=" << camInitialDelayUs
+        << " first_due_sim_us="
+        << (camScheduleBaseUs + camInitialDelayUs));
+
+    if (camInitialDelayUs == 0)
+    {
+        Simulator::ScheduleNow(
+            &SimulationController::SendCam);
+    }
+    else
+    {
+        NS_LOG_UNCOND(
+            "[CAM_SCHEDULER] initial_delay_us="
+            << camInitialDelayUs);
+
+        Simulator::Schedule(
+            MicroSeconds(camInitialDelayUs),
+            &SimulationController::SendCam);
+    }
 
     // DENM é explicitamente opt-in e não altera o comportamento CAM.
     if (m_denmEnabled)
@@ -100,6 +157,26 @@ SimulationController::StopSimulation()
     Simulator::Stop();
 }
 
+void
+SimulationController::ShutdownSpatemEmitter()
+{
+    const bool hadSpatemResources =
+        static_cast<bool>(m_spatemRuntime) ||
+        static_cast<bool>(m_spatemIntersectionBuilder) ||
+        static_cast<bool>(m_spatemEmitter);
+
+    // The runtime references the endpoint: destroy it first.
+    m_spatemRuntime.reset();
+    m_spatemIntersectionBuilder.reset();
+    m_spatemEmitter.reset();
+    m_spatemDirty = false;
+
+    if (hadSpatemResources)
+    {
+        NS_LOG_UNCOND("[SPATEM_RSU] SHUTDOWN_COMPLETE");
+    }
+}
+
 // ============================================================================
 // Main polling loop
 // ============================================================================
@@ -123,6 +200,16 @@ SimulationController::PollLoop()
 // ============================================================================
 
 void SimulationController::SendCam() {
+    static bool firstSchedulerFireLogged = false;
+
+    if (!firstSchedulerFireLogged)
+    {
+        NS_LOG_UNCOND(
+            "[CAM_SCHEDULER] first_sendcam_fire_sim_us="
+            << Simulator::Now().GetMicroSeconds());
+
+        firstSchedulerFireLogged = true;
+    }
 
     CamScheduler::Run();
 
@@ -205,7 +292,9 @@ SimulationController::ConfigureSpatemEmitter(
     uint32_t intersectionId,
     const std::string& trafficLightId,
     double latitudeDeg,
-    double longitudeDeg)
+    double longitudeDeg,
+    double ns3X,
+    double ns3Y)
 {
     NS_ABORT_MSG_IF(
         enabled &&
@@ -216,9 +305,11 @@ SimulationController::ConfigureSpatemEmitter(
              !std::isfinite(latitudeDeg) ||
              latitudeDeg < -90.0 || latitudeDeg > 90.0 ||
              !std::isfinite(longitudeDeg) ||
-             longitudeDeg < -180.0 || longitudeDeg > 180.0),
+             longitudeDeg < -180.0 || longitudeDeg > 180.0 ||
+             !std::isfinite(ns3X) ||
+             !std::isfinite(ns3Y)),
         "[SPATEM_RSU] Enabled SPATEM requires station/intersection IDs, "
-        "trafficLightId and finite geographic coordinates in range");
+        "trafficLightId and finite geographic/ns-3 physical coordinates");
 
     m_spatemEnabled = enabled;
     m_spatemStationId = stationId;
@@ -227,6 +318,8 @@ SimulationController::ConfigureSpatemEmitter(
     m_spatemTrafficLightId = trafficLightId;
     m_spatemLatitudeDeg = latitudeDeg;
     m_spatemLongitudeDeg = longitudeDeg;
+    m_spatemNs3X = ns3X;
+    m_spatemNs3Y = ns3Y;
 
     m_spatemRuntime.reset();
     m_spatemIntersectionBuilder.reset();
@@ -242,7 +335,9 @@ SimulationController::ConfigureSpatemEmitter(
         << " traffic_light="
         << m_spatemTrafficLightId
         << " latitude_deg=" << m_spatemLatitudeDeg
-        << " longitude_deg=" << m_spatemLongitudeDeg);
+        << " longitude_deg=" << m_spatemLongitudeDeg
+        << " ns3_x=" << m_spatemNs3X
+        << " ns3_y=" << m_spatemNs3Y);
 }
 
 void
@@ -279,6 +374,8 @@ SimulationController::HandleTrafficLightUpdateFromSumo(
         config.intersectionId = m_spatemIntersectionId;
         config.latitudeDeg = m_spatemLatitudeDeg;
         config.longitudeDeg = m_spatemLongitudeDeg;
+        config.ns3X = m_spatemNs3X;
+        config.ns3Y = m_spatemNs3Y;
 
         auto endpoint = SpatemEmitterEndpoint::Create(config);
         if (!endpoint)

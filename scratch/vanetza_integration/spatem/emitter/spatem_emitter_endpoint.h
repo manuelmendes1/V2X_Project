@@ -28,6 +28,8 @@ struct SpatemEmitterConfig
     uint16_t intersectionId = 0;
     double latitudeDeg = std::numeric_limits<double>::quiet_NaN();
     double longitudeDeg = std::numeric_limits<double>::quiet_NaN();
+    double ns3X = 0.0;
+    double ns3Y = 0.0;
     uint8_t revision = 0;
     uint16_t statusBits = 0;
 
@@ -90,6 +92,7 @@ private:
     SpatemEmitterConfig m_config;
 
     ItsStationState m_stationState;
+    bool m_stationRegistryRegistered{false};
 };
 
 } // namespace ns3

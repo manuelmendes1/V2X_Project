@@ -1,5 +1,7 @@
 #pragma once
 
+#include "ns3/vector.h"
+
 #include "ns3/callback.h"
 #include "ns3/ipv4-address.h"
 #include "ns3/ipv4-address-helper.h"
@@ -30,7 +32,8 @@ public:
     static ItsStationNetworkResources Build(
         Ptr<YansWifiChannel> channel,
         Ipv4AddressHelper& ipv4,
-        const Callback<void, Ptr<Socket>>& rxCallback);
+        const Callback<void, Ptr<Socket>>& rxCallback,
+        const Vector& position);
 
 private:
 
@@ -38,6 +41,7 @@ private:
         Ptr<Node> node,
         Ptr<YansWifiChannel> channel,
         Ipv4AddressHelper& ipv4,
+        const Vector& position,
         ItsStationNetworkResources& resources);
 
     static Ptr<Socket> CreateSocket(

@@ -19,7 +19,7 @@
 - `scratch/test/Red/CAM/`: testes negativos CAM.
 - `scratch/test/Red/DENM/`: testes negativos DENM.
 - `scratch/test/Red/SPATEM/`: testes negativos SPATEM.
-- `scratch/vanetza_integration/docs/STAPEM.txt`: plano de referência SPATEM.
+- `scratch/docs/SPATEM/ETAPA_9_SPATEM_PLANO.txt`: plano canónico de referência SPATEM; mantém o alias Obsidian `STAPEM`.
 - `scratch/test/run_tests.py`: executor oficial das suites unittest.
 - `scratch/test/Green/SPATEM/RSU/evidence/`: logs e evidência runtime.
 
