@@ -27,6 +27,7 @@ int main(int argc, char* argv[]) {
 
     double simDurationSec = 60.0;
 
+    bool enableCam = true;
     bool enableDenm = false;
     bool enableSpatem = false;
     uint32_t spatemStationId = 0;
@@ -49,6 +50,11 @@ int main(int argc, char* argv[]) {
         "simDuration",
         "Duracao maxima da simulacao em segundos (cenario SUMO + margem)",
         simDurationSec);
+
+    cmd.AddValue(
+        "enableCam",
+        "Ativa o scheduler de transmissão CAM",
+        enableCam);
 
     cmd.AddValue(
         "enableDenm",
@@ -141,6 +147,7 @@ int main(int argc, char* argv[]) {
 
     SimulationController::ConfigureSumoAdapterCallbacks();
 
+    SimulationController::SetCamEnabled(enableCam);
     SimulationController::SetDenmEnabled(enableDenm);
 
     SimulationController::SetDenmRadiusMeters(denmRadiusMeters);

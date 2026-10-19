@@ -23,6 +23,8 @@ public:
 
     static void Start(Time stepLength);
 
+    static void SetCamEnabled(bool enabled);
+
     static void SetDenmEnabled(bool enabled);
 
     static void SetDenmRadiusMeters(double radiusMeters);
@@ -74,6 +76,7 @@ private:
 
     static Time m_stepLength;
 
+    static bool m_camEnabled;
     static bool m_denmEnabled;
 
     static double m_denmRadiusMeters;

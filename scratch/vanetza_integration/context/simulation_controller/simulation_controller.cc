@@ -34,6 +34,7 @@ namespace ns3
 
 Time SimulationController::m_stepLength = MilliSeconds(100);
 
+bool SimulationController::m_camEnabled = true;
 bool SimulationController::m_denmEnabled = false;
 
 double SimulationController::m_denmRadiusMeters = 1000.0;
@@ -70,58 +71,61 @@ SimulationController::Start(Time stepLength)
     // CAM passa a ter um scheduler independente.
     // O offset inicial opcional destina-se a ensaios controlados;
     // sem configuração, o scheduler mantém o arranque imediato.
-    const char* camInitialDelayEnv =
-        std::getenv("V2X_CAM_INITIAL_DELAY_US");
-
-    long long camInitialDelayUs = 0;
-
-    if (camInitialDelayEnv != nullptr && *camInitialDelayEnv != '\0')
+    if (m_camEnabled)
     {
-        char* end = nullptr;
-        errno = 0;
+        const char* camInitialDelayEnv =
+            std::getenv("V2X_CAM_INITIAL_DELAY_US");
 
-        const long long parsedDelayUs =
-            std::strtoll(camInitialDelayEnv, &end, 10);
+        long long camInitialDelayUs = 0;
 
-        if (errno == 0 &&
-            end != camInitialDelayEnv &&
-            *end == '\0' &&
-            parsedDelayUs >= 0)
+        if (camInitialDelayEnv != nullptr && *camInitialDelayEnv != '\0')
         {
-            camInitialDelayUs = parsedDelayUs;
+            char* end = nullptr;
+            errno = 0;
+
+            const long long parsedDelayUs =
+                std::strtoll(camInitialDelayEnv, &end, 10);
+
+            if (errno == 0 &&
+                end != camInitialDelayEnv &&
+                *end == '\0' &&
+                parsedDelayUs >= 0)
+            {
+                camInitialDelayUs = parsedDelayUs;
+            }
+            else
+            {
+                NS_LOG_UNCOND(
+                    "[CAM_SCHEDULER] invalid V2X_CAM_INITIAL_DELAY_US; "
+                    "using 0");
+            }
+        }
+
+        const auto camScheduleBaseUs =
+            Simulator::Now().GetMicroSeconds();
+
+        NS_LOG_UNCOND(
+            "[CAM_SCHEDULER] schedule_base_sim_us="
+            << camScheduleBaseUs
+            << " initial_delay_us=" << camInitialDelayUs
+            << " first_due_sim_us="
+            << (camScheduleBaseUs + camInitialDelayUs));
+
+        if (camInitialDelayUs == 0)
+        {
+            Simulator::ScheduleNow(
+                &SimulationController::SendCam);
         }
         else
         {
             NS_LOG_UNCOND(
-                "[CAM_SCHEDULER] invalid V2X_CAM_INITIAL_DELAY_US; "
-                "using 0");
+                "[CAM_SCHEDULER] initial_delay_us="
+                << camInitialDelayUs);
+
+            Simulator::Schedule(
+                MicroSeconds(camInitialDelayUs),
+                &SimulationController::SendCam);
         }
-    }
-
-    const auto camScheduleBaseUs =
-        Simulator::Now().GetMicroSeconds();
-
-    NS_LOG_UNCOND(
-        "[CAM_SCHEDULER] schedule_base_sim_us="
-        << camScheduleBaseUs
-        << " initial_delay_us=" << camInitialDelayUs
-        << " first_due_sim_us="
-        << (camScheduleBaseUs + camInitialDelayUs));
-
-    if (camInitialDelayUs == 0)
-    {
-        Simulator::ScheduleNow(
-            &SimulationController::SendCam);
-    }
-    else
-    {
-        NS_LOG_UNCOND(
-            "[CAM_SCHEDULER] initial_delay_us="
-            << camInitialDelayUs);
-
-        Simulator::Schedule(
-            MicroSeconds(camInitialDelayUs),
-            &SimulationController::SendCam);
     }
 
     // DENM é explicitamente opt-in e não altera o comportamento CAM.
@@ -216,6 +220,12 @@ void SimulationController::SendCam() {
     Simulator::Schedule(
         CamScheduler::RunInterval(),
         &SimulationController::SendCam);
+}
+
+void
+SimulationController::SetCamEnabled(bool enabled)
+{
+    m_camEnabled = enabled;
 }
 
 void
