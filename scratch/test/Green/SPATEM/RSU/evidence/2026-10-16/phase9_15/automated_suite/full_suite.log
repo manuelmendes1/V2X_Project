@@ -1,0 +1,178 @@
+test_mapping_contract (ns3_test_0_test_sumo_traffic_light_mapper.TestSumoTrafficLightMapper.test_mapping_contract) ... ok
+test_ipv4_sender_resolution_is_not_vehicle_only (ns3_test_1_test_rsu_ipv4_sender_resolution.TestRsuIpv4SenderResolution.test_ipv4_sender_resolution_is_not_vehicle_only)
+O caminho RX não deve exigir VehicleState para resolver qualquer emissor. ... ok
+test_audit_helper_is_opt_in (ns3_test_2_test_spatem_phy_audit.SpatemPhyAuditTest.test_audit_helper_is_opt_in) ... ok
+test_helper_supports_required_physical_traces (ns3_test_2_test_spatem_phy_audit.SpatemPhyAuditTest.test_helper_supports_required_physical_traces) ... ok
+test_rsu_network_connects_transmit_traces (ns3_test_2_test_spatem_phy_audit.SpatemPhyAuditTest.test_rsu_network_connects_transmit_traces) ... ok
+test_vehicle_network_connects_receive_traces (ns3_test_2_test_spatem_phy_audit.SpatemPhyAuditTest.test_vehicle_network_connects_receive_traces) ... ok
+test_poll_sends_snapshot_after_draining_udp_batch (ns3_test_3_test_spatem_poll_batch.TestSpatemPollBatch.test_poll_sends_snapshot_after_draining_udp_batch) ... ok
+test_snapshot_sender_transmits_accumulated_intersection (ns3_test_3_test_spatem_poll_batch.TestSpatemPollBatch.test_snapshot_sender_transmits_accumulated_intersection) ... ok
+test_tls_callback_updates_builder_without_sending_each_record (ns3_test_3_test_spatem_poll_batch.TestSpatemPollBatch.test_tls_callback_updates_builder_without_sending_each_record) ... ok
+test_constant_position_mobility_is_installed_before_wifi (ns3_test_4_test_spatem_rsu_mobility.TestSpatemRsuMobility.test_constant_position_mobility_is_installed_before_wifi) ... ok
+test_cli_exposes_independent_physical_coordinates (ns3_test_5_test_spatem_rsu_physical_position.TestSpatemRsuPhysicalPosition.test_cli_exposes_independent_physical_coordinates) ... ok
+test_coordinates_reach_the_endpoint_configuration (ns3_test_5_test_spatem_rsu_physical_position.TestSpatemRsuPhysicalPosition.test_coordinates_reach_the_endpoint_configuration) ... ok
+test_endpoint_passes_physical_position_to_network_builder (ns3_test_5_test_spatem_rsu_physical_position.TestSpatemRsuPhysicalPosition.test_endpoint_passes_physical_position_to_network_builder) ... ok
+test_physical_coordinates_must_be_finite (ns3_test_5_test_spatem_rsu_physical_position.TestSpatemRsuPhysicalPosition.test_physical_coordinates_must_be_finite) ... ok
+test_position_is_applied_before_wifi_installation (ns3_test_5_test_spatem_rsu_physical_position.TestSpatemRsuPhysicalPosition.test_position_is_applied_before_wifi_installation) ... ok
+test_spatem_service_has_an_active_call_site (ns3_test_6_test_spatem_tx_dispatch.TestSpatemTxDispatch.test_spatem_service_has_an_active_call_site) ... ok
+test_two_intersections_survive_rx_pipeline_and_replay (ns3_test_7_test_spatem_rx_multi_intersection.TestSpatemRxMultiIntersection.test_two_intersections_survive_rx_pipeline_and_replay) ... ok
+test_cam_remains_enabled_by_default (ns3_test_8_test_cam_enable_flag.TestCamEnableFlag.test_cam_remains_enabled_by_default) ... ok
+test_cli_exposes_enable_cam (ns3_test_8_test_cam_enable_flag.TestCamEnableFlag.test_cli_exposes_enable_cam) ... ok
+test_controller_declares_cam_configuration_api (ns3_test_8_test_cam_enable_flag.TestCamEnableFlag.test_controller_declares_cam_configuration_api) ... ok
+test_disabled_cam_is_not_scheduled_at_start (ns3_test_8_test_cam_enable_flag.TestCamEnableFlag.test_disabled_cam_is_not_scheduled_at_start) ... ok
+test_main_applies_cam_configuration (ns3_test_8_test_cam_enable_flag.TestCamEnableFlag.test_main_applies_cam_configuration) ... ok
+test_builder_rejects_invalid_semantics_and_accepts_boundaries (ns3_test_9_test_spatem_asn1_builder_negative.TestSpatemAsn1BuilderNegative.test_builder_rejects_invalid_semantics_and_accepts_boundaries) ... ok
+test_cam_initial_phase_offset_is_opt_in (ns3_test_10_test_spatem_cam_initial_phase_offset.TestSpatemCamInitialPhaseOffset.test_cam_initial_phase_offset_is_opt_in) ... ok
+test_nonzero_offset_delays_only_initial_scheduler_start (ns3_test_10_test_spatem_cam_initial_phase_offset.TestSpatemCamInitialPhaseOffset.test_nonzero_offset_delays_only_initial_scheduler_start) ... ok
+test_periodic_cam_cadence_remains_unchanged (ns3_test_10_test_spatem_cam_initial_phase_offset.TestSpatemCamInitialPhaseOffset.test_periodic_cam_cadence_remains_unchanged) ... ok
+test_zero_offset_preserves_immediate_cam_start (ns3_test_10_test_spatem_cam_initial_phase_offset.TestSpatemCamInitialPhaseOffset.test_zero_offset_preserves_immediate_cam_start) ... ok
+test_codec_propagates_malformed_payload_failure (ns3_test_11_test_spatem_codec_malformed.TestSpatemCodecMalformed.test_codec_propagates_malformed_payload_failure) ... ok
+test_wrong_message_id_is_rejected_by_production_codec (ns3_test_12_test_spatem_codec_wrong_message_id.TestSpatemCodecWrongMessageId.test_wrong_message_id_is_rejected_by_production_codec) ... ok
+test_multi_intersection_semantics_survive_codec_roundtrip (ns3_test_13_test_spatem_multi_intersection_codec_roundtrip.TestSpatemMultiIntersectionCodecRoundtrip.test_multi_intersection_semantics_survive_codec_roundtrip) ... ok
+test_duplicate_copies_the_serialized_packet_and_is_deferred (ns3_test_14_test_spatem_physical_duplicate_hook.SpatemPhysicalDuplicateHookTest.test_duplicate_copies_the_serialized_packet_and_is_deferred) ... ok
+test_duplicate_is_opt_in_and_scoped_to_spatem_aid_137 (ns3_test_14_test_spatem_physical_duplicate_hook.SpatemPhysicalDuplicateHookTest.test_duplicate_is_opt_in_and_scoped_to_spatem_aid_137) ... ok
+test_existing_denm_duplicate_hook_remains_scoped_to_aid_37 (ns3_test_14_test_spatem_physical_duplicate_hook.SpatemPhysicalDuplicateHookTest.test_existing_denm_duplicate_hook_remains_scoped_to_aid_37) ... ok
+test_replay_protection_contract (ns3_test_15_test_spatem_replay_protection.TestSpatemReplayProtection.test_replay_protection_contract) ... ok
+test_rx_identity_binding_contract (ns3_test_16_test_spatem_rx_identity_binding.TestSpatemRxIdentityBinding.test_rx_identity_binding_contract) ... ok
+test_rx_rejects_inconsistent_timing_before_replay (ns3_test_17_test_spatem_rx_semantic_timing.TestSpatemRxSemanticTiming.test_rx_rejects_inconsistent_timing_before_replay) ... ok
+test_wrong_btp_port_rejected_before_decode_replay_and_delivery (ns3_test_18_test_spatem_rx_wrong_btp_dispatch.TestSpatemRxWrongBtpDispatch.test_wrong_btp_port_rejected_before_decode_replay_and_delivery) ... ok
+test_empty_and_truncated_payloads_are_rejected (ns3_test_19_test_spatem_uper_decoder_malformed.TestSpatemUperDecoderMalformed.test_empty_and_truncated_payloads_are_rejected) ... ok
+test_link_index_boundary_and_state_preservation (ns3_test_20_test_sumo_spatem_intersection_builder_boundary.TestSumoSpatemIntersectionBuilderBoundary.test_link_index_boundary_and_state_preservation) ... ok
+
+----------------------------------------------------------------------
+Ran 39 tests in 32.309s
+
+OK
+Diretoria de testes: /home/mmendes/final/ns-3.47/scratch/test
+Ficheiros encontrados: 21
+  Green/SPATEM/Mapper/test_sumo_traffic_light_mapper.py
+  Green/SPATEM/RSU/test_rsu_ipv4_sender_resolution.py
+  Green/SPATEM/RSU/test_spatem_phy_audit.py
+  Green/SPATEM/RSU/test_spatem_poll_batch.py
+  Green/SPATEM/RSU/test_spatem_rsu_mobility.py
+  Green/SPATEM/RSU/test_spatem_rsu_physical_position.py
+  Green/SPATEM/RSU/test_spatem_tx_dispatch.py
+  Green/SPATEM/test_spatem_rx_multi_intersection.py
+  Red/CAM/test_cam_enable_flag.py
+  Red/SPATEM/test_spatem_asn1_builder_negative.py
+  Red/SPATEM/test_spatem_cam_initial_phase_offset.py
+  Red/SPATEM/test_spatem_codec_malformed.py
+  Red/SPATEM/test_spatem_codec_wrong_message_id.py
+  Red/SPATEM/test_spatem_multi_intersection_codec_roundtrip.py
+  Red/SPATEM/test_spatem_physical_duplicate_hook.py
+  Red/SPATEM/test_spatem_replay_protection.py
+  Red/SPATEM/test_spatem_rx_identity_binding.py
+  Red/SPATEM/test_spatem_rx_semantic_timing.py
+  Red/SPATEM/test_spatem_rx_wrong_btp_dispatch.py
+  Red/SPATEM/test_spatem_uper_decoder_malformed.py
+  Red/SPATEM/test_sumo_spatem_intersection_builder_boundary.py
+[PASS] uppercase_G_protected
+[PASS] lowercase_g_permissive
+[PASS] uppercase_Y_protected_clearance
+[PASS] lowercase_y_permissive_clearance
+[PASS] uppercase_R_stop
+[PASS] lowercase_r_stop
+[PASS] lowercase_o_maps_to_permissive
+[PASS] uppercase_O_rejected_without_state_mutation
+SPATEM_SUMO_MAPPER_CASES=8
+SPATEM_SUMO_MAPPER_PASSED=8
+SPATEM_SUMO_MAPPER_FAILED=0
+SPATEM_SUMO_MAPPER_TESTS=PASS
+[PASS] rx_multi_intersection_delivery processed=1 station_id=9001 intersection_count=2 intersection_ids=42,43 replay_entries=2 replay_has_42=1 replay_has_43=1 reason=""
+SPATEM_RX_MULTI_INTERSECTION_CASES=1
+SPATEM_RX_MULTI_INTERSECTION_PASSED=1
+SPATEM_RX_MULTI_INTERSECTION_FAILED=0
+SPATEM_RX_MULTI_INTERSECTION_TESTS=PASS
+[PASS] valid_minimal_input success=1
+[PASS] revision_above_msg_count_maximum success=0
+[PASS] revision_maximum_valid_value success=1
+[PASS] two_distinct_intersections_preserved
+[PASS] empty_intersection_list success=0
+[PASS] intersection_id_zero success=0
+[PASS] empty_movement_list success=0
+[PASS] reserved_intersection_status_bit success=0
+[PASS] minute_of_year_invalid_sentinel success=0
+[PASS] dsecond_reserved_lower_boundary success=0
+[PASS] dsecond_reserved_upper_boundary success=0
+[PASS] empty_movement_event_list success=0
+[PASS] unsupported_phase_state success=0
+[PASS] min_end_time_out_of_range success=0
+[PASS] max_end_time_before_minimum success=0
+[PASS] max_end_time_out_of_range success=0
+[PASS] likely_time_above_maximum success=0
+[PASS] likely_time_before_minimum success=0
+[PASS] confidence_out_of_range success=0
+[PASS] start_time_out_of_range success=0
+[PASS] next_time_out_of_range success=0
+[PASS] more_than_32_intersections success=0
+[PASS] more_than_255_movements success=0
+[PASS] valid_timing_upper_boundaries success=1
+[PASS] minute_of_year_maximum_valid_value success=1
+[PASS] dsecond_maximum_normal_value success=1
+[PASS] dsecond_unavailable_sentinel success=1
+SPATEM_BUILDER_CASES=27
+SPATEM_BUILDER_PASSED=27
+SPATEM_BUILDER_FAILED=0
+SPATEM_BUILDER_NEGATIVE_TESTS=PASS
+[PASS] codec_empty_payload_rejected success=0 error="empty payload"
+[PASS] codec_truncated_uper_rejected success=0 error="ASN.1 decode failed"
+SPATEM_CODEC_MALFORMED_CASES=2
+SPATEM_CODEC_MALFORMED_PASSED=2
+SPATEM_CODEC_MALFORMED_FAILED=0
+SPATEM_CODEC_MALFORMED_TESTS=PASS
+[PASS] valid_spatem_control success=1 stationId=9001
+[PASS] wrong_message_id_rejected success=0 error="invalid SPATEM messageID"
+SPATEM_WRONG_MESSAGE_ID_CASES=2
+SPATEM_WRONG_MESSAGE_ID_PASSED=2
+SPATEM_WRONG_MESSAGE_ID_FAILED=0
+SPATEM_WRONG_MESSAGE_ID_TESTS=PASS
+[PASS] multi_intersection_codec_roundtrip station_id=9001 intersection_count=2 ids=42,43 revisions=7,8 signal_groups=3,9
+MULTI_INTERSECTION_CODEC_ROUNDTRIP_CASES=1
+MULTI_INTERSECTION_CODEC_ROUNDTRIP_PASSED=1
+MULTI_INTERSECTION_CODEC_ROUNDTRIP_FAILED=0
+MULTI_INTERSECTION_CODEC_ROUNDTRIP=PASS
+[PASS] identical_semantic_duplicate_rejected first_accepted=1 duplicate_accepted=0 reason=spatem_replay_detected entries=1
+[PASS] older_semantic_timestamp_rejected_without_mutation older_accepted=0 reason=spatem_timestamp_older_than_last entries=1
+[PASS] different_timestamp_domains_keep_independent_history semantic_accepted=1 no_semantic_accepted=1 repeated_semantic_accepted=0 repeated_reason=spatem_replay_detected entries=2
+[PASS] identical_nonsemantic_duplicate_rejected first_accepted=1 duplicate_accepted=0 reason=spatem_replay_detected entries=1
+[PASS] identical_nonsemantic_payload_after_window_accepted first_accepted=1 later_accepted=1 reason= entries=1
+[PASS] multi_intersection_rejection_is_atomic mixed_accepted=0 reason=spatem_timestamp_older_than_last entries=1 new_intersection_inserted=0
+SPATEM_REPLAY_CASES=6
+SPATEM_REPLAY_PASSED=6
+SPATEM_REPLAY_FAILED=0
+SPATEM_REPLAY_TESTS=PASS
+[PASS] missing_sender_identity_rejected processed=0 reason="spatem_sender_identity_missing" replay_entries=0
+[PASS] wrong_sender_identity_rejected processed=0 reason="spatem_sender_identity_mismatch" replay_entries=0
+[PASS] self_origin_dropped_before_replay processed=0 reason="self_reception" replay_entries=0
+[PASS] valid_remote_sender_accepted processed=1 reason="" replay_entries=1
+SPATEM_RX_IDENTITY_CASES=4
+SPATEM_RX_IDENTITY_PASSED=4
+SPATEM_RX_IDENTITY_FAILED=0
+SPATEM_RX_IDENTITY_TESTS=PASS
+[PASS] valid_timing_control processed=1 reason="" replay_entries=1
+[PASS] min_end_after_max_end_rejected processed=0 stage=DECODE reason="invalid_spatem_timing" replay_entries=0
+[PASS] likely_time_before_minimum_rejected processed=0 stage=DECODE reason="invalid_spatem_timing" replay_entries=0
+[PASS] likely_time_after_maximum_rejected processed=0 stage=DECODE reason="invalid_spatem_timing" replay_entries=0
+SPATEM_RX_SEMANTIC_TIMING_CASES=4
+SPATEM_RX_SEMANTIC_TIMING_PASSED=4
+SPATEM_RX_SEMANTIC_TIMING_FAILED=0
+SPATEM_RX_SEMANTIC_TIMING_TESTS=PASS
+[PASS] wrong_btp_port_rejected delivered=0 stage=BTP_RX result=FAIL reason="invalid_spatem_btp_port" replay_entries=0
+SPATEM_WRONG_BTP_DISPATCH_CASES=1
+SPATEM_WRONG_BTP_DISPATCH_PASSED=1
+SPATEM_WRONG_BTP_DISPATCH_FAILED=0
+SPATEM_WRONG_BTP_DISPATCH_TESTS=PASS
+[PASS] empty_payload_rejected success=0 has_spatem=0 error="empty payload"
+[PASS] truncated_uper_payload_rejected success=0 has_spatem=0 error="ASN.1 decode failed"
+SPATEM_MALFORMED_DECODE_CASES=2
+SPATEM_MALFORMED_DECODE_PASSED=2
+SPATEM_MALFORMED_DECODE_FAILED=0
+SPATEM_MALFORMED_DECODE_TESTS=PASS
+[PASS] valid_link_index_accepted
+[PASS] link_256_rejected_and_state_preserved
+SPATEM_SUMO_BOUNDARY_CASES=2
+SPATEM_SUMO_BOUNDARY_PASSED=2
+SPATEM_SUMO_BOUNDARY_FAILED=0
+SPATEM_SUMO_BOUNDARY_TESTS=PASS
+
+Resumo: 39 executado(s), 0 falha(s), 0 erro(s).

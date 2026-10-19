@@ -1,0 +1,23 @@
+Diretoria de testes: /home/mmendes/final/ns-3.47/scratch/test
+Ficheiros encontrados: 21
+  Green/SPATEM/Mapper/test_sumo_traffic_light_mapper.py
+  Green/SPATEM/RSU/test_rsu_ipv4_sender_resolution.py
+  Green/SPATEM/RSU/test_spatem_phy_audit.py
+  Green/SPATEM/RSU/test_spatem_poll_batch.py
+  Green/SPATEM/RSU/test_spatem_rsu_mobility.py
+  Green/SPATEM/RSU/test_spatem_rsu_physical_position.py
+  Green/SPATEM/RSU/test_spatem_tx_dispatch.py
+  Green/SPATEM/test_spatem_rx_multi_intersection.py
+  Red/CAM/test_cam_enable_flag.py
+  Red/SPATEM/test_spatem_asn1_builder_negative.py
+  Red/SPATEM/test_spatem_cam_initial_phase_offset.py
+  Red/SPATEM/test_spatem_codec_malformed.py
+  Red/SPATEM/test_spatem_codec_wrong_message_id.py
+  Red/SPATEM/test_spatem_multi_intersection_codec_roundtrip.py
+  Red/SPATEM/test_spatem_physical_duplicate_hook.py
+  Red/SPATEM/test_spatem_replay_protection.py
+  Red/SPATEM/test_spatem_rx_identity_binding.py
+  Red/SPATEM/test_spatem_rx_semantic_timing.py
+  Red/SPATEM/test_spatem_rx_wrong_btp_dispatch.py
+  Red/SPATEM/test_spatem_uper_decoder_malformed.py
+  Red/SPATEM/test_sumo_spatem_intersection_builder_boundary.py
