@@ -19,7 +19,14 @@
 // Está centralizado aqui exatamente para evitar a dessincronização
 // que já causou bugs anteriormente.
 //
-// Margem atual: rede até ~500m por eixo -> 500 * 1e6 = 5e8,
-// confortavelmente dentro do limite. Se o cenário crescer para
-// redes maiores (>900m num eixo), este valor terá de ser revisto.
-constexpr double kCamPositionScale = 1e6;
+// Domínio do cenário RiLSA de teste: coordenadas locais entre 0 e 1000 m
+// por eixo. A escala sintética 8e5 mantém 1000 m em 800 000 000,
+// dentro do limite ASN.1 de Latitude (aproximadamente +/-900 000 000).
+//
+// Esta representação destina-se ao protótipo sem georreferenciação real.
+// Não converte coordenadas cartesianas locais em latitude/longitude WGS84.
+// Quando existir georreferenciação real, deve ser usada uma transformação
+// geográfica adequada.
+//
+// O encoder e o decoder têm de usar o mesmo fator.
+constexpr double kCamPositionScale = 8e5;
