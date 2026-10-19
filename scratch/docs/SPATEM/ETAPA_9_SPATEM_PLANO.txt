@@ -2,17 +2,18 @@
 title: "Etapa 9 — SPATEM — Plano de Implementação e Validação"
 aliases:
   - ETAPA_9_SPATEM_PLANO
-status: "ACTIVE / REVALIDATED"
+  - SPATEM
+status: "CLOSED / VALIDATED"
 type: "FUNCTIONAL DEVELOPMENT AND VALIDATION PLAN"
 date: "2026-10-04"
-last_revalidated: "2026-10-13"
+last_revalidated: "2026-10-17"
 project: "ns-3.47 + Vanetza + SUMO V2X Integration"
 stage: "ETAPA 9"
 scope: "SPATEM"
 baseline: "POST-P21"
 baseline_commit: "420db8a"
 previous_stage: "P21 CLOSED / VALIDATED"
-next_stage: "SPATEM-19 / Fase 9.14 — Robustness"
+next_stage: "A definir fora do âmbito da Etapa 9"
 related_state: "[[CURRENT_STATE]]"
 related_status: "[[DOCUMENT_STATUS]]"
 previous_rebaseline: "[[POST_P21_REBASELINE_2026-10-04]]"
@@ -879,6 +880,20 @@ unknown sender
 self-origin behavior
 
 
+Nota de domínio — SignalGroupID:
+
+O tipo ASN.1 SignalGroupID tem domínio INTEGER (0..255), igual ao domínio
+representável de SpatemMovement::signalGroup (uint8_t). Não existe um valor
+fora desse domínio que possa ser fornecido através deste campo da interface
+atual; os valores 0 e 255 não devem ser rejeitados artificialmente.
+
+A fronteira de origem é mais ampla: SumoTrafficLightState::linkIndex é
+uint32_t. O teste
+test_sumo_spatem_intersection_builder_boundary.py demonstra que linkIndex=7
+é aceite e que linkIndex=256 é rejeitado sem alterar o estado anterior.
+Esta cobertura valida a fronteira de conversão antes da redução para
+uint8_t; não é um teste negativo direto de um SignalGroupID fora do domínio.
+
 O teste deverá distinguir:
 
 decode failure
@@ -1050,7 +1065,7 @@ Security
 
 generation/verification evidence
 
-PASS
+PASS (explicitamente limitado: DummySignService e validação de AID)
 
 SPATEM-13
 
@@ -1058,7 +1073,7 @@ Replay
 
 duplicate rejection evidence
 
-PASS
+PASS (explicitamente limitado: janela não semântica de 1000 us)
 
 SPATEM-14
 
@@ -1106,7 +1121,7 @@ Robustness
 
 invalid-input matrix
 
-ACTIVE
+PASS
 
 SPATEM-20
 
@@ -1114,7 +1129,7 @@ CAM regression
 
 existing CAM baseline preserved
 
-PENDING
+PASS
 
 SPATEM-21
 
@@ -1122,13 +1137,13 @@ DENM regression
 
 existing DENM behavior preserved
 
-PENDING
+PASS
 
 SPATEM-22
 
 Build
 
-./ns3 build PASS
+cmake --build cmake-cache --clean-first --target ns3.47-v2x_sumo-default -j2 (exit code 0)
 
 PASS
 
@@ -1144,9 +1159,9 @@ SPATEM-24
 
 Closeout
 
-documentation complete
+documentation complete; matriz, API audit, limites de segurança/replay e evidência arquivada
 
-PENDING
+PASS
 25. Evidência mínima
 
 Cada fase deverá preservar:
@@ -1370,15 +1385,19 @@ Estado do plano: ACTIVE / REVALIDATED
 Branch: main
 HEAD imediatamente antes deste commit: cbe9145
 Baseline pós-P21 preservada: 420db8a
-Próximo gate: SPATEM-19 / Fase 9.14 — Robustness
+Próximo gate: SPATEM-20/21 / Fase 9.15 — CAM/DENM regression
 
 Estado da matriz:
 - SPATEM-01 a SPATEM-18: PASS, de acordo com o rebaseline técnico anterior.
-- SPATEM-19: ACTIVE; a matriz de robustez ainda não está concluída.
+- SPATEM-19: PASS; a matriz de robustez definida foi aprovada em 2026-10-16.
 - SPATEM-20 e SPATEM-21: PENDING; as regressões CAM/DENM continuam gates separados.
 - SPATEM-22: PASS.
 - SPATEM-23: PASS.
 - SPATEM-24: PENDING; não declarar a Etapa 9 fechada.
+
+Nota cronológica: este bloco regista o estado do plano antes da conclusão das regressões CAM/DENM e da revisão formal de 16-10-2026. Os estados PENDING aqui apresentados são históricos; a matriz de aceitação atual e a decisão de closeout estão registadas nas secções 24 e 41, respetivamente.
+
+Nota cronológica: este bloco regista o estado do plano antes da conclusão das regressões CAM/DENM e da revisão formal de 16-10-2026. Os estados PENDING aqui apresentados são históricos; a matriz de aceitação atual e a decisão de closeout estão registadas nas secções 24 e 41, respetivamente.
 
 Validação do build:
 - Comando: cmake --build cmake-cache --target ns3.47-v2x_sumo-default -j2
@@ -1550,3 +1569,294 @@ testes específicos de regressão CAM/DENM.
 Estado:
 SPATEM-19 / Fase 9.14 = ACTIVE.
 Não declarar CLOSEOUT antes de demonstrar os critérios restantes.
+
+37. Fase 9.14 — rejeição de message ID incorreto (2026-10-14)
+
+Teste:
+- scratch/test/Red/SPATEM/test_spatem_codec_wrong_message_id.cc
+- scratch/test/Red/SPATEM/test_spatem_codec_wrong_message_id.py
+
+Comportamento:
+- O caso de controlo codifica e descodifica uma mensagem SPATEM válida.
+- O caso negativo altera header.messageID para MAPEM, codifica o payload
+  UPER e passa-o a VanetzaSpatemCodec::Decode().
+- O codec rejeita a mensagem com o erro exacto:
+  "invalid SPATEM messageID".
+
+Resultado observado:
+- Controlo SPATEM válido: PASS.
+- Mensagem com messageID MAPEM: PASS — rejeição específica do codec.
+- Teste isolado: 2/2 casos aprovados.
+- Suite oficial --suite all: 11 testes, zero falhas, zero erros.
+- Total dos testes negativos SPATEM registados atualmente: 35/35 casos.
+- git diff --check: código de saída 0.
+
+Evidência:
+- [[SPATEM_WRONG_MESSAGE_ID_2026-10-14]]
+- Log: /tmp/v2x_test_suite_wrong_message_id_20261014.log
+
+Limites:
+O teste valida a rejeição ao nível do codec. Não demonstra a pipeline RX
+ponta a ponta, dispatch BTP incorreto, duplicados físicos, replay,
+emissor desconhecido, self-origin ou entrega a uma estação remota.
+A regressão CAM/DENM continua um gate separado.
+
+Estado:
+Critério wrong message ID, no codec: PASS.
+SPATEM-19 / Fase 9.14 = ACTIVE.
+
+38. Fase 9.14 — rejeição de porta BTP incorreta (2026-10-14)
+
+Teste:
+- scratch/test/Red/SPATEM/test_spatem_rx_wrong_btp_dispatch.cc
+- scratch/test/Red/SPATEM/test_spatem_rx_wrong_btp_dispatch.py
+
+Método:
+- Construir e codificar uma mensagem SPATEM válida.
+- Confirmar que o payload passa o codec SPATEM.
+- Definir btpDestinationPort=2001, diferente da porta SPATEM 2004.
+- Invocar SpatemRxPipeline::Process() diretamente.
+
+Resultado observado:
+- delivered=false.
+- Etapa final: BTP_RX.
+- Resultado: FAIL; reason=invalid_spatem_btp_port.
+- O payload existente, o tipo RAW e a mensagem de saída são preservados.
+- O estado de replay permanece vazio.
+- O caso composto passou; código de saída 0.
+- Suite oficial --suite all: 12 testes, zero falhas e zero erros.
+- Total acumulado: 36/36 verificações aprovadas nos seis scripts Red.
+
+Evidência:
+- [[SPATEM_WRONG_BTP_DISPATCH_2026-10-14]]
+- [[SPATEM_WRONG_MESSAGE_ID_2026-10-14]]
+- Log: /tmp/v2x_test_suite_wrong_btp_dispatch_20261014.log
+
+Limites:
+O teste valida o limite da pipeline RX e injeta diretamente a porta BTP
+no PacketContext. Não demonstra encaminhamento BTP ponta a ponta.
+Duplicados físicos, replay, emissor desconhecido, self-origin e entrega
+remota continuam por demonstrar. A regressão CAM/DENM é um gate separado.
+
+Estado:
+Critério wrong BTP dispatch ao nível da pipeline RX: PASS.
+SPATEM-19 / Fase 9.14 = ACTIVE.
+
+39. Fase 9.14 — proteção contra replay sem timestamp semântico (2026-10-14)
+
+Teste:
+- scratch/test/Red/SPATEM/test_spatem_replay_protection.cc
+- scratch/test/Red/SPATEM/test_spatem_replay_protection.py
+
+Reprodução RED:
+- Duas mensagens com o mesmo payload e sem timestamp semântico foram
+  recebidas com 100 us de diferença.
+- Antes da correção, a segunda mensagem era aceite.
+- O teste de reprodução falhou como esperado, confirmando o defeito.
+
+Alteração GREEN:
+- SpatemReplayKey separa os domínios com e sem timestamp semântico.
+- Para mensagens sem timestamp semântico, fingerprints repetidas são
+  suprimidas durante uma janela local de 1000 us.
+- A mesma fingerprint após 1001 us pode ser aceite.
+- O estado mantém fingerprints recentes independentemente de mensagens
+  diferentes que cheguem entre duas ocorrências da mesma fingerprint.
+
+Resultados observados:
+- Teste de replay: 6/6 casos aprovados.
+- Suite oficial --suite all: 13 testes, zero falhas e zero erros.
+- Build de ns3.47-v2x_sumo-default: código de saída 0.
+- git diff --check: código de saída 0.
+- Total atual da suite Red: 7 scripts, 42 verificações aprovadas.
+
+Limitações:
+A janela de 1000 us é supressão temporária de duplicados, não proteção
+geral contra replay. Uma mensagem reproduzida fora da janela pode ser
+aceite na ausência de timestamp semântico. Estes testes não demonstram
+proteção integrada ponta a ponta na pipeline RX, duplicação física,
+emissores desconhecidos, self-origin ou entrega remota. A regressão
+CAM/DENM permanece um gate separado.
+
+Estado:
+Contrato unitário de replay: PASS.
+SPATEM-19 / Fase 9.14 = ACTIVE.
+Não declarar CLOSEOUT antes de demonstrar os restantes critérios.
+
+## Atualização de estado — Fase 9.14 (2026-10-16)
+
+A evidência recolhida permite encerrar a matriz definida para SPATEM-19 /
+Fase 9.14, preservando a Fase 9.15 como gate independente.
+
+Suite oficial:
+- `python3 scratch/test/run_tests.py --suite all`
+- 20 ficheiros de teste; 34 testes; 0 falhas; 0 erros.
+
+Ensaios integrados:
+- Duplicação física: 124 identificadores únicos; 248 RAW_RX; 124
+  SPATEM_REPLAY_OK; 124 SPATEM_REPLAY_DROP; 124 SPATEM_DELIVER_OK;
+  zero discrepâncias por identificador.
+- Emissor desconhecido: 117 transmissões SPATEM da RSU e 117
+  SENDER_NOT_FOUND; zero dispatch SPATEM e zero entregas.
+- Nos dois ensaios, o publicador SUMO/TraCI reportou 5 040 registos,
+  4 fases e `TRACI_SUMO_TLS_PUBLISHER=PASS`; ambos os processos terminaram
+  com código 0.
+- Identidade RX/self-origin: 4/4 casos aprovados, incluindo a rejeição
+  de self-origin antes do replay, sem mutação da tabela de replay.
+- Testes de codec, temporização, BTP, fronteiras ASN.1 e multi-interseção
+  aprovados na suite oficial.
+- SignalGroupID: domínio ASN.1 INTEGER (0..255), correspondente ao
+  uint8_t de SpatemMovement::signalGroup. Não há valor fora do domínio
+  representável nesta interface. O caso de origem SUMO linkIndex=256 é
+  rejeitado antes da conversão e preserva o estado anterior; linkIndex=7
+  é aceite. A cobertura é de domínio e fronteira de conversão, não de
+  um valor ASN.1 inválido diretamente representável.
+
+Evidência arquivada em:
+`scratch/test/Green/SPATEM/RSU/evidence/2026-10-16/`
+
+Estado atualizado:
+- SPATEM-19 / Fase 9.14: PASS — matriz de robustez definida aprovada.
+- SPATEM-20/21 / Fase 9.15: PENDING — regressões CAM/DENM continuam um
+  gate independente.
+- Não se declara interoperabilidade externa nem validação em hardware ITS-G5.
+
+Esta atualização substitui, para o estado de 2026-10-16, as notas de
+planeamento anteriores que mantinham os critérios integrados por demonstrar.
+
+40. Fase 9.15 — matriz consolidada de regressão (2026-10-16)
+
+Nota cronológica: esta secção regista o estado da Etapa 9 antes da revisão formal de closeout da Fase 9.16. O estado PENDING/ACTIVE apresentado em «Estado atualizado» é histórico e foi subsequentemente substituído pela decisão documentada na secção 41 e pela matriz de aceitação da secção 24.
+
+
+Registo: SPATEM_9_15_MATRIX_CLOSEOUT_2026-10-16
+
+Build e testes automatizados:
+- Build limpo de produção:
+  `cmake --build cmake-cache --clean-first --target ns3.47-v2x_sumo-default -j2`
+  Resultado: código de saída 0.
+- Suite: `python3 scratch/test/run_tests.py --suite all`
+  Resultado: 39 testes executados, 0 falhas, 0 erros.
+- `git diff --check`: PASS, código de saída 0 antes deste registo.
+
+Matriz funcional da Fase 9.15:
+
+- CAM-only — PASS.
+  Evidência: `test-results/spatem_9_15_cam_vehicle_staggered_20261016_134820/default/ns3.log`.
+  22 CAM transmitidos, 19 receções CAM; injector e publisher SUMO/TraCI PASS.
+
+- DENM-only — PASS.
+  Evidência: `test-results/spatem_9_15_denm_only_20261016_142344/ns3.log`.
+  4 DENM gerados, 1 entrega à aplicação e verificação criptográfica validada.
+
+- SPATEM-only — PASS.
+  Evidência: `test-results/spatem_9_15_spatem_only_retry_20261016_162843/ns3.log`.
+  53 transmissões BTP na porta 2004, 90 dispatches RX, 90 descodificações,
+  90 entregas SPATEM, 0 gerações CAM, 0 gerações DENM e 0 descartes PHY.
+  Simulador, injector e publisher terminaram com código 0.
+
+- CAM + DENM — PASS.
+  Evidência: `test-results/spatem_9_15_cam_denm_20261016_143043/ns3.log`.
+  22 CAM transmitidos, 19 receções CAM, 4 DENM gerados e 1 entrega DENM.
+
+- CAM + SPATEM — PASS.
+  Evidência: `test-results/spatem_9_15_cam_spatem_near_20261016_144830/ns3.log`.
+  28 CAM gerados, 21 receções CAM, 61 transmissões SPATEM e 87 entregas SPATEM.
+  A configuração de proximidade da RSU foi usada para confirmar receção física.
+
+- DENM + SPATEM — PASS funcional.
+  Evidência: `test-results/spatem_9_15_denm_spatem_phy_audit_20261016_151645/ns3.log`.
+  4 DENM gerados, 1 entrega DENM, verificação criptográfica bem-sucedida,
+  62 transmissões SPATEM e 90 entregas SPATEM. Foram registados 12 descartes
+  PHY; a entrega DENM remota foi, ainda assim, confirmada.
+
+- CAM + DENM + SPATEM — PASS funcional.
+  Evidência: `test-results/spatem_9_15_cam_denm_spatem_20261016_155754/ns3.log`.
+  28 CAM gerados, 25 receções CAM, 4 DENM gerados, 1 entrega DENM,
+  verificação criptográfica AID 37, 94 transmissões SPATEM e 169 entregas
+  SPATEM. Foram registados 16 descartes PHY; os três processos terminaram
+  com código 0.
+
+Interpretação e limites:
+- A matriz demonstra coexistência funcional dos três protocolos nos sete cenários.
+- Os descartes PHY observados nas combinações com DENM ficam registados como
+  perdas físicas; não se afirma que todas as transmissões ou repetições são entregues.
+- Esta validação não demonstra interoperabilidade externa nem validação em
+  hardware ITS-G5.
+- A validação foi realizada sobre o working tree atual. As alterações locais de código e o teste CAM permanecem sem commit; não foi criado commit nem feita publicação Git nesta atividade.
+
+Estado atualizado:
+- SPATEM-20/21 / Fase 9.15 — PASS: matriz funcional de regressão aprovada.
+- SPATEM-24 / Fase 9.16 — PENDING: revisão de closeout.
+- Etapa 9 — permanece ACTIVE; não declarar CLOSED antes da revisão final.
+
+41. Fase 9.16 — closeout consolidado (2026-10-16)
+
+Registo: SPATEM_9_16_CLOSEOUT_2026-10-16
+
+A secção 41 é o estado corrente de closeout e reconcilia as notas
+históricas anteriores. Os registos datados anteriores mantêm o valor
+histórico que tinham no momento da respetiva execução; os estados atuais
+são os indicados na matriz de aceitação da secção 24 e neste registo.
+
+## Auditoria da API instalada
+
+| Elemento | API / evidência local | Estado e âmbito |
+|---|---|---|
+| SPATEM root | `/usr/local/include/vanetza/asn1/its/SPATEM.h`; `SPATEM_t`; `asn_DEF_SPATEM` | PASS |
+| SPAT | `/usr/local/include/vanetza/asn1/its/SPAT.h` | Encontrado; não substitui nem é usado como mensagem SPATEM |
+| Header / message ID | `ItsPduHeader.h`; `ItsPduHeader__messageID_spatem = 4` | PASS |
+| Intersection state | `asn_DEF_IntersectionState` referenciado em `spatem_asn1_builder.cc` | PASS |
+| Movement state / event / timing | `asn_DEF_MovementState`, `asn_DEF_MovementEvent`, `asn_DEF_TimeChangeDetails` referenciados pelo builder | PASS |
+| Signal group | `SignalGroupID_t`; modelo `SpatemMovement::signalGroup` do tipo `uint8_t` | PASS com limite ASN.1 0..255; o limite SUMO 256 é rejeitado antes da conversão |
+| UPER encoder | `wrappers/vanetza/spatem/uper/spatem_uper_encoder.cc`; `asn_check_constraints`, `uper_encode_to_buffer(&asn_DEF_SPATEM, ...)` | PASS |
+| UPER decoder | `wrappers/vanetza/spatem/uper/spatem_uper_decoder.cc`; `uper_decode(&asn_DEF_SPATEM, ...)` | PASS |
+| BTP / ITS-AID | `spatem_transport_policy.h`; `kSpatemBtpPort = 2004`, `kSpatemItsAid = 137` | PASS |
+| GeoNetworking | `spatem_rsu_runtime.cc`; ManualRuntime, MIB, Router, GN address, Access/DCC/BTP adapters | PASS em simulação integrada |
+| Security | RSU usa `DummySignService`; RX verifica `itsAid == 137` | PASS explicitamente limitado; não demonstra PKI de produção nem verificação criptográfica SPATEM ponta a ponta |
+| Replay | `spatem_replay_protection.cc`; teste unitário `SPATEM_REPLAY_PROTECTION_2026-10-14.md` | PASS explicitamente limitado; sem prova geral contra replay fora da janela não semântica de 1000 us |
+
+Os campos `TBD` das secções iniciais eram placeholders do plano de desenho
+anterior à implementação. Não são apagados como história: esta matriz
+regista a resolução corrente verificável através dos headers e ficheiros
+indicados.
+
+## Estado dos critérios obrigatórios
+
+- SPATEM-01 a SPATEM-11: PASS segundo a matriz previamente validada.
+- SPATEM-12: PASS com limite de segurança explicitado acima.
+- SPATEM-13: PASS com limite de replay explicitado acima.
+- SPATEM-14 a SPATEM-19: PASS segundo a matriz de aceitação e evidência
+  consolidada da Fase 9.14.
+- SPATEM-20: PASS — regressão CAM; ver secção 40 e pacote `phase9_15/cam_only`.
+- SPATEM-21: PASS — regressão DENM; ver secção 40 e pacote `phase9_15/denm_only`.
+- SPATEM-22: PASS — build limpo de produção, exit code 0.
+- SPATEM-23: PASS — evidência de runtime dos sete cenários preservada
+  em `scratch/test/Green/SPATEM/RSU/evidence/2026-10-16/phase9_15/`.
+- SPATEM-24: PASS — documentação, matriz, API audit, limites e pacote de
+  evidências reconciliados.
+
+## Decisão de closeout
+
+Etapa 9 = CLOSED / VALIDATED no âmbito da implementação e validação
+SPATEM em ns-3.47 + Vanetza + SUMO.
+
+Esta decisão não afirma interoperabilidade com uma estação externa,
+execução em hardware ITS-G5, assinatura SPATEM com PKI de produção,
+verificação criptográfica SPATEM ponta a ponta nem proteção geral
+contra replay sem timestamp semântico.
+
+A validação foi efetuada no working tree local. Os ficheiros de código
+e o teste CAM indicados no estado Git permanecem sem commit; nenhum
+commit é implicado por esta decisão de closeout.
+
+42. Verificação complementar de closeout — CAM e build (2026-10-17)
+
+- Build limpo do executável de produção: PASS, exit code 0.
+- Teste isolado `Red/CAM/test_cam_enable_flag.py`: PASS, 5/5.
+- Descoberta da suite: o teste CAM está incluído na suite completa.
+- Suite completa: 39 testes, 0 falhas e 0 erros.
+- Evidência preservada em `scratch/test/Green/SPATEM/RSU/evidence/2026-10-17/phase9_16`.
+- O teste CAM verifica estruturalmente a configuração; não se declara
+  demonstrado por este teste, isoladamente, o comportamento runtime
+  completo de `--enableCam=0`.
+- Não foram criados commits nem descartadas alterações locais.

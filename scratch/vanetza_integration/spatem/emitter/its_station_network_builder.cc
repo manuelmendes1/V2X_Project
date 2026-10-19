@@ -1,4 +1,5 @@
 #include "its_station_network_builder.h"
+#include "vanetza_integration/core/phy_audit/phy_audit.h"
 
 #include "ns3/inet-socket-address.h"
 #include "ns3/internet-module.h"
@@ -15,7 +16,8 @@ ItsStationNetworkResources
 ItsStationNetworkBuilder::Build(
     Ptr<YansWifiChannel> channel,
     Ipv4AddressHelper& ipv4,
-    const Callback<void, Ptr<Socket>>& rxCallback)
+    const Callback<void, Ptr<Socket>>& rxCallback,
+    const Vector& position)
 {
     NS_ABORT_MSG_IF(
         channel == nullptr,
@@ -31,6 +33,7 @@ ItsStationNetworkBuilder::Build(
         node,
         channel,
         ipv4,
+        position,
         resources);
 
     resources.socket =
@@ -50,6 +53,7 @@ ItsStationNetworkBuilder::ConfigureNetworking(
     Ptr<Node> node,
     Ptr<YansWifiChannel> channel,
     Ipv4AddressHelper& ipv4,
+    const Vector& position,
     ItsStationNetworkResources& resources)
 {
     NS_ABORT_MSG_IF(
@@ -62,6 +66,13 @@ ItsStationNetworkBuilder::ConfigureNetworking(
     mobility.SetMobilityModel(
         "ns3::ConstantPositionMobilityModel");
     mobility.Install(node);
+
+    Ptr<ConstantPositionMobilityModel> mobilityModel =
+        node->GetObject<ConstantPositionMobilityModel>();
+    NS_ABORT_MSG_IF(
+        mobilityModel == nullptr,
+        "[ITS_STATION_NET] ConstantPositionMobilityModel missing");
+    mobilityModel->SetPosition(position);
 
     InternetStackHelper internet;
     internet.Install(node);
@@ -91,6 +102,8 @@ ItsStationNetworkBuilder::ConfigureNetworking(
     NS_ABORT_MSG_IF(
         devices.GetN() == 0,
         "[ITS_STATION_NET] no WifiNetDevice created");
+
+    PhyAudit::ConnectRsu(node, devices);
 
     TrafficControlHelper tch;
     tch.SetRootQueueDisc(

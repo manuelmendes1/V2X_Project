@@ -1,6 +1,7 @@
 #include "spatem_emitter_endpoint.h"
 
 #include <cmath>
+#include <cstdlib>
 #include "vanetza_integration/context/station_registry/station_endpoint_registry.h"
 
 namespace ns3
@@ -8,12 +9,13 @@ namespace ns3
 
 SpatemEmitterEndpoint::~SpatemEmitterEndpoint()
 {
-    if (m_stationState.networkInitialized)
+    if (m_stationRegistryRegistered)
     {
         StationEndpointRegistry::Instance().UnregisterItsStation(
             m_stationState.ipv4Address,
             m_stationState.identity.logicalId,
             m_stationState.identity.stationId);
+        m_stationRegistryRegistered = false;
     }
 }
 
@@ -81,6 +83,12 @@ SpatemEmitterEndpoint::Validate(
         !std::isfinite(config.longitudeDeg) ||
         config.longitudeDeg < -180.0 ||
         config.longitudeDeg > 180.0)
+    {
+        return false;
+    }
+
+    if (!std::isfinite(config.ns3X) ||
+        !std::isfinite(config.ns3Y))
     {
         return false;
     }
@@ -186,7 +194,8 @@ SpatemEmitterEndpoint::InitializeNetwork(
         ItsStationNetworkBuilder::Build(
             channel,
             ipv4,
-            rxCallback);
+            rxCallback,
+            Vector(m_config.ns3X, m_config.ns3Y, 0.0));
 
     if (resources.node == nullptr ||
         resources.socket == nullptr ||
@@ -208,16 +217,38 @@ SpatemEmitterEndpoint::InitializeNetwork(
     m_stationState.linkMac =
         resources.linkMac;
 
-    NS_ABORT_MSG_IF(
-        !StationEndpointRegistry::Instance().RegisterItsStation(
-            m_stationState.identity.logicalId,
-            m_stationState.node->GetId(),
-            m_stationState.identity.stationId,
-            m_stationState.identity.stationType,
-            m_stationState.ipv4Address,
-            m_stationState.linkMac),
-        "[STATION_REGISTRY] Failed to register ITS station IPv4 endpoint: "
-            << m_stationState.identity.logicalId);
+    const char* const unknownSenderTest =
+        std::getenv("V2X_TEST_UNKNOWN_SPATEM_SENDER");
+    const bool leaveRsuUnregistered =
+        unknownSenderTest != nullptr &&
+        unknownSenderTest[0] == '1' &&
+        unknownSenderTest[1] == '\0';
+
+    if (leaveRsuUnregistered)
+    {
+        NS_LOG_UNCOND(
+            "[TEST_UNKNOWN_SENDER] RSU endpoint intentionally unregistered"
+            << " source_ip=" << m_stationState.ipv4Address
+            << " station=" << m_stationState.identity.stationId);
+    }
+    else
+    {
+        const bool registered =
+            StationEndpointRegistry::Instance().RegisterItsStation(
+                m_stationState.identity.logicalId,
+                m_stationState.node->GetId(),
+                m_stationState.identity.stationId,
+                m_stationState.identity.stationType,
+                m_stationState.ipv4Address,
+                m_stationState.linkMac);
+
+        NS_ABORT_MSG_IF(
+            !registered,
+            "[STATION_REGISTRY] Failed to register ITS station IPv4 endpoint: "
+                << m_stationState.identity.logicalId);
+
+        m_stationRegistryRegistered = true;
+    }
 
     m_stationState.networkInitialized = true;
 

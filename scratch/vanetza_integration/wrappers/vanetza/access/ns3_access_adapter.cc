@@ -2333,12 +2333,24 @@ Ns3AccessAdapter::request(
         duplicateEnv != nullptr &&
         std::string(duplicateEnv) == "1";
 
+    // SPATEM-specific physical duplicate injection.
+    // Disabled unless explicitly requested for ITS-AID 137.
+    const char* spatemDuplicateEnv =
+        std::getenv("V2X_SPATEM_DUPLICATE");
+
+    const bool duplicateSpatem =
+        ctx &&
+        securedTxAidValid &&
+        securedTxAid == 137 &&
+        spatemDuplicateEnv != nullptr &&
+        std::string(spatemDuplicateEnv) == "1";
+
     //----------------------------------------------------------------------
     // Deferred send
     //----------------------------------------------------------------------
 
     Simulator::ScheduleNow(
-        [ctx, socket, ns3Packet, duplicateDenm]()
+        [ctx, socket, ns3Packet, duplicateDenm, duplicateSpatem]()
         {
 
             //--------------------------------------------------------------
@@ -2389,6 +2401,43 @@ Ns3AccessAdapter::request(
                             "aid=37 "
                             "delay_us=100 "
                             "sent_bytes="
+                            << duplicateSent
+                            << " packet_bytes="
+                            << duplicatePacket->GetSize());
+                    });
+            }
+
+            //------------------------------------------------------------------
+            // TEST HOOK: exact duplicate of an already serialized SPATEM.
+            // The copy preserves Packet tags, including PacketIdTag.
+            // Normal operation is unchanged unless V2X_SPATEM_DUPLICATE=1.
+            //------------------------------------------------------------------
+
+            if (duplicateSpatem)
+            {
+                Ptr<Packet> duplicatePacket =
+                    ns3Packet->Copy();
+
+                const uint64_t duplicatePacketId =
+                    ctx->packetId;
+
+                Simulator::Schedule(
+                    MicroSeconds(100),
+                    [socket, duplicatePacket, duplicatePacketId]()
+                    {
+                        const int duplicateSent =
+                            socket->SendTo(
+                                duplicatePacket,
+                                0,
+                                InetSocketAddress(
+                                    Ipv4Address("10.0.0.255"),
+                                    5000));
+
+                        NS_LOG_UNCOND(
+                            "[SPATEM_PHYSICAL_DUPLICATE] "
+                            "aid=137 packet_id="
+                            << duplicatePacketId
+                            << " delay_us=100 sent_bytes="
                             << duplicateSent
                             << " packet_bytes="
                             << duplicatePacket->GetSize());

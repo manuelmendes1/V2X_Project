@@ -1,4 +1,5 @@
 #include "vehicle_network_builder.h"
+#include "vanetza_integration/core/phy_audit/phy_audit.h"
 #include "vanetza_integration/spatem/emitter/spatem_emitter_endpoint.h"
 #include "vanetza_integration/context/station_registry/station_endpoint_registry.h"
 
@@ -233,6 +234,8 @@ VehicleNetworkBuilder::ConfigureNetworking(
             phy,
             mac,
             node);
+
+    PhyAudit::ConnectVehicle(node, devices);
 
     TrafficControlHelper tch;
 

@@ -1,0 +1,9 @@
+ Retrying in 1 seconds
+TLS_ID=0
+TLS_RECORDS_SENT=5040
+PHASE_CHANGES=4
+OBSERVED_PHASE time=0.0 phase=0 ryg=rrrGGgrrrGGg duration=31.0 nextSwitch=31.0
+OBSERVED_PHASE time=31.1 phase=1 ryg=rrryygrrryyg duration=4.0 nextSwitch=35.0
+OBSERVED_PHASE time=35.1 phase=2 ryg=rrrrrGrrrrrG duration=6.0 nextSwitch=41.0
+OBSERVED_PHASE time=41.1 phase=3 ryg=rrrrryrrrrry duration=4.0 nextSwitch=45.0
+TRACI_SUMO_TLS_PUBLISHER=PASS

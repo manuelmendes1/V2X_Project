@@ -27,6 +27,7 @@ int main(int argc, char* argv[]) {
 
     double simDurationSec = 60.0;
 
+    bool enableCam = true;
     bool enableDenm = false;
     bool enableSpatem = false;
     uint32_t spatemStationId = 0;
@@ -34,6 +35,8 @@ int main(int argc, char* argv[]) {
     std::string spatemTrafficLightId;
     double spatemLatitudeDeg = std::numeric_limits<double>::quiet_NaN();
     double spatemLongitudeDeg = std::numeric_limits<double>::quiet_NaN();
+    double spatemNs3X = 0.0;
+    double spatemNs3Y = 0.0;
 
     double denmRadiusMeters = 1000.0;
 
@@ -47,6 +50,11 @@ int main(int argc, char* argv[]) {
         "simDuration",
         "Duracao maxima da simulacao em segundos (cenario SUMO + margem)",
         simDurationSec);
+
+    cmd.AddValue(
+        "enableCam",
+        "Ativa o scheduler de transmissão CAM",
+        enableCam);
 
     cmd.AddValue(
         "enableDenm",
@@ -99,6 +107,16 @@ int main(int argc, char* argv[]) {
         "Longitude geodésica da RSU, em graus (-180..180)",
         spatemLongitudeDeg);
 
+    cmd.AddValue(
+        "spatemNs3X",
+        "Coordenada X física da RSU no referencial SUMO/ns-3, em metros",
+        spatemNs3X);
+
+    cmd.AddValue(
+        "spatemNs3Y",
+        "Coordenada Y física da RSU no referencial SUMO/ns-3, em metros",
+        spatemNs3Y);
+
     cmd.Parse(argc, argv);
 
     SimulationController::ConfigureSpatemEmitter(
@@ -107,7 +125,9 @@ int main(int argc, char* argv[]) {
         spatemIntersectionId,
         spatemTrafficLightId,
         spatemLatitudeDeg,
-        spatemLongitudeDeg);
+        spatemLongitudeDeg,
+        spatemNs3X,
+        spatemNs3Y);
 
     SimulationContext::itsStartTime = itsStartTime;
 
@@ -127,6 +147,7 @@ int main(int argc, char* argv[]) {
 
     SimulationController::ConfigureSumoAdapterCallbacks();
 
+    SimulationController::SetCamEnabled(enableCam);
     SimulationController::SetDenmEnabled(enableDenm);
 
     SimulationController::SetDenmRadiusMeters(denmRadiusMeters);
@@ -138,6 +159,9 @@ int main(int argc, char* argv[]) {
     Simulator::Schedule(Seconds(simDurationSec),&SimulationController::StopSimulation);
 
     Simulator::Run();
+
+    // Explicitly release SPATEM while its registry is still alive.
+    SimulationController::ShutdownSpatemEmitter();
 
     Simulator::Destroy();
 

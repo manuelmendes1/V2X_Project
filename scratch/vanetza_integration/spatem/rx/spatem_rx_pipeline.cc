@@ -4,8 +4,76 @@
 #include "vanetza_integration/spatem/replay/spatem_replay_protection.h"
 #include "vanetza_integration/wrappers/vanetza/spatem/vanetza_spatem_codec.h"
 
+#include <optional>
+
 namespace ns3
 {
+namespace
+{
+
+constexpr uint32_t kSpatemTimeMarkMaximum = 36001U;
+constexpr uint8_t kSpatemConfidenceMaximum = 15U;
+
+bool IsValidTimeMark(const std::optional<uint32_t>& value)
+{
+    return !value || *value <= kSpatemTimeMarkMaximum;
+}
+
+bool IsValidSpatemTiming(const SpatemTiming& timing)
+{
+    if (timing.minEndTime > kSpatemTimeMarkMaximum ||
+        !IsValidTimeMark(timing.startTime) ||
+        !IsValidTimeMark(timing.maxEndTime) ||
+        !IsValidTimeMark(timing.likelyTime) ||
+        !IsValidTimeMark(timing.nextTime))
+    {
+        return false;
+    }
+
+    if (timing.maxEndTime &&
+        *timing.maxEndTime < timing.minEndTime)
+    {
+        return false;
+    }
+
+    if (timing.likelyTime &&
+        (*timing.likelyTime < timing.minEndTime ||
+         (timing.maxEndTime &&
+          *timing.likelyTime > *timing.maxEndTime)))
+    {
+        return false;
+    }
+
+    if (timing.confidence &&
+        *timing.confidence > kSpatemConfidenceMaximum)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+bool HasInvalidSpatemTiming(const SpatemMessage& message)
+{
+    for (const auto& intersection : message.intersections)
+    {
+        for (const auto& movement : intersection.movements)
+        {
+            for (const auto& event : movement.events)
+            {
+                if (event.timing &&
+                    !IsValidSpatemTiming(*event.timing))
+                {
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
+} // namespace
 
 bool
 SpatemRxPipeline::Process(PacketContext& context,
@@ -126,6 +194,23 @@ SpatemRxPipeline::Process(PacketContext& context,
 
     message = decoded.message;
 
+    // ASN.1/UPER validity does not guarantee semantic timing consistency.
+    // Reject invalid timing before identity binding, replay, or delivery.
+    if (HasInvalidSpatemTiming(message))
+    {
+        context.MarkFailure();
+        context.reason = "invalid_spatem_timing";
+
+        V2XWriteLog(
+            context,
+            V2XLogLevel::ERROR,
+            "SPATEM",
+            "SPATEM_INVALID_TIMING",
+            "one or more timing fields violate SPATEM bounds or ordering");
+
+        return false;
+    }
+
     if (message.stationId == 0 ||
         message.intersections.empty())
     {
@@ -150,8 +235,25 @@ SpatemRxPipeline::Process(PacketContext& context,
     // impersonating another station.
     //----------------------------------------------------------------------
 
-    if (context.senderStationId != 0 &&
-        message.stationId != context.senderStationId)
+    // A pipeline só aceita mensagens cujo emissor tenha sido
+    // resolvido pelo boundary RX. stationId == 0 significa identidade
+    // ausente, não uma identidade que possa ser ignorada.
+    if (context.senderStationId == 0)
+    {
+        context.MarkDrop();
+        context.reason = "spatem_sender_identity_missing";
+
+        V2XWriteLog(
+            context,
+            V2XLogLevel::WARN,
+            "SPATEM",
+            "SPATEM_SENDER_IDENTITY_MISSING",
+            "RX boundary did not resolve sender station identity");
+
+        return false;
+    }
+
+    if (message.stationId != context.senderStationId)
     {
         context.MarkDrop();
         context.reason =

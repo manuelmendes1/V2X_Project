@@ -16,7 +16,10 @@ SumoTrafficLightMapper::Map(
             SpatemMovementPhaseState::PROTECTED_MOVEMENT_ALLOWED;
         break;
 
+    // SUMO 'o' is off-blinking: this movement must yield.
+    // SPATEM's permissive state represents movement subject to yielding.
     case 'g':
+    case 'o':
         phaseState =
             SpatemMovementPhaseState::PERMISSIVE_MOVEMENT_ALLOWED;
         break;

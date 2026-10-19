@@ -23,6 +23,8 @@ public:
 
     static void Start(Time stepLength);
 
+    static void SetCamEnabled(bool enabled);
+
     static void SetDenmEnabled(bool enabled);
 
     static void SetDenmRadiusMeters(double radiusMeters);
@@ -39,7 +41,9 @@ public:
         uint32_t intersectionId,
         const std::string& trafficLightId,
         double latitudeDeg,
-        double longitudeDeg);
+        double longitudeDeg,
+        double ns3X,
+        double ns3Y);
 
     static void HandleTrafficLightUpdateFromSumo(
         const SumoTrafficLightState& state);
@@ -63,12 +67,16 @@ public:
 
     static void StopSimulation();
 
+    // Release SPATEM resources before ns-3 and static teardown.
+    static void ShutdownSpatemEmitter();
+
 private:
 
     static void SendSpatemSnapshot();
 
     static Time m_stepLength;
 
+    static bool m_camEnabled;
     static bool m_denmEnabled;
 
     static double m_denmRadiusMeters;
@@ -79,6 +87,8 @@ private:
     static std::string m_spatemTrafficLightId;
     static double m_spatemLatitudeDeg;
     static double m_spatemLongitudeDeg;
+    static double m_spatemNs3X;
+    static double m_spatemNs3Y;
     static std::unique_ptr<SpatemEmitterEndpoint> m_spatemEmitter;
     static std::unique_ptr<SpatemRsuRuntime> m_spatemRuntime;
     static std::unique_ptr<SumoTrafficLightSpatemIntersectionBuilder>

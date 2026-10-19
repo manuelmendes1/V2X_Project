@@ -1,0 +1,15 @@
+test_cam_remains_enabled_by_default (ns3_test_0_test_cam_enable_flag.TestCamEnableFlag.test_cam_remains_enabled_by_default) ... ok
+test_cli_exposes_enable_cam (ns3_test_0_test_cam_enable_flag.TestCamEnableFlag.test_cli_exposes_enable_cam) ... ok
+test_controller_declares_cam_configuration_api (ns3_test_0_test_cam_enable_flag.TestCamEnableFlag.test_controller_declares_cam_configuration_api) ... ok
+test_disabled_cam_is_not_scheduled_at_start (ns3_test_0_test_cam_enable_flag.TestCamEnableFlag.test_disabled_cam_is_not_scheduled_at_start) ... ok
+test_main_applies_cam_configuration (ns3_test_0_test_cam_enable_flag.TestCamEnableFlag.test_main_applies_cam_configuration) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.001s
+
+OK
+Diretoria de testes: /home/mmendes/final/ns-3.47/scratch/test
+Ficheiros encontrados: 1
+  Red/CAM/test_cam_enable_flag.py
+
+Resumo: 5 executado(s), 0 falha(s), 0 erro(s).
