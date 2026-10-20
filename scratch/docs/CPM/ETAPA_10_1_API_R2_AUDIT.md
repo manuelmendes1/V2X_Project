@@ -105,4 +105,4 @@ Esta evidência **não** valida:
 - envio/receção por BTP, GeoNetworking, Access Adapter ou `PacketContext`;
 - segurança, assinatura, PKI, interoperabilidade externa ou conformidade ETSI.
 
-A próxima etapa pode começar apenas depois de esta auditoria e o probe estarem publicados. A Etapa 10.2 deverá acrescentar pelo menos um `PerceivedObject`, garantir `objectId PRESENT` conforme a restrição ASN.1, manter `numberOfPerceivedObjects` consistente com a lista e validar o round-trip dos campos de posição e identidade. Nenhuma implementação de produção foi alterada nesta etapa.
+Nota de correção: segundo a ETSI TS 103 324 V2.1.1, cláusula 7.1.8.1, `numberOfPerceivedObjects` representa o total de objetos percebidos na LDM no instante de geração. Não tem de ser igual à cardinalidade dos objetos incluídos no CPM. A prova isolada posterior confirmou ainda que a API ASN.1 instalada não rejeita automaticamente a ausência de `objectId` nem todos os casos semanticamente inválidos de contagem. Estes casos exigem validação semântica adicional. Nenhuma implementação de produção foi alterada.
