@@ -147,3 +147,10 @@ scratch/test/**/build/
 !scratch/docs/
 !scratch/docs/SPATEM/
 !scratch/docs/SPATEM/ETAPA_9_SPATEM_PLANO.txt
+
+
+# CPM R2 Etapa 10.1 audit report
+!scratch/
+!scratch/docs/
+!scratch/docs/CPM/
+!scratch/docs/CPM/ETAPA_10_1_API_R2_AUDIT.md
