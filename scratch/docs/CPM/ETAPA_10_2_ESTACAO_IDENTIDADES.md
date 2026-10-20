@@ -1,6 +1,6 @@
 # Etapa 10.2 — Estação de origem, identidades e perfil CPM R2
 
-**Estado:** decisão documentada; gate sujeito a revisão
+**Estado:** PASS_WITH_SCOPE_LIMITS — gate aceite em 2026-10-20
 **Data da evidência:** 2026-10-20
 **Perfil:** ETSI TS 103 324 V2.1.1 (2023-06), Release 2
 **Branch:** `feature/cpm-etapa10-2-perceived-object`
@@ -85,8 +85,18 @@ Esta evidência não valida o caminho TX/RX de produção, BTP/GeoNetworking, se
 - [x] Regras de ciclo de vida de `objectId` documentadas.
 - [x] Semântica de `numberOfPerceivedObjects` corrigida.
 - [x] Prova isolada do codec e das fronteiras disponível.
-- [ ] Revisão final e aceitação do gate da Fase 10.2.
+- [x] Revisão final e aceitação do gate da Fase 10.2.
 
 Referência normativa:
 ETSI TS 103 324 V2.1.1 — Collective Perception Service (Release 2):
 https://www.etsi.org/deliver/etsi_ts/103300_103399/103324/02.01.01_60/ts_103324v020101p.pdf
+
+## 8. Aceitação do gate — 2026-10-20
+
+A revisão final foi concluída com repetição das duas provas isoladas:
+
+- `python3 scratch/test/Green/CPM/test_cpm_r2_perceived_object_probe.py -v`: PASS, um teste executado.
+- `test_cpm_r2_roundtrip_probe.cc`: compilação e execução PASS, com validação ASN.1, codificação UPER, round-trip e rejeição de payload vazio e truncado.
+- A matriz de 24 fronteiras numéricas e as verificações semânticas do probe de objeto percebido passaram.
+
+**Decisão:** gate da Etapa 10.2 aceite com limitações de âmbito. Esta aceitação cobre as evidências isoladas acima; não certifica integração no pipeline de produção, interoperabilidade ou conformidade global com a norma.
