@@ -28,6 +28,7 @@ void FreeObject(Object* object)
     }
 
     std::free(object->objectId);
+    std::free(object->objectAge);
     std::free(object->objectPerceptionQuality);
     std::free(object);
 }
@@ -347,6 +348,12 @@ bool ValidateSemanticInvariants(const Root* message, std::string& error)
                 error = "objectPerceptionQuality outside 0..15";
                 return false;
             }
+
+            if (object->objectAge &&
+                (*object->objectAge < 0 || *object->objectAge > 2047)) {
+                error = "objectAge outside 0..2047";
+                return false;
+            }
         }
     }
 
@@ -421,6 +428,71 @@ bool CheckBoundaryCase(
     return passed;
 }
 
+
+bool CheckObjectAgeBoundaryCase(
+    const char* name,
+    long age,
+    bool expectedValid)
+{
+    Cpm cpm;
+
+    if (!BuildMessage(cpm, true, 1)) {
+        std::cerr << "FAIL: fixture construction for " << name << '\n';
+        return false;
+    }
+
+    Object* object = nullptr;
+    auto* container = FindObjectContainer(cpm.operator->());
+
+    if (container &&
+        container->perceivedObjects.list.count == 1 &&
+        container->perceivedObjects.list.array) {
+        object = container->perceivedObjects.list.array[0];
+    }
+
+    if (!object) {
+        std::cerr << "FAIL: missing fixture object for " << name << '\n';
+        return false;
+    }
+
+    object->objectAge =
+        static_cast<Vanetza_ITS2_DeltaTimeMilliSecondSigned_t*>(
+            std::calloc(
+                1, sizeof(Vanetza_ITS2_DeltaTimeMilliSecondSigned_t)));
+
+    if (!object->objectAge) {
+        std::cerr << "FAIL: allocation of objectAge for " << name << '\n';
+        return false;
+    }
+
+    *object->objectAge = age;
+
+    std::string semanticError;
+    const bool semanticValid =
+        ValidateSemanticInvariants(cpm.operator->(), semanticError);
+
+    std::string asnError;
+    const int asnRc = CheckConstraints(cpm, asnError);
+
+    const bool passed = expectedValid
+        ? semanticValid && asnRc == 0
+        : !semanticValid && asnRc != 0;
+
+    std::cout << "CPM_BOUNDARY_" << name << '='
+              << (passed ? "PASS" : "FAIL")
+              << " age=" << age
+              << " semantic_valid=" << semanticValid
+              << " asn_rc=" << asnRc << '\n';
+
+    if (!passed) {
+        std::cerr << "Boundary failure " << name
+                  << ": semantic_error=\"" << semanticError
+                  << "\" asn_error=\"" << asnError << "\"\n";
+    }
+
+    return passed;
+}
+
 bool CheckSemanticBoundaryMatrix()
 {
     bool passed = true;
@@ -465,6 +537,11 @@ bool CheckSemanticBoundaryMatrix()
     passed = CheckBoundaryCase("MEASUREMENT_DELTA_MAX", [](Object& o) {
         o.measurementDeltaTime = 2047;
     }, true) && passed;
+
+    passed = CheckObjectAgeBoundaryCase("OBJECT_AGE_MIN", 0, true)
+        && passed;
+    passed = CheckObjectAgeBoundaryCase("OBJECT_AGE_MAX", 2047, true)
+        && passed;
 
     passed = CheckBoundaryCase("QUALITY_MIN", [](Object& o) {
         *o.objectPerceptionQuality = 0;
@@ -514,6 +591,11 @@ bool CheckSemanticBoundaryMatrix()
     passed = CheckBoundaryCase("MEASUREMENT_DELTA_ABOVE_MAX", [](Object& o) {
         o.measurementDeltaTime = 2048;
     }, false) && passed;
+
+    passed = CheckObjectAgeBoundaryCase("OBJECT_AGE_BELOW_MIN", -1, false)
+        && passed;
+    passed = CheckObjectAgeBoundaryCase("OBJECT_AGE_ABOVE_MAX", 2048, false)
+        && passed;
 
     passed = CheckBoundaryCase("QUALITY_BELOW_MIN", [](Object& o) {
         *o.objectPerceptionQuality = -1;

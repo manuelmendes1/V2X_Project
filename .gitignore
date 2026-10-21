@@ -154,3 +154,4 @@ scratch/test/**/build/
 !scratch/docs/
 !scratch/docs/CPM/
 !scratch/docs/CPM/ETAPA_10_1_API_R2_AUDIT.md
+!scratch/docs/CPM/ETAPA_10_3_MODELO_NEUTRO.md
