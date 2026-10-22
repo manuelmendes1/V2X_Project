@@ -7,6 +7,7 @@
 
 #include <cstdint>
 #include <map>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -62,6 +63,10 @@ namespace ns3 {
         // ------------------------------------------------------------------------
 
         bool initialized = false;
+
+        // Logical SUMO simulation time of the latest received sample,
+        // in microseconds. Absent for legacy datagrams without a timestamp.
+        std::optional<std::uint64_t> sumoSimulationTimeUs;
 
         double lastCamTime = -1.0;
         double lastCamGenTime = -1.0;

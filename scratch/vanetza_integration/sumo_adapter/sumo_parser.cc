@@ -1,52 +1,41 @@
 #include "sumo_parser.h"
 
-#include "vanetza_integration/context/simulation_context/simulation_context.h"
-#include "vanetza_integration/core/v2x_log.h"
+#include "sumo_vehicle_datagram.h"
 
-#include <sstream>
+namespace ns3
+{
 
-namespace ns3{
-
-std::unique_ptr<VehicleState> SumoParser::Parse(const std::string& message){
+std::unique_ptr<VehicleState>
+SumoParser::Parse(const std::string& message)
+{
+    const auto datagram = ParseSumoVehicleDatagram(message);
+    if (!datagram)
+    {
+        return nullptr;
+    }
 
     auto vehicle = std::make_unique<VehicleState>();
 
-    std::stringstream ss(message);
-    std::string token;
+    vehicle->identity.vehId = datagram->vehId;
+    vehicle->mobility.position.x = datagram->x;
+    vehicle->mobility.position.y = datagram->y;
+    vehicle->mobility.speed = datagram->speed;
+    vehicle->mobility.heading = datagram->heading;
+    vehicle->mobility.accel = datagram->accel;
 
-    try{
-
-        if (!std::getline(ss, vehicle->identity.vehId, ','))
-            return nullptr;
-
-        if (!std::getline(ss, token, ','))
-            return nullptr;
-        vehicle->mobility.position.x = std::stod(token);
-
-        if (!std::getline(ss, token, ','))
-            return nullptr;
-        vehicle->mobility.position.y = std::stod(token);
-
-        if (!std::getline(ss, token, ','))
-            return nullptr;
-        vehicle->mobility.speed = std::stod(token);
-
-        if (!std::getline(ss, token, ','))
-            return nullptr;
-        vehicle->mobility.heading = std::stod(token);
-
-        if (!std::getline(ss, token, ','))
-            return nullptr;
-        vehicle->mobility.accel = std::stod(token);
-
-        vehicle->initialized = true;
-    }
-    catch (...)
+    // Preserve WGS84 separately from SUMO's projected x/y coordinates.
+    // The pair is accepted only when both coordinates are available.
+    if (datagram->longitudeDeg.has_value() &&
+        datagram->latitudeDeg.has_value())
     {
-        //V2XWriteLog(SimulationContext::simulationStep, V2XLogLevel::WARN, "SUMO", "PARSE_FAIL", "-", 0, 0, -1, message);
-
-        return nullptr;
+        vehicle->mobility.geodeticPosition = VehicleGeodeticPosition{
+            *datagram->longitudeDeg,
+            *datagram->latitudeDeg
+        };
     }
+
+    vehicle->sumoSimulationTimeUs = datagram->simulationTimeUs;
+    vehicle->initialized = true;
 
     return vehicle;
 }

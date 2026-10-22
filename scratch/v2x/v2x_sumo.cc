@@ -44,6 +44,12 @@ int main(int argc, char* argv[]) {
 
     std::string itsStartTime;
 
+    bool enableCpm = false;
+    uint32_t cpmStationId = 0;
+    double cpmLatitudeDeg = std::numeric_limits<double>::quiet_NaN();
+    double cpmLongitudeDeg = std::numeric_limits<double>::quiet_NaN();
+    double cpmPerceptionRangeMeters = 50.0;
+
     CommandLine cmd;
 
     cmd.AddValue(
@@ -76,6 +82,18 @@ int main(int argc, char* argv[]) {
         "Tempo absoluto inicial do dominio temporal ITS "
         "(ISO-8601, por exemplo 2026-09-24T10:01:32)",
         itsStartTime);
+
+    cmd.AddValue("enableCpm",
+        "Ativa a construção de CpmInput; sem transmissão", enableCpm);
+    cmd.AddValue("cpmStationId",
+        "stationId da RSU CPM", cpmStationId);
+    cmd.AddValue("cpmLatitudeDeg",
+        "Latitude WGS84 da RSU CPM", cpmLatitudeDeg);
+    cmd.AddValue("cpmLongitudeDeg",
+        "Longitude WGS84 da RSU CPM", cpmLongitudeDeg);
+    cmd.AddValue("cpmPerceptionRangeMeters",
+        "Alcance horizontal de perceção em metros",
+        cpmPerceptionRangeMeters);
 
     cmd.AddValue(
         "enableSpatem",
@@ -130,6 +148,14 @@ int main(int argc, char* argv[]) {
         spatemNs3Y);
 
     SimulationContext::itsStartTime = itsStartTime;
+
+    if (!SimulationController::ConfigureCpmPerception(
+            enableCpm, cpmStationId, cpmLatitudeDeg,
+            cpmLongitudeDeg, cpmPerceptionRangeMeters))
+    {
+        std::cerr << "[CPM_PERCEPTION] invalid configuration; startup aborted\n";
+        return 2;
+    }
 
     YansWifiChannelHelper ch;
 

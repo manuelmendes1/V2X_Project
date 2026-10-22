@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <functional>
 #include <string>
 
@@ -17,6 +18,7 @@ public:
     using DenmEventCallback = std::function<void(const ns3::DenmScenarioEvent&)>;
     using TrafficLightUpdateCallback =
         std::function<void(const ns3::SumoTrafficLightState&)>;
+    using StepCompleteCallback = std::function<void(std::uint64_t)>;
 
     // =====================================================
     // Lifecycle
@@ -38,6 +40,7 @@ public:
     static void SetDenmEventCallback(DenmEventCallback callback);
     static void SetTrafficLightUpdateCallback(
         TrafficLightUpdateCallback callback);
+    static void SetStepCompleteCallback(StepCompleteCallback callback);
 
 private:
 
@@ -54,6 +57,7 @@ private:
     static VehicleUpdateCallback m_vehicleCallback;
     static DenmEventCallback m_denmEventCallback;
     static TrafficLightUpdateCallback m_trafficLightCallback;
+    static StepCompleteCallback m_stepCompleteCallback;
 
 
 };

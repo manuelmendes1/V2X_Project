@@ -16,6 +16,11 @@
 !/scratch/
 !/scratch/CMakeLists.txt
 
+# CPM Etapa 10.4 evidence note (only this new note is unignored)
+!/scratch/docs/
+!/scratch/docs/CPM/
+!/scratch/docs/CPM/ETAPA_10_4_FONTE_COORDENADAS_TEMPO.md
+
 !/scratch/denm_trigger_test/
 !/scratch/denm_trigger_test/**
 !/scratch/denm_lifecycle_trigger_test/
@@ -155,3 +160,28 @@ scratch/test/**/build/
 !scratch/docs/CPM/
 !scratch/docs/CPM/ETAPA_10_1_API_R2_AUDIT.md
 !scratch/docs/CPM/ETAPA_10_3_MODELO_NEUTRO.md
+
+# ------------------------------------------------------------
+# SUMO official project tree
+# ------------------------------------------------------------
+
+!/sumo/
+!/sumo/**
+
+# Generated files in the active worktree.
+# Historical snapshots under sumo/versions/ remain preserved.
+sumo/current/**/__pycache__/
+sumo/current/**/*.pyc
+sumo/current/**/*.log
+sumo/current/**/*.bak
+sumo/current/**/*.tmp
+sumo/current/**/*.out
+sumo/current/**/.pytest_cache/
+sumo/current/**/.cache/
+
+# SUMO generated network and local snapshot archive
+# The generated network is >100 MB; preserve locally and rebuild from OSM source.
+# Snapshot copies are local backups and must not be added wholesale to Git.
+/sumo/versions/
+/sumo/current/scenario/georeferenced/vila-nova-de-famalicao/famalicao.net.xml
+/sumo/current/scenario/georeferenced/vila-nova-de-famalicao/netconvert.log

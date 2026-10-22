@@ -1,0 +1,12 @@
+test_conversion_exception_keeps_timestamp_without_wgs84 (__main__.TestV2XBridge16Geodetic.test_conversion_exception_keeps_timestamp_without_wgs84) ... ok
+test_out_of_range_conversion_keeps_timestamp_without_wgs84 (__main__.TestV2XBridge16Geodetic.test_out_of_range_conversion_keeps_timestamp_without_wgs84) ... ok
+test_valid_geodetic_conversion_emits_nine_fields (__main__.TestV2XBridge16Geodetic.test_valid_geodetic_conversion_emits_nine_fields) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.001s
+
+OK
+[10:15:47.791] [SUMO_WGS84] Conversion unavailable; sending seven-field sample without geographic coordinates (reason=RuntimeError)
+[10:15:47.791] SUMO -> NS3 | veh0,20489.043,5179.750,13.000,90.000,0.250,1234567
+[10:15:47.792] SUMO -> NS3 | veh0,20489.043,5179.750,13.000,90.000,0.250,1234567
+[10:15:47.792] SUMO -> NS3 | veh0,20489.043,5179.750,13.000,90.000,0.250,1234567,-8.4330521,41.3851057
