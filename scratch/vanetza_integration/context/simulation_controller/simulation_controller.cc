@@ -1,5 +1,11 @@
 #include <cmath>
 #include "simulation_controller.h"
+#include "vanetza_integration/cpm/perception/cpm_vehicle_perception_source.h"
+#include "vanetza_integration/cpm/codec/cpm_uper_encoder.h"
+#include "vanetza_integration/context/vehicle_dispatcher/vehicle_dispatcher.h"
+#include <vanetza/common/clock.hpp>
+#include <optional>
+#include <vector>
 #include "vanetza_integration/spatem/emitter/spatem_emitter_endpoint.h"
 #include "vanetza_integration/context/packet/packet_context.h"
 #include "vanetza_integration/context/packet/packet_id_manager.h"
@@ -53,6 +59,18 @@ double SimulationController::m_spatemNs3Y = 0.0;
 std::unique_ptr<SpatemEmitterEndpoint> SimulationController::m_spatemEmitter;
 std::unique_ptr<SpatemRsuRuntime> SimulationController::m_spatemRuntime;
 std::unique_ptr<SumoTrafficLightSpatemIntersectionBuilder> SimulationController::m_spatemIntersectionBuilder;
+
+bool SimulationController::m_cpmEnabled = false;
+uint32_t SimulationController::m_cpmStationId = 0;
+double SimulationController::m_cpmLatitudeDeg =
+    std::numeric_limits<double>::quiet_NaN();
+double SimulationController::m_cpmLongitudeDeg =
+    std::numeric_limits<double>::quiet_NaN();
+double SimulationController::m_cpmPerceptionRangeMeters = 50.0;
+int64_t SimulationController::m_cpmItsStartClockUs = 0;
+std::optional<std::uint64_t> SimulationController::m_cpmLastEncodedReferenceTimeUs;
+std::unique_ptr<::CpmVehiclePerceptionSource>
+    SimulationController::m_cpmPerceptionSource;
 
 
 // ============================================================================
@@ -186,6 +204,121 @@ SimulationController::ShutdownSpatemEmitter()
 // ============================================================================
 
 void
+SimulationController::RunCpmPerception(std::uint64_t referenceTimeUs)
+{
+    if (!m_cpmEnabled || !m_cpmPerceptionSource)
+    {
+        return;
+    }
+
+    std::vector<CpmVehiclePerceptionObservation> observations;
+
+    VehicleDispatcher::ForEachReadyVehicle(
+        [&](VehicleState& vehicle)
+        {
+            std::optional<CpmGeodeticHorizontalPosition> position;
+
+            if (vehicle.mobility.geodeticPosition.has_value())
+            {
+                const auto& geo = *vehicle.mobility.geodeticPosition;
+
+                // VehicleMobilityContext guarda longitude antes de latitude;
+                // a API geodésica CPM recebe latitude antes de longitude.
+                position = CpmGeodeticHorizontalPosition{
+                    geo.latitudeDeg,
+                    geo.longitudeDeg};
+            }
+
+            observations.push_back(
+                CpmVehiclePerceptionObservation{
+                    vehicle.identity.vehId,
+                    position,
+                    vehicle.sumoSimulationTimeUs});
+
+        });
+
+    if (observations.empty())
+    {
+        return;
+    }
+
+    if (referenceTimeUs >
+        static_cast<uint64_t>(std::numeric_limits<int64_t>::max()))
+    {
+        NS_LOG_UNCOND(
+            "[CPM_PERCEPTION] REJECTED reason=REFERENCE_TIME_OUT_OF_RANGE");
+        return;
+    }
+
+    if (m_cpmLastEncodedReferenceTimeUs.has_value() &&
+        referenceTimeUs <= *m_cpmLastEncodedReferenceTimeUs)
+    {
+        NS_LOG_UNCOND(
+            "[CPM_PERCEPTION] SKIPPED"
+            << " reference_sumo_us=" << referenceTimeUs
+            << " reason=STALE_OR_DUPLICATE_TIMESTAMP");
+        return;
+    }
+
+    const CpmVehiclePerceptionConfig config{
+        m_cpmStationId,
+        m_cpmLatitudeDeg,
+        m_cpmLongitudeDeg,
+        m_cpmPerceptionRangeMeters,
+        m_cpmItsStartClockUs};
+
+    CpmInput input{};
+    std::string error;
+
+    if (!m_cpmPerceptionSource->Build(
+            config,
+            static_cast<int64_t>(referenceTimeUs),
+            observations,
+            input,
+            error))
+    {
+        NS_LOG_UNCOND(
+            "[CPM_PERCEPTION] BUILD_REJECTED"
+            << " reference_sumo_us=" << referenceTimeUs
+            << " observed_vehicles=" << observations.size()
+            << " reason=" << error);
+        return;
+    }
+
+    NS_LOG_UNCOND(
+        "[CPM_PERCEPTION] BUILD_ACCEPTED"
+        << " reference_sumo_us=" << referenceTimeUs
+        << " reference_time_its_ms=" << input.referenceTimeItsMs
+        << " observed_vehicles=" << observations.size()
+        << " known_objects=" << static_cast<unsigned>(input.knownObjectCount)
+        << " perceived_objects=" << input.perceivedObjects.size()
+        << " mode=BUILD_ONLY");
+
+    const auto encoded = CpmUperEncoder::Encode(input);
+
+    if (!encoded.success)
+    {
+        NS_LOG_UNCOND(
+            "[CPM_CODEC] ENCODE_REJECTED"
+            << " reference_sumo_us=" << referenceTimeUs
+            << " perceived_objects=" << input.perceivedObjects.size()
+            << " reason=" << encoded.error
+            << " mode=NO_TX");
+        return;
+    }
+
+    m_cpmLastEncodedReferenceTimeUs = referenceTimeUs;
+
+    NS_LOG_UNCOND(
+        "[CPM_CODEC] ENCODE_ACCEPTED"
+        << " reference_sumo_us=" << referenceTimeUs
+        << " bytes=" << encoded.bytes.size()
+        << " encoded_bits=" << encoded.encodedBits
+        << " perceived_objects=" << input.perceivedObjects.size()
+        << " mode=NO_TX");
+}
+
+void
 SimulationController::PollLoop()
 {
     SumoAdapter::Poll();
@@ -220,6 +353,101 @@ void SimulationController::SendCam() {
     Simulator::Schedule(
         CamScheduler::RunInterval(),
         &SimulationController::SendCam);
+}
+
+bool
+SimulationController::ConfigureCpmPerception(
+    bool enabled,
+    uint32_t stationId,
+    double latitudeDeg,
+    double longitudeDeg,
+    double perceptionRangeMeters)
+{
+    // Desativar primeiro impede que uma configuração inválida deixe ativa
+    // uma instância anterior da fonte.
+    m_cpmEnabled = false;
+    m_cpmPerceptionSource.reset();
+
+    if (!enabled)
+    {
+        NS_LOG_UNCOND("[CPM_PERCEPTION] DISABLED");
+        return true;
+    }
+
+    if (stationId == 0 ||
+        !std::isfinite(latitudeDeg) ||
+        latitudeDeg < -90.0 || latitudeDeg > 90.0 ||
+        !std::isfinite(longitudeDeg) ||
+        longitudeDeg < -180.0 || longitudeDeg > 180.0 ||
+        !std::isfinite(perceptionRangeMeters) ||
+        perceptionRangeMeters < 0.0)
+    {
+        NS_LOG_UNCOND(
+            "[CPM_PERCEPTION] ERROR invalid RSU ID, geography or range");
+        return false;
+    }
+
+    if (SimulationContext::itsStartTime.empty())
+    {
+        NS_LOG_UNCOND(
+            "[CPM_PERCEPTION] ERROR enabled CPM requires --itsStartTime");
+        return false;
+    }
+
+    std::string normalized = SimulationContext::itsStartTime;
+    const auto separator = normalized.find('T');
+    if (separator != std::string::npos)
+    {
+        normalized[separator] = ' ';
+    }
+
+    int64_t startClockUs = 0;
+    try
+    {
+        const auto start = vanetza::Clock::at(normalized);
+        const long double value =
+            static_cast<long double>(start.time_since_epoch().count());
+
+        if (!std::isfinite(value) ||
+            value < 0.0L ||
+            value > static_cast<long double>(
+                std::numeric_limits<int64_t>::max()))
+        {
+            NS_LOG_UNCOND(
+                "[CPM_PERCEPTION] ERROR ITS clock is out of range");
+            return false;
+        }
+
+        startClockUs = static_cast<int64_t>(value);
+    }
+    catch (...)
+    {
+        NS_LOG_UNCOND(
+            "[CPM_PERCEPTION] ERROR invalid --itsStartTime: "
+            << SimulationContext::itsStartTime);
+        return false;
+    }
+
+    m_cpmLastEncodedReferenceTimeUs.reset();
+    m_cpmStationId = stationId;
+    m_cpmLatitudeDeg = latitudeDeg;
+    m_cpmLongitudeDeg = longitudeDeg;
+    m_cpmPerceptionRangeMeters = perceptionRangeMeters;
+    m_cpmItsStartClockUs = startClockUs;
+    m_cpmPerceptionSource =
+        std::make_unique<::CpmVehiclePerceptionSource>();
+    m_cpmEnabled = true;
+
+    NS_LOG_UNCOND(
+        "[CPM_PERCEPTION] CONFIGURED"
+        << " station_id=" << stationId
+        << " latitude_deg=" << latitudeDeg
+        << " longitude_deg=" << longitudeDeg
+        << " range_m=" << perceptionRangeMeters
+        << " its_start_clock_us=" << startClockUs
+        << " mode=BUILD_ONLY");
+
+    return true;
 }
 
 void
@@ -361,6 +589,9 @@ SimulationController::ConfigureSumoAdapterCallbacks()
 
     SumoAdapter::SetTrafficLightUpdateCallback(
         &SimulationController::HandleTrafficLightUpdateFromSumo);
+
+    SumoAdapter::SetStepCompleteCallback(
+        &SimulationController::HandleSumoStepComplete);
 }
 
 void
@@ -566,6 +797,12 @@ SimulationController::HandleVehicleUpdateFromSumo(
     const VehicleState& parsedVs)
 {
     SimulationSync::ProcessVehicle(parsedVs);
+}
+
+void
+SimulationController::HandleSumoStepComplete(std::uint64_t referenceTimeUs)
+{
+    RunCpmPerception(referenceTimeUs);
 }
 
 

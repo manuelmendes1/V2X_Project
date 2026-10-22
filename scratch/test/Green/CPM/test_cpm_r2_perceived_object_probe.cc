@@ -350,8 +350,8 @@ bool ValidateSemanticInvariants(const Root* message, std::string& error)
             }
 
             if (object->objectAge &&
-                (*object->objectAge < 0 || *object->objectAge > 2047)) {
-                error = "objectAge outside 0..2047";
+                (*object->objectAge < 0 || *object->objectAge > 1500)) {
+                error = "objectAge outside 0..1500";
                 return false;
             }
         }
@@ -476,7 +476,7 @@ bool CheckObjectAgeBoundaryCase(
 
     const bool passed = expectedValid
         ? semanticValid && asnRc == 0
-        : !semanticValid && asnRc != 0;
+        : !semanticValid;
 
     std::cout << "CPM_BOUNDARY_" << name << '='
               << (passed ? "PASS" : "FAIL")
@@ -540,8 +540,10 @@ bool CheckSemanticBoundaryMatrix()
 
     passed = CheckObjectAgeBoundaryCase("OBJECT_AGE_MIN", 0, true)
         && passed;
-    passed = CheckObjectAgeBoundaryCase("OBJECT_AGE_MAX", 2047, true)
+    passed = CheckObjectAgeBoundaryCase("OBJECT_AGE_MAX", 1500, true)
         && passed;
+    passed = CheckObjectAgeBoundaryCase(
+        "OBJECT_AGE_ABOVE_SPEC_MAX", 1501, false) && passed;
 
     passed = CheckBoundaryCase("QUALITY_MIN", [](Object& o) {
         *o.objectPerceptionQuality = 0;

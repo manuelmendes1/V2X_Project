@@ -2,12 +2,15 @@
 
 #include <cstdint>
 #include <memory>
+#include <optional>
 #include <string>
 
 #include "ns3/core-module.h"
 
 #include "vanetza_integration/context/vehicle_state.h"
 #include "vanetza_integration/denm/scenario/denm_scenario_event_source.h"
+
+class CpmVehiclePerceptionSource;
 
 namespace ns3
 {
@@ -30,6 +33,14 @@ public:
     static void SetDenmRadiusMeters(double radiusMeters);
 
     static void SetDenmPkiDirectory(const std::string& directory);
+
+    // Constrói CpmInput a partir dos estados SUMO; não transmite pacotes.
+    static bool ConfigureCpmPerception(
+        bool enabled,
+        uint32_t stationId,
+        double latitudeDeg,
+        double longitudeDeg,
+        double perceptionRangeMeters);
 
     static void HandleVehicleUpdateFromSumo(const VehicleState& parsedVs);
 
@@ -73,6 +84,8 @@ public:
 private:
 
     static void SendSpatemSnapshot();
+    static void RunCpmPerception(std::uint64_t referenceTimeUs);
+    static void HandleSumoStepComplete(std::uint64_t referenceTimeUs);
 
     static Time m_stepLength;
 
@@ -97,6 +110,16 @@ private:
     static bool m_spatemDirty;
 
     static DenmScenarioEventSource m_denmScenarioEvents;
+
+    static bool m_cpmEnabled;
+    static uint32_t m_cpmStationId;
+    static double m_cpmLatitudeDeg;
+    static double m_cpmLongitudeDeg;
+    static double m_cpmPerceptionRangeMeters;
+    static int64_t m_cpmItsStartClockUs;
+    static std::optional<std::uint64_t> m_cpmLastEncodedReferenceTimeUs;
+    static std::unique_ptr<::CpmVehiclePerceptionSource>
+        m_cpmPerceptionSource;
 };
 
 } // namespace ns3

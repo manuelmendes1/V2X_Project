@@ -1,0 +1,447 @@
+[SPATEM_RSU] configuration enabled=false station_id=0 intersection_id=0 traffic_light= latitude_deg=nan longitude_deg=nan ns3_x=0 ns3_y=0
+[SIM_STEP=0][VEH=-][NODE=0][STATION=0][SEQ=-1][LVL=INFO][MOD=SUMO][EV=SO_RCVBUF_CONFIGURED] requested_bytes=4194304 effective_bytes=8388608
+[SIM_STEP=0][VEH=-][NODE=0][STATION=0][SEQ=-1][LVL=INFO][MOD=SUMO][EV=INIT_OK] UDP adapter initialized
+[SIM_STEP=0][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20489.043000,5179.750000) speed=0.000000 sumo_sim_time_us=100000
+[NET_DEBUG] node=0 device=0 type=ns3::WifiNetDevice address=01-06-00:00:00:00:00:01
+[NET] node=0 ip=10.0.0.1
+[VRT_INIT] ===========================================
+[VRT_INIT] Initializing VanetzaRuntime
+[VRT_INIT] Vehicle    : 0
+[VRT_INIT] Node       : 0
+[VRT_INIT] Station ID : 1
+[SECURITY] DENM V3 signer=DUMMY veh=0
+[SECURITY] DENM V3 verifier=REAL veh=0
+[ROUTER] set_address() 02:00:00:01:00:00
+[BTP_RX] hook_undispatched installed
+[BTP_RX] Router transport handler = BTP_B
+[VRT_INIT] VanetzaGeoNetAdapter initialized
+[BTP_RX] Non-interactive handler installed port=2001
+[GEO_RX] BTP RX handler forwarded to adapter port=2001
+[BTP_RX] Non-interactive handler installed port=2002
+[GEO_RX] BTP RX handler forwarded to adapter port=2002
+[BTP_RX] Non-interactive handler installed port=2004
+[GEO_RX] BTP RX handler forwarded to adapter port=2004
+[VRT_INIT] GeoNet adapter : OK
+[VRT_INIT] Identity authority: VehicleIdentity
+[VRT_INIT] GN_ADDR authority: VanetzaRuntime
+[VRT_INIT] VehicleRegistry role: reverse indexes only
+[VRT_INIT] VanetzaRuntime initialization completed
+[VRT_INIT] ===========================================
+[SIM_STEP=0][VEH=0][NODE=0][STATION=1][SEQ=-1][LVL=INFO][MOD=VEHICLE][EV=IDENTITY_READY] Vehicle identity initialized before VanetzaRuntime
+[NET] node=0 veh=0 wifiDeviceIndex=1 ip=10.0.0.1 linkMac=00:00:00:00:00:01
+[DENM_EVENT_INGEST] vehicle=0 event=0-stopped-0001 trigger_us=100000 ingest_sim_us=6500000 ingest_monotonic_us=4271010533
+[DCC_CBR] veh=0 node=0 station=1 sim_us=6600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=1][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20489.021000,5179.761000) speed=0.249000 sumo_sim_time_us=200000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=6700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=6800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=2][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20488.977000,5179.784000) speed=0.498000 sumo_sim_time_us=300000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=6900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=3][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20488.910000,5179.818000) speed=0.754000 sumo_sim_time_us=400000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=7000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=7100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=4][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20488.819000,5179.865000) speed=1.013000 sumo_sim_time_us=500000
+[DENM_EVENT_INGEST] vehicle=0 event=0-traffic_jam-0001 trigger_us=500000 ingest_sim_us=7100000 ingest_monotonic_us=4271605675
+[DCC_CBR] veh=0 node=0 station=1 sim_us=7200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=5][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20488.711000,5179.921000) speed=1.225000 sumo_sim_time_us=600000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=7300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=6][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20488.583000,5179.986000) speed=1.439000 sumo_sim_time_us=700000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=7400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=7500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=7][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20488.434000,5180.062000) speed=1.668000 sumo_sim_time_us=800000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=7600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=8][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20488.264000,5180.150000) speed=1.910000 sumo_sim_time_us=900000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=7700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=9][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20488.075000,5180.247000) speed=2.131000 sumo_sim_time_us=1000000
+[SIM_STEP=9][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20487.865000,5180.355000) speed=2.356000 sumo_sim_time_us=1100000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=7800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=7900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=10][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20487.639000,5180.471000) speed=2.537000 sumo_sim_time_us=1200000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=8000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=11][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20487.394000,5180.597000) speed=2.763000 sumo_sim_time_us=1300000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=8100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=12][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20487.129000,5180.733000) speed=2.972000 sumo_sim_time_us=1400000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=8200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=13][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20486.850000,5180.876000) speed=3.144000 sumo_sim_time_us=1500000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=8300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=14][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20486.552000,5181.029000) speed=3.350000 sumo_sim_time_us=1600000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=8400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=15][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20486.234000,5181.192000) speed=3.574000 sumo_sim_time_us=1700000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=8500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=16][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20485.899000,5181.365000) speed=3.767000 sumo_sim_time_us=1800000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=8600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=17][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20485.551000,5181.543000) speed=3.908000 sumo_sim_time_us=1900000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=8700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=18][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20485.188000,5181.729000) speed=4.076000 sumo_sim_time_us=2000000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=8800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=19][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20484.805000,5181.926000) speed=4.309000 sumo_sim_time_us=2100000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=8900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=9000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=20][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20484.410000,5182.129000) speed=4.444000 sumo_sim_time_us=2200000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=9100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=21][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20484.007000,5182.355000) speed=4.622000 sumo_sim_time_us=2300000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=9200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=22][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20483.588000,5182.595000) speed=4.822000 sumo_sim_time_us=2400000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=9300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=23][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20483.157000,5182.843000) speed=4.979000 sumo_sim_time_us=2500000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=9400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=24][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20482.707000,5183.101000) speed=5.183000 sumo_sim_time_us=2600000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=9500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=25][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20482.241000,5183.368000) speed=5.374000 sumo_sim_time_us=2700000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=9600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=26][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20481.753000,5183.648000) speed=5.619000 sumo_sim_time_us=2800000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=9700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=27][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20481.245000,5183.939000) speed=5.856000 sumo_sim_time_us=2900000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=9800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=28][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20480.717000,5184.242000) speed=6.088000 sumo_sim_time_us=3000000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=9900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=29][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20480.169000,5184.557000) speed=6.325000 sumo_sim_time_us=3100000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=10000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=30][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20479.608000,5184.879000) speed=6.460000 sumo_sim_time_us=3200000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=10100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=31][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20479.034000,5185.208000) speed=6.625000 sumo_sim_time_us=3300000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=10200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=32][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20478.447000,5185.545000) speed=6.762000 sumo_sim_time_us=3400000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=10300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=33][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20477.842000,5185.892000) speed=6.970000 sumo_sim_time_us=3500000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=10400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=34][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20477.225000,5186.246000) speed=7.116000 sumo_sim_time_us=3600000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=10500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=10600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=35][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20476.591000,5186.609000) speed=7.309000 sumo_sim_time_us=3700000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=10700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=36][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20475.942000,5186.982000) speed=7.485000 sumo_sim_time_us=3800000
+[SIM_STEP=36][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20475.271000,5187.367000) speed=7.740000 sumo_sim_time_us=3900000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=10800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=10900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=37][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20474.579000,5187.764000) speed=7.972000 sumo_sim_time_us=4000000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=11000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=38][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20473.870000,5188.170000) speed=8.170000 sumo_sim_time_us=4100000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=11100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=39][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20473.146000,5188.586000) speed=8.348000 sumo_sim_time_us=4200000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=11200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=40][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20472.400000,5189.014000) speed=8.606000 sumo_sim_time_us=4300000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=11300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=41][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20471.632000,5189.454000) speed=8.848000 sumo_sim_time_us=4400000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=11400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=42][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20470.851000,5189.902000) speed=9.004000 sumo_sim_time_us=4500000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=11500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=43][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20470.053000,5190.360000) speed=9.204000 sumo_sim_time_us=4600000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=11600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=44][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20469.233000,5190.830000) speed=9.446000 sumo_sim_time_us=4700000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=11700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=45][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20468.401000,5191.308000) speed=9.592000 sumo_sim_time_us=4800000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=11800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=46][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20467.550000,5191.796000) speed=9.814000 sumo_sim_time_us=4900000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=11900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=47][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20466.679000,5192.296000) speed=10.041000 sumo_sim_time_us=5000000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=12000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=48][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20465.795000,5192.803000) speed=10.190000 sumo_sim_time_us=5100000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=12100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=49][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20464.896000,5193.318000) speed=10.363000 sumo_sim_time_us=5200000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=12200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=50][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20463.984000,5193.842000) speed=10.519000 sumo_sim_time_us=5300000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=12300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=51][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20463.059000,5194.373000) speed=10.667000 sumo_sim_time_us=5400000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=12400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=52][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20462.115000,5194.914000) speed=10.877000 sumo_sim_time_us=5500000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=12500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=53][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20461.151000,5195.467000) speed=11.117000 sumo_sim_time_us=5600000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=12600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=54][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20460.173000,5196.028000) speed=11.268000 sumo_sim_time_us=5700000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=12700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=55][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20459.183000,5196.604000) speed=11.455000 sumo_sim_time_us=5800000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=12800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=56][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20458.175000,5197.191000) speed=11.668000 sumo_sim_time_us=5900000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=12900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=13000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=57][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20457.146000,5197.790000) speed=11.907000 sumo_sim_time_us=6000000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=13100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=58][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20456.104000,5198.396000) speed=12.049000 sumo_sim_time_us=6100000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=13200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=59][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20455.042000,5199.014000) speed=12.287000 sumo_sim_time_us=6200000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=13300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=60][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20453.960000,5199.644000) speed=12.517000 sumo_sim_time_us=6300000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=13400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=61][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20452.857000,5200.286000) speed=12.764000 sumo_sim_time_us=6400000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=13500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=62][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20451.737000,5200.938000) speed=12.961000 sumo_sim_time_us=6500000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=13600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=63][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20450.601000,5201.599000) speed=13.146000 sumo_sim_time_us=6600000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=13700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=64][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20449.470000,5202.257000) speed=13.086000 sumo_sim_time_us=6700000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=13800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=65][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20448.337000,5202.917000) speed=13.113000 sumo_sim_time_us=6800000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=13900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=66][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20447.201000,5203.578000) speed=13.144000 sumo_sim_time_us=6900000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=14000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=67][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20446.071000,5204.235000) speed=13.069000 sumo_sim_time_us=7000000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=14100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=68][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20444.944000,5204.892000) speed=13.044000 sumo_sim_time_us=7100000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=14200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=69][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20443.817000,5205.548000) speed=13.043000 sumo_sim_time_us=7200000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=14300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=14400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=70][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20442.679000,5206.210000) speed=13.160000 sumo_sim_time_us=7300000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=14500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=71][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20441.550000,5206.867000) speed=13.067000 sumo_sim_time_us=7400000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=14600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=72][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20440.419000,5207.525000) speed=13.086000 sumo_sim_time_us=7500000
+[SIM_STEP=72][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20439.285000,5208.186000) speed=13.123000 sumo_sim_time_us=7600000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=14700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=14800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=73][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20438.149000,5208.846000) speed=13.137000 sumo_sim_time_us=7700000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=14900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=74][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20437.017000,5209.506000) speed=13.105000 sumo_sim_time_us=7800000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=15000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=75][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20435.884000,5210.165000) speed=13.105000 sumo_sim_time_us=7900000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=15100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=76][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20434.746000,5210.827000) speed=13.164000 sumo_sim_time_us=8000000
+[DCC_CBR] veh=0 node=0 station=1 sim_us=15200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=15300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=15400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=15500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=15600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=15700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=15800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=15900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=16000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=16100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=16200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=16300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=16400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=16500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=16600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=16700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=16800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=16900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=17000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=17100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=17200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=17300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=17400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=17500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=17600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=17700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=17800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=17900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=18000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=18100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=18200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=18300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=18400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=18500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=18600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=18700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=18800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=18900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=19000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=19100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=19200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=19300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=19400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=19500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=19600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=19700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=19800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=19900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=20000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=20100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=20200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=20300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=20400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=20500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=20600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=20700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=20800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=20900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=21000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=21100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=21200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=21300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=21400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=21500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=21600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=21700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=21800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=21900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=22000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=22100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=22200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=22300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=22400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=22500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=22600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=22700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=22800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=22900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=23000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=23100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=23200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=23300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=23400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=23500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=23600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=23700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=23800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=23900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=24000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=24100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=24200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=24300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=24400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=24500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=24600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=24700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=24800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=24900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=25000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=25100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=25200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=25300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=25400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=25500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=25600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=25700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=25800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=25900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=26000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=26100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=26200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=26300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=26400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=26500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=26600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=26700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=26800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=26900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=27000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=27100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=27200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=27300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=27400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=27500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=27600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=27700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=27800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=27900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=28000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=28100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=28200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=28300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=28400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=28500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=28600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=28700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=28800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=28900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=29000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=29100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=29200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=29300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=29400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=29500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=29600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=29700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=29800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=29900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=30000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=30100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=30200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=30300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=30400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=30500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=30600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=30700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=30800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=30900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=31000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=31100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=31200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=31300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=31400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=31500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=31600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=31700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=31800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=31900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=32000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=32100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=32200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=32300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=32400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=32500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=32600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=32700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=32800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=32900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=33000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=33100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=33200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=33300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=33400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=33500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=33600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=33700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=33800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=33900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=34000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=34100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=34200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=34300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=34400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=34500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=34600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=34700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=34800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=34900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=35000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=35100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=35200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=35300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=35400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=35500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=35600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=35700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=35800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=35900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=36000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=36100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=36200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=36300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=36400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=36500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=36600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=36700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=36800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=36900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=37000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=37100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=37200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=37300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=37400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=37500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=37600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=37700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=37800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=37900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=38000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=38100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=38200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=38300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=38400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=38500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=38600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=38700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=38800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=38900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=39000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=39100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=39200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=39300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=39400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=39500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=39600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=39700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=39800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=39900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=77][VEH=-][NODE=0][STATION=0][SEQ=-1][LVL=INFO][MOD=SUMO][EV=SOCKET_CLOSED] UDP adapter socket closed

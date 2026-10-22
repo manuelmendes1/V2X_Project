@@ -52,6 +52,7 @@ set(VANETZA_LIBS
     vanetza_access
     vanetza_asn1
     vanetza_asn1_its
+    vanetza_asn1_its_r2
     vanetza_asn1_security
     vanetza_asn1_support
     vanetza_btp
@@ -134,6 +135,7 @@ add_library(vanetza_cam_encoder_obj OBJECT
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/sumo_adapter/sumo_traffic_light_spatem_mapper.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/sumo_adapter/sumo_traffic_light_spatem_intersection_builder.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/sumo_adapter/sumo_parser.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/sumo_adapter/sumo_vehicle_datagram.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/sumo_adapter/sumo_serializer.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/sumo_adapter/sumo_socket.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/btp/vanetza_btp_adapter.cc
@@ -236,6 +238,27 @@ target_link_libraries(vanetza_spatem_obj
 )
 
 # =========================================================
+# CPM PERCEPTION OBJECT LIBRARY
+# =========================================================
+
+add_library(vanetza_cpm_perception_obj OBJECT
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/cpm/codec/cpm_uper_encoder.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/cpm/perception/cpm_coordinate_quantizer.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/cpm/perception/cpm_coordinate_transform.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/cpm/perception/cpm_geodetic_transform.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/cpm/perception/cpm_synthetic_perception_source.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/cpm/perception/cpm_temporal_transform.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/cpm/perception/cpm_track_history.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/cpm/perception/cpm_vehicle_perception_source.cc
+)
+
+target_include_directories(vanetza_cpm_perception_obj PUBLIC
+    ${CMAKE_SOURCE_DIR}/scratch
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration
+    "${V2X_GEOGRAPHICLIB_ROOT}/include"
+)
+
+# =========================================================
 # SCRATCH EXEC BUILDER
 # =========================================================
 function(create_scratch source_files)
@@ -283,6 +306,7 @@ function(create_scratch source_files)
             $<TARGET_OBJECTS:vanetza_cam_encoder_obj>
             $<TARGET_OBJECTS:vanetza_denm_obj>
             $<TARGET_OBJECTS:vanetza_spatem_obj>
+            $<TARGET_OBJECTS:vanetza_cpm_perception_obj>
         EXECUTABLE_DIRECTORY_PATH ${CMAKE_OUTPUT_DIRECTORY}/scratch
         IGNORE_PCH
     )

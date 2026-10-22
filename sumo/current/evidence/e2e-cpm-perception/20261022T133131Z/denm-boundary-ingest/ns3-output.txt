@@ -1,0 +1,214 @@
+[SPATEM_RSU] configuration enabled=false station_id=0 intersection_id=0 traffic_light= latitude_deg=nan longitude_deg=nan ns3_x=0 ns3_y=0
+[CPM_PERCEPTION] CONFIGURED station_id=9001 latitude_deg=41.4253 longitude_deg=-8.43408 range_m=7000 its_start_clock_us=719748000000000 mode=BUILD_ONLY
+[SIM_STEP=0][VEH=-][NODE=0][STATION=0][SEQ=-1][LVL=INFO][MOD=SUMO][EV=SO_RCVBUF_CONFIGURED] requested_bytes=4194304 effective_bytes=8388608
+[SIM_STEP=0][VEH=-][NODE=0][STATION=0][SEQ=-1][LVL=INFO][MOD=SUMO][EV=INIT_OK] UDP adapter initialized
+[SIM_STEP=0][VEH=veh0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(100.000000,100.000000) speed=10.000000 sumo_sim_time_us=100000
+[NET_DEBUG] node=0 device=0 type=ns3::WifiNetDevice address=01-06-00:00:00:00:00:01
+[NET] node=0 ip=10.0.0.1
+[VRT_INIT] ===========================================
+[VRT_INIT] Initializing VanetzaRuntime
+[VRT_INIT] Vehicle    : veh0
+[VRT_INIT] Node       : 0
+[VRT_INIT] Station ID : 1
+[SECURITY] DENM V3 signer=DUMMY veh=veh0
+[SECURITY] DENM V3 verifier=REAL veh=veh0
+[ROUTER] set_address() 02:00:00:01:00:00
+[BTP_RX] hook_undispatched installed
+[BTP_RX] Router transport handler = BTP_B
+[VRT_INIT] VanetzaGeoNetAdapter initialized
+[BTP_RX] Non-interactive handler installed port=2001
+[GEO_RX] BTP RX handler forwarded to adapter port=2001
+[BTP_RX] Non-interactive handler installed port=2002
+[GEO_RX] BTP RX handler forwarded to adapter port=2002
+[BTP_RX] Non-interactive handler installed port=2004
+[GEO_RX] BTP RX handler forwarded to adapter port=2004
+[VRT_INIT] GeoNet adapter : OK
+[VRT_INIT] Identity authority: VehicleIdentity
+[VRT_INIT] GN_ADDR authority: VanetzaRuntime
+[VRT_INIT] VehicleRegistry role: reverse indexes only
+[VRT_INIT] VanetzaRuntime initialization completed
+[VRT_INIT] ===========================================
+[SIM_STEP=0][VEH=veh0][NODE=0][STATION=1][SEQ=-1][LVL=INFO][MOD=VEHICLE][EV=IDENTITY_READY] Vehicle identity initialized before VanetzaRuntime
+[NET] node=0 veh=veh0 wifiDeviceIndex=1 ip=10.0.0.1 linkMac=00:00:00:00:00:01
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=veh0 sumo_sim_time_us=100000 longitude_deg=-8.4340762 latitude_deg=41.4252899
+[SIM_STEP=0][VEH=veh1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(120.000000,100.000000) speed=9.000000 sumo_sim_time_us=100000
+[NET_DEBUG] node=1 device=0 type=ns3::WifiNetDevice address=01-06-00:00:00:00:00:02
+[NET] node=1 ip=10.0.0.2
+[VRT_INIT] ===========================================
+[VRT_INIT] Initializing VanetzaRuntime
+[VRT_INIT] Vehicle    : veh1
+[VRT_INIT] Node       : 1
+[VRT_INIT] Station ID : 2
+[SECURITY] DENM V3 signer=DUMMY veh=veh1
+[SECURITY] DENM V3 verifier=REAL veh=veh1
+[ROUTER] set_address() 02:00:00:02:00:00
+[BTP_RX] hook_undispatched installed
+[BTP_RX] Router transport handler = BTP_B
+[VRT_INIT] VanetzaGeoNetAdapter initialized
+[BTP_RX] Non-interactive handler installed port=2001
+[GEO_RX] BTP RX handler forwarded to adapter port=2001
+[BTP_RX] Non-interactive handler installed port=2002
+[GEO_RX] BTP RX handler forwarded to adapter port=2002
+[BTP_RX] Non-interactive handler installed port=2004
+[GEO_RX] BTP RX handler forwarded to adapter port=2004
+[VRT_INIT] GeoNet adapter : OK
+[VRT_INIT] Identity authority: VehicleIdentity
+[VRT_INIT] GN_ADDR authority: VanetzaRuntime
+[VRT_INIT] VehicleRegistry role: reverse indexes only
+[VRT_INIT] VanetzaRuntime initialization completed
+[VRT_INIT] ===========================================
+[SIM_STEP=0][VEH=veh1][NODE=1][STATION=2][SEQ=-1][LVL=INFO][MOD=VEHICLE][EV=IDENTITY_READY] Vehicle identity initialized before VanetzaRuntime
+[NET] node=1 veh=veh1 wifiDeviceIndex=1 ip=10.0.0.2 linkMac=00:00:00:00:00:02
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=veh1 sumo_sim_time_us=100000 longitude_deg=-8.434 latitude_deg=41.4254
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=100000 reference_time_its_ms=719748000100 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=100000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=1][VEH=veh0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(100.000000,100.000000) speed=10.000000 sumo_sim_time_us=200000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=veh0 sumo_sim_time_us=200000 longitude_deg=-8.4340762 latitude_deg=41.4252899
+[SIM_STEP=1][VEH=veh1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(120.000000,100.000000) speed=9.000000 sumo_sim_time_us=200000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=veh1 sumo_sim_time_us=200000 longitude_deg=-8.434 latitude_deg=41.4254
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=200000 reference_time_its_ms=719748000200 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=200000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=2][VEH=veh0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(100.000000,100.000000) speed=10.000000 sumo_sim_time_us=300000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=veh0 sumo_sim_time_us=300000 longitude_deg=-8.4340762 latitude_deg=41.4252899
+[SIM_STEP=2][VEH=veh1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(120.000000,100.000000) speed=9.000000 sumo_sim_time_us=300000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=veh1 sumo_sim_time_us=300000 longitude_deg=-8.434 latitude_deg=41.4254
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=300000 reference_time_its_ms=719748000300 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=300000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DENM_EVENT_INGEST] vehicle=veh0 event=denm_boundary_test_001 trigger_us=300000 ingest_sim_us=400000 ingest_monotonic_us=21987698510
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=3][VEH=veh0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(100.000000,100.000000) speed=10.000000 sumo_sim_time_us=400000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=veh0 sumo_sim_time_us=400000 longitude_deg=-8.4340762 latitude_deg=41.4252899
+[SIM_STEP=3][VEH=veh1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(120.000000,100.000000) speed=9.000000 sumo_sim_time_us=400000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=veh1 sumo_sim_time_us=400000 longitude_deg=-8.434 latitude_deg=41.4254
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=400000 reference_time_its_ms=719748000400 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=400000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=4][VEH=veh0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(100.000000,100.000000) speed=10.000000 sumo_sim_time_us=500000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=veh0 sumo_sim_time_us=500000 longitude_deg=-8.4340762 latitude_deg=41.4252899
+[SIM_STEP=4][VEH=veh1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(120.000000,100.000000) speed=9.000000 sumo_sim_time_us=500000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=veh1 sumo_sim_time_us=500000 longitude_deg=-8.434 latitude_deg=41.4254
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=500000 reference_time_its_ms=719748000500 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=500000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=5][VEH=veh0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(100.000000,100.000000) speed=10.000000 sumo_sim_time_us=600000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=veh0 sumo_sim_time_us=600000 longitude_deg=-8.4340762 latitude_deg=41.4252899
+[SIM_STEP=5][VEH=veh1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(120.000000,100.000000) speed=9.000000 sumo_sim_time_us=600000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=veh1 sumo_sim_time_us=600000 longitude_deg=-8.434 latitude_deg=41.4254
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=600000 reference_time_its_ms=719748000600 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=600000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=6][VEH=veh0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(100.000000,100.000000) speed=10.000000 sumo_sim_time_us=700000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=veh0 sumo_sim_time_us=700000 longitude_deg=-8.4340762 latitude_deg=41.4252899
+[SIM_STEP=6][VEH=veh1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(120.000000,100.000000) speed=9.000000 sumo_sim_time_us=700000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=veh1 sumo_sim_time_us=700000 longitude_deg=-8.434 latitude_deg=41.4254
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=700000 reference_time_its_ms=719748000700 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=700000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=7][VEH=veh0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(100.000000,100.000000) speed=10.000000 sumo_sim_time_us=800000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=veh0 sumo_sim_time_us=800000 longitude_deg=-8.4340762 latitude_deg=41.4252899
+[SIM_STEP=7][VEH=veh1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(120.000000,100.000000) speed=9.000000 sumo_sim_time_us=800000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=veh1 sumo_sim_time_us=800000 longitude_deg=-8.434 latitude_deg=41.4254
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=800000 reference_time_its_ms=719748000800 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=800000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=1000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=1000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=8][VEH=veh0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(100.000000,100.000000) speed=10.000000 sumo_sim_time_us=900000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=veh0 sumo_sim_time_us=900000 longitude_deg=-8.4340762 latitude_deg=41.4252899
+[SIM_STEP=8][VEH=veh1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(120.000000,100.000000) speed=9.000000 sumo_sim_time_us=900000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=veh1 sumo_sim_time_us=900000 longitude_deg=-8.434 latitude_deg=41.4254
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=900000 reference_time_its_ms=719748000900 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=900000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=1100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=1100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=9][VEH=veh0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(100.000000,100.000000) speed=10.000000 sumo_sim_time_us=1000000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=veh0 sumo_sim_time_us=1000000 longitude_deg=-8.4340762 latitude_deg=41.4252899
+[SIM_STEP=9][VEH=veh1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(120.000000,100.000000) speed=9.000000 sumo_sim_time_us=1000000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=veh1 sumo_sim_time_us=1000000 longitude_deg=-8.434 latitude_deg=41.4254
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=1000000 reference_time_its_ms=719748001000 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=1000000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=1200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=1200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=1300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=1300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=1400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=1400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=1500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=1500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=1600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=1600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=1700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=1700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=1800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=1800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=1900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=1900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=2000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=2000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=2100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=2100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=2200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=2200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=2300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=2300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=2400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=2400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=2500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=2500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=2600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=2600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=2700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=2700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=2800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=2800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=2900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=2900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=3000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=3000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=3100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=3100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=3200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=3200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=3300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=3300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=3400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=3400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=3500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=3500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=3600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=3600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=3700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=3700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=3800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=3800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=3900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=3900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=4000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=4000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=4100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=4100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=4200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=4200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=4300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=4300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=4400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=4400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=4500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=4500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=4600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=4600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=4700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=4700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=4800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=4800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh0 node=0 station=1 sim_us=4900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=veh1 node=1 station=2 sim_us=4900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=10][VEH=-][NODE=0][STATION=0][SEQ=-1][LVL=INFO][MOD=SUMO][EV=SOCKET_CLOSED] UDP adapter socket closed

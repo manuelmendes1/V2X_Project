@@ -1,5 +1,9 @@
 #include "sumo_adapter.h"
 
+#include <charconv>
+#include <cstdint>
+#include <system_error>
+
 #include "sumo_parser.h"
 #include "vanetza_integration/denm/scenario/sumo_denm_event_parser.h"
 #include "sumo_serializer.h"
@@ -31,6 +35,8 @@ SumoAdapter::m_denmEventCallback = nullptr;
 
 SumoAdapter::TrafficLightUpdateCallback
 SumoAdapter::m_trafficLightCallback = nullptr;
+SumoAdapter::StepCompleteCallback SumoAdapter::m_stepCompleteCallback;
+
 
 // ============================================================================
 // Init
@@ -86,6 +92,37 @@ SumoAdapter::Poll()
         buffer[bytes] = '\0';
 
         const std::string message(buffer, bytes);
+
+        constexpr char stepPrefix[] = "SUMO_STEP_END,";
+        if (message.rfind(stepPrefix, 0) == 0)
+        {
+            const std::string timestampText =
+                message.substr(sizeof(stepPrefix) - 1);
+
+            if (timestampText.empty())
+            {
+                continue;
+            }
+
+            std::uint64_t timestampUs = 0;
+            const auto parsed = std::from_chars(
+                timestampText.data(),
+                timestampText.data() + timestampText.size(),
+                timestampUs);
+
+            if (parsed.ec != std::errc{} ||
+                parsed.ptr != timestampText.data() + timestampText.size())
+            {
+                continue;
+            }
+
+            if (m_stepCompleteCallback)
+            {
+                m_stepCompleteCallback(timestampUs);
+            }
+
+            continue;
+        }
 
         if (message.rfind("SUMO_TLS,", 0) == 0)
         {
@@ -158,8 +195,11 @@ SumoAdapter::Poll()
                 + std::to_string(
                     vehicle->mobility.position.y)
                 + ") speed="
-                + std::to_string(
-                    vehicle->mobility.speed));
+                + std::to_string(vehicle->mobility.speed)
+                + " sumo_sim_time_us="
+                + (vehicle->sumoSimulationTimeUs.has_value()
+                    ? std::to_string(*vehicle->sumoSimulationTimeUs)
+                    : std::string("UNAVAILABLE")));
 
         // ---------------------------------------------------------------------
         // Forward vehicle state
@@ -229,6 +269,12 @@ SumoAdapter::SetTrafficLightUpdateCallback(
 {
     m_trafficLightCallback =
         std::move(callback);
+}
+
+void
+SumoAdapter::SetStepCompleteCallback(StepCompleteCallback callback)
+{
+    m_stepCompleteCallback = std::move(callback);
 }
 
 // ============================================================================

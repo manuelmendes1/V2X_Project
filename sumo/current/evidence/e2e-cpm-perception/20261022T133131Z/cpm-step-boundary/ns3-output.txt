@@ -1,0 +1,1119 @@
+[SPATEM_RSU] configuration enabled=false station_id=0 intersection_id=0 traffic_light= latitude_deg=nan longitude_deg=nan ns3_x=0 ns3_y=0
+[CPM_PERCEPTION] CONFIGURED station_id=9001 latitude_deg=41.4253 longitude_deg=-8.43408 range_m=7000 its_start_clock_us=719748000000000 mode=BUILD_ONLY
+[SIM_STEP=0][VEH=-][NODE=0][STATION=0][SEQ=-1][LVL=INFO][MOD=SUMO][EV=SO_RCVBUF_CONFIGURED] requested_bytes=4194304 effective_bytes=8388608
+[SIM_STEP=0][VEH=-][NODE=0][STATION=0][SEQ=-1][LVL=INFO][MOD=SUMO][EV=INIT_OK] UDP adapter initialized
+[SIM_STEP=0][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20489.043000,5179.750000) speed=0.000000 sumo_sim_time_us=100000
+[NET_DEBUG] node=0 device=0 type=ns3::WifiNetDevice address=01-06-00:00:00:00:00:01
+[NET] node=0 ip=10.0.0.1
+[VRT_INIT] ===========================================
+[VRT_INIT] Initializing VanetzaRuntime
+[VRT_INIT] Vehicle    : 0
+[VRT_INIT] Node       : 0
+[VRT_INIT] Station ID : 1
+[SECURITY] DENM V3 signer=DUMMY veh=0
+[SECURITY] DENM V3 verifier=REAL veh=0
+[ROUTER] set_address() 02:00:00:01:00:00
+[BTP_RX] hook_undispatched installed
+[BTP_RX] Router transport handler = BTP_B
+[VRT_INIT] VanetzaGeoNetAdapter initialized
+[BTP_RX] Non-interactive handler installed port=2001
+[GEO_RX] BTP RX handler forwarded to adapter port=2001
+[BTP_RX] Non-interactive handler installed port=2002
+[GEO_RX] BTP RX handler forwarded to adapter port=2002
+[BTP_RX] Non-interactive handler installed port=2004
+[GEO_RX] BTP RX handler forwarded to adapter port=2004
+[VRT_INIT] GeoNet adapter : OK
+[VRT_INIT] Identity authority: VehicleIdentity
+[VRT_INIT] GN_ADDR authority: VanetzaRuntime
+[VRT_INIT] VehicleRegistry role: reverse indexes only
+[VRT_INIT] VanetzaRuntime initialization completed
+[VRT_INIT] ===========================================
+[SIM_STEP=0][VEH=0][NODE=0][STATION=1][SEQ=-1][LVL=INFO][MOD=VEHICLE][EV=IDENTITY_READY] Vehicle identity initialized before VanetzaRuntime
+[NET] node=0 veh=0 wifiDeviceIndex=1 ip=10.0.0.1 linkMac=00:00:00:00:00:01
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=100000 longitude_deg=-8.4330521 latitude_deg=41.3851057
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=100000 reference_time_its_ms=719748000100 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=100000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DENM_EVENT_INGEST] vehicle=0 event=0-stopped-0001 trigger_us=100000 ingest_sim_us=7000000 ingest_monotonic_us=21167746752
+[DCC_CBR] veh=0 node=0 station=1 sim_us=7100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=1][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20489.021000,5179.761000) speed=0.249000 sumo_sim_time_us=200000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=200000 longitude_deg=-8.4330523 latitude_deg=41.3851059
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=200000 reference_time_its_ms=719748000200 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=200000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=7200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=2][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20488.977000,5179.784000) speed=0.498000 sumo_sim_time_us=300000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=300000 longitude_deg=-8.4330528 latitude_deg=41.3851061
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=300000 reference_time_its_ms=719748000300 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=300000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=7300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=3][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20488.910000,5179.818000) speed=0.754000 sumo_sim_time_us=400000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=400000 longitude_deg=-8.4330536 latitude_deg=41.3851064
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=400000 reference_time_its_ms=719748000400 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=400000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=7400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=4][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20488.819000,5179.865000) speed=1.013000 sumo_sim_time_us=500000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=500000 longitude_deg=-8.4330547 latitude_deg=41.3851068
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=500000 reference_time_its_ms=719748000500 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=500000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DENM_EVENT_INGEST] vehicle=0 event=0-traffic_jam-0001 trigger_us=500000 ingest_sim_us=7400000 ingest_monotonic_us=21168132214
+[DCC_CBR] veh=0 node=0 station=1 sim_us=7500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=5][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20488.711000,5179.921000) speed=1.225000 sumo_sim_time_us=600000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=600000 longitude_deg=-8.433056 latitude_deg=41.3851073
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=600000 reference_time_its_ms=719748000600 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=600000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=7600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=6][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20488.583000,5179.986000) speed=1.439000 sumo_sim_time_us=700000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=700000 longitude_deg=-8.4330575 latitude_deg=41.3851079
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=700000 reference_time_its_ms=719748000700 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=700000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=7700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=7][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20488.434000,5180.062000) speed=1.668000 sumo_sim_time_us=800000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=800000 longitude_deg=-8.4330593 latitude_deg=41.3851086
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=800000 reference_time_its_ms=719748000800 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=800000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=7800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=8][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20488.264000,5180.150000) speed=1.910000 sumo_sim_time_us=900000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=900000 longitude_deg=-8.4330613 latitude_deg=41.3851094
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=900000 reference_time_its_ms=719748000900 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=900000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=7900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=9][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20488.075000,5180.247000) speed=2.131000 sumo_sim_time_us=1000000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=1000000 longitude_deg=-8.4330636 latitude_deg=41.3851103
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=1000000 reference_time_its_ms=719748001000 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=1000000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=8000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=10][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20487.865000,5180.355000) speed=2.356000 sumo_sim_time_us=1100000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=1100000 longitude_deg=-8.4330661 latitude_deg=41.3851113
+[DCC_CBR] veh=0 node=0 station=1 sim_us=8100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=1100000 reference_time_its_ms=719748001100 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=1100000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[SIM_STEP=11][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20487.639000,5180.471000) speed=2.537000 sumo_sim_time_us=1200000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=1200000 longitude_deg=-8.4330688 latitude_deg=41.3851123
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=1200000 reference_time_its_ms=719748001200 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=1200000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=8200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=12][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20487.394000,5180.597000) speed=2.763000 sumo_sim_time_us=1300000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=1300000 longitude_deg=-8.4330717 latitude_deg=41.3851135
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=1300000 reference_time_its_ms=719748001300 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=1300000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=8300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=13][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20487.129000,5180.733000) speed=2.972000 sumo_sim_time_us=1400000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=1400000 longitude_deg=-8.4330749 latitude_deg=41.3851147
+[DCC_CBR] veh=0 node=0 station=1 sim_us=8400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=1400000 reference_time_its_ms=719748001400 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=1400000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=8500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=14][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20486.850000,5180.876000) speed=3.144000 sumo_sim_time_us=1500000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=1500000 longitude_deg=-8.4330782 latitude_deg=41.385116
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=1500000 reference_time_its_ms=719748001500 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=1500000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=8600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=15][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20486.552000,5181.029000) speed=3.350000 sumo_sim_time_us=1600000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=1600000 longitude_deg=-8.4330818 latitude_deg=41.3851174
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=1600000 reference_time_its_ms=719748001600 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=1600000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=8700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=16][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20486.234000,5181.192000) speed=3.574000 sumo_sim_time_us=1700000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=1700000 longitude_deg=-8.4330855 latitude_deg=41.3851189
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=1700000 reference_time_its_ms=719748001700 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=1700000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=8800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=17][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20485.899000,5181.365000) speed=3.767000 sumo_sim_time_us=1800000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=1800000 longitude_deg=-8.4330895 latitude_deg=41.3851205
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=1800000 reference_time_its_ms=719748001800 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=1800000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=8900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=18][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20485.551000,5181.543000) speed=3.908000 sumo_sim_time_us=1900000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=1900000 longitude_deg=-8.4330937 latitude_deg=41.3851221
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=1900000 reference_time_its_ms=719748001900 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=1900000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=9000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=19][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20485.188000,5181.729000) speed=4.076000 sumo_sim_time_us=2000000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=2000000 longitude_deg=-8.433098 latitude_deg=41.3851238
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=2000000 reference_time_its_ms=719748002000 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=2000000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=9100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=20][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20484.805000,5181.926000) speed=4.309000 sumo_sim_time_us=2100000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=2100000 longitude_deg=-8.4331026 latitude_deg=41.3851256
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=2100000 reference_time_its_ms=719748002100 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=2100000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=9200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=21][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20484.410000,5182.129000) speed=4.444000 sumo_sim_time_us=2200000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=2200000 longitude_deg=-8.4331073 latitude_deg=41.3851275
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=2200000 reference_time_its_ms=719748002200 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=2200000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=9300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=22][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20484.007000,5182.355000) speed=4.622000 sumo_sim_time_us=2300000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=2300000 longitude_deg=-8.4331121 latitude_deg=41.3851295
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=2300000 reference_time_its_ms=719748002300 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=2300000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=9400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=23][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20483.588000,5182.595000) speed=4.822000 sumo_sim_time_us=2400000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=2400000 longitude_deg=-8.4331171 latitude_deg=41.3851317
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=2400000 reference_time_its_ms=719748002400 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=2400000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=9500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=24][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20483.157000,5182.843000) speed=4.979000 sumo_sim_time_us=2500000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=2500000 longitude_deg=-8.4331222 latitude_deg=41.385134
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=2500000 reference_time_its_ms=719748002500 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=2500000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=9600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=25][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20482.707000,5183.101000) speed=5.183000 sumo_sim_time_us=2600000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=2600000 longitude_deg=-8.4331276 latitude_deg=41.3851363
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=2600000 reference_time_its_ms=719748002600 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=2600000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=9700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=26][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20482.241000,5183.368000) speed=5.374000 sumo_sim_time_us=2700000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=2700000 longitude_deg=-8.4331331 latitude_deg=41.3851387
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=2700000 reference_time_its_ms=719748002700 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=2700000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=9800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=27][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20481.753000,5183.648000) speed=5.619000 sumo_sim_time_us=2800000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=2800000 longitude_deg=-8.4331389 latitude_deg=41.3851413
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=2800000 reference_time_its_ms=719748002800 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=2800000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=9900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=28][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20481.245000,5183.939000) speed=5.856000 sumo_sim_time_us=2900000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=2900000 longitude_deg=-8.433145 latitude_deg=41.3851439
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=2900000 reference_time_its_ms=719748002900 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=2900000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=10000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=29][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20480.717000,5184.242000) speed=6.088000 sumo_sim_time_us=3000000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=3000000 longitude_deg=-8.4331513 latitude_deg=41.3851467
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=3000000 reference_time_its_ms=719748003000 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=3000000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=10100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=30][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20480.169000,5184.557000) speed=6.325000 sumo_sim_time_us=3100000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=3100000 longitude_deg=-8.4331578 latitude_deg=41.3851496
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=3100000 reference_time_its_ms=719748003100 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=3100000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=10200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=31][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20479.608000,5184.879000) speed=6.460000 sumo_sim_time_us=3200000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=3200000 longitude_deg=-8.4331645 latitude_deg=41.3851525
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=3200000 reference_time_its_ms=719748003200 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=3200000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=10300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=32][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20479.034000,5185.208000) speed=6.625000 sumo_sim_time_us=3300000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=3300000 longitude_deg=-8.4331713 latitude_deg=41.3851555
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=3300000 reference_time_its_ms=719748003300 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=3300000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=10400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=33][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20478.447000,5185.545000) speed=6.762000 sumo_sim_time_us=3400000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=3400000 longitude_deg=-8.4331783 latitude_deg=41.3851586
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=3400000 reference_time_its_ms=719748003400 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=3400000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=10500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=34][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20477.842000,5185.892000) speed=6.970000 sumo_sim_time_us=3500000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=3500000 longitude_deg=-8.4331855 latitude_deg=41.3851617
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=3500000 reference_time_its_ms=719748003500 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=3500000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=10600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=35][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20477.225000,5186.246000) speed=7.116000 sumo_sim_time_us=3600000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=3600000 longitude_deg=-8.4331929 latitude_deg=41.385165
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=3600000 reference_time_its_ms=719748003600 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=3600000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=10700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=36][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20476.591000,5186.609000) speed=7.309000 sumo_sim_time_us=3700000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=3700000 longitude_deg=-8.4332004 latitude_deg=41.3851683
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=3700000 reference_time_its_ms=719748003700 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=3700000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=10800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=37][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20475.942000,5186.982000) speed=7.485000 sumo_sim_time_us=3800000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=3800000 longitude_deg=-8.4332082 latitude_deg=41.3851717
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=3800000 reference_time_its_ms=719748003800 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=3800000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=10900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=38][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20475.271000,5187.367000) speed=7.740000 sumo_sim_time_us=3900000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=3900000 longitude_deg=-8.4332162 latitude_deg=41.3851752
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=3900000 reference_time_its_ms=719748003900 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=3900000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=11000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=39][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20474.579000,5187.764000) speed=7.972000 sumo_sim_time_us=4000000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=4000000 longitude_deg=-8.4332244 latitude_deg=41.3851788
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=4000000 reference_time_its_ms=719748004000 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=4000000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=11100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=40][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20473.870000,5188.170000) speed=8.170000 sumo_sim_time_us=4100000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=4100000 longitude_deg=-8.4332329 latitude_deg=41.3851825
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=4100000 reference_time_its_ms=719748004100 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=4100000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=11200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=41][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20473.146000,5188.586000) speed=8.348000 sumo_sim_time_us=4200000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=4200000 longitude_deg=-8.4332415 latitude_deg=41.3851863
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=4200000 reference_time_its_ms=719748004200 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=4200000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=11300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=42][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20472.400000,5189.014000) speed=8.606000 sumo_sim_time_us=4300000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=4300000 longitude_deg=-8.4332504 latitude_deg=41.3851902
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=4300000 reference_time_its_ms=719748004300 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=4300000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=11400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=43][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20471.632000,5189.454000) speed=8.848000 sumo_sim_time_us=4400000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=4400000 longitude_deg=-8.4332595 latitude_deg=41.3851942
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=4400000 reference_time_its_ms=719748004400 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=4400000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=11500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=44][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20470.851000,5189.902000) speed=9.004000 sumo_sim_time_us=4500000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=4500000 longitude_deg=-8.4332688 latitude_deg=41.3851983
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=4500000 reference_time_its_ms=719748004500 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=4500000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=11600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=45][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20470.053000,5190.360000) speed=9.204000 sumo_sim_time_us=4600000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=4600000 longitude_deg=-8.4332783 latitude_deg=41.3852024
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=4600000 reference_time_its_ms=719748004600 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=4600000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=11700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=46][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20469.233000,5190.830000) speed=9.446000 sumo_sim_time_us=4700000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=4700000 longitude_deg=-8.4332881 latitude_deg=41.3852067
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=4700000 reference_time_its_ms=719748004700 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=4700000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=11800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=11900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=47][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20468.401000,5191.308000) speed=9.592000 sumo_sim_time_us=4800000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=4800000 longitude_deg=-8.433298 latitude_deg=41.3852111
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=4800000 reference_time_its_ms=719748004800 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=4800000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=12000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=48][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20467.550000,5191.796000) speed=9.814000 sumo_sim_time_us=4900000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=4900000 longitude_deg=-8.4333082 latitude_deg=41.3852155
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=4900000 reference_time_its_ms=719748004900 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=4900000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=12100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=49][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20466.679000,5192.296000) speed=10.041000 sumo_sim_time_us=5000000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=5000000 longitude_deg=-8.4333185 latitude_deg=41.3852201
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=5000000 reference_time_its_ms=719748005000 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=5000000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=12200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=50][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20465.795000,5192.803000) speed=10.190000 sumo_sim_time_us=5100000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=5100000 longitude_deg=-8.4333291 latitude_deg=41.3852247
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=5100000 reference_time_its_ms=719748005100 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=5100000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=12300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=51][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20464.896000,5193.318000) speed=10.363000 sumo_sim_time_us=5200000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=5200000 longitude_deg=-8.4333398 latitude_deg=41.3852294
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=5200000 reference_time_its_ms=719748005200 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=5200000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=12400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=52][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20463.984000,5193.842000) speed=10.519000 sumo_sim_time_us=5300000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=5300000 longitude_deg=-8.4333507 latitude_deg=41.3852342
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=5300000 reference_time_its_ms=719748005300 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=5300000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=12500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=53][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20463.059000,5194.373000) speed=10.667000 sumo_sim_time_us=5400000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=5400000 longitude_deg=-8.4333617 latitude_deg=41.385239
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=5400000 reference_time_its_ms=719748005400 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=5400000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=12600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=54][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20462.115000,5194.914000) speed=10.877000 sumo_sim_time_us=5500000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=5500000 longitude_deg=-8.4333729 latitude_deg=41.3852439
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=5500000 reference_time_its_ms=719748005500 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=5500000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=12700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=55][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20461.151000,5195.467000) speed=11.117000 sumo_sim_time_us=5600000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=5600000 longitude_deg=-8.4333844 latitude_deg=41.385249
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=5600000 reference_time_its_ms=719748005600 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=5600000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=12800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=56][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20460.173000,5196.028000) speed=11.268000 sumo_sim_time_us=5700000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=5700000 longitude_deg=-8.4333961 latitude_deg=41.3852541
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=5700000 reference_time_its_ms=719748005700 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=5700000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=12900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=57][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20459.183000,5196.604000) speed=11.455000 sumo_sim_time_us=5800000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=5800000 longitude_deg=-8.4334079 latitude_deg=41.3852593
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=5800000 reference_time_its_ms=719748005800 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=5800000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=13000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=58][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20458.175000,5197.191000) speed=11.668000 sumo_sim_time_us=5900000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=5900000 longitude_deg=-8.4334199 latitude_deg=41.3852647
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=5900000 reference_time_its_ms=719748005900 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=5900000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=13100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=59][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20457.146000,5197.790000) speed=11.907000 sumo_sim_time_us=6000000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=6000000 longitude_deg=-8.4334321 latitude_deg=41.3852701
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=6000000 reference_time_its_ms=719748006000 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=6000000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=13200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=60][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20456.104000,5198.396000) speed=12.049000 sumo_sim_time_us=6100000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=6100000 longitude_deg=-8.4334445 latitude_deg=41.3852756
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=6100000 reference_time_its_ms=719748006100 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=6100000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=13300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=61][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20455.042000,5199.014000) speed=12.287000 sumo_sim_time_us=6200000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=6200000 longitude_deg=-8.4334572 latitude_deg=41.3852813
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=6200000 reference_time_its_ms=719748006200 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=6200000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=13400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=62][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20453.960000,5199.644000) speed=12.517000 sumo_sim_time_us=6300000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=6300000 longitude_deg=-8.4334701 latitude_deg=41.385287
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=6300000 reference_time_its_ms=719748006300 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=6300000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=13500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=63][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20452.857000,5200.286000) speed=12.764000 sumo_sim_time_us=6400000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=6400000 longitude_deg=-8.4334832 latitude_deg=41.3852929
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=6400000 reference_time_its_ms=719748006400 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=6400000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=13600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=64][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20451.737000,5200.938000) speed=12.961000 sumo_sim_time_us=6500000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=6500000 longitude_deg=-8.4334966 latitude_deg=41.3852988
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=6500000 reference_time_its_ms=719748006500 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=6500000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=13700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=65][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20450.601000,5201.599000) speed=13.146000 sumo_sim_time_us=6600000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=6600000 longitude_deg=-8.4335101 latitude_deg=41.3853048
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=6600000 reference_time_its_ms=719748006600 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=6600000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=13800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=66][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20449.470000,5202.257000) speed=13.086000 sumo_sim_time_us=6700000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=6700000 longitude_deg=-8.4335236 latitude_deg=41.3853108
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=6700000 reference_time_its_ms=719748006700 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=6700000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=13900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=67][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20448.337000,5202.917000) speed=13.113000 sumo_sim_time_us=6800000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=6800000 longitude_deg=-8.4335371 latitude_deg=41.3853168
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=6800000 reference_time_its_ms=719748006800 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=6800000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=14000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=68][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20447.201000,5203.578000) speed=13.144000 sumo_sim_time_us=6900000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=6900000 longitude_deg=-8.4335506 latitude_deg=41.3853228
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=6900000 reference_time_its_ms=719748006900 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=6900000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=14100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=69][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20446.071000,5204.235000) speed=13.069000 sumo_sim_time_us=7000000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=7000000 longitude_deg=-8.4335641 latitude_deg=41.3853288
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=7000000 reference_time_its_ms=719748007000 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=7000000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=14200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=70][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20444.944000,5204.892000) speed=13.044000 sumo_sim_time_us=7100000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=7100000 longitude_deg=-8.4335775 latitude_deg=41.3853348
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=7100000 reference_time_its_ms=719748007100 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=7100000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=14300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=71][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20443.817000,5205.548000) speed=13.043000 sumo_sim_time_us=7200000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=7200000 longitude_deg=-8.4335909 latitude_deg=41.3853408
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=7200000 reference_time_its_ms=719748007200 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=7200000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=14400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=72][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20442.679000,5206.210000) speed=13.160000 sumo_sim_time_us=7300000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=7300000 longitude_deg=-8.4336045 latitude_deg=41.3853468
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=7300000 reference_time_its_ms=719748007300 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=7300000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=14500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=73][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20441.550000,5206.867000) speed=13.067000 sumo_sim_time_us=7400000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=7400000 longitude_deg=-8.4336179 latitude_deg=41.3853528
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=7400000 reference_time_its_ms=719748007400 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=7400000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=14600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=74][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20440.419000,5207.525000) speed=13.086000 sumo_sim_time_us=7500000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=7500000 longitude_deg=-8.4336314 latitude_deg=41.3853588
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=7500000 reference_time_its_ms=719748007500 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=7500000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=14700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=75][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20439.285000,5208.186000) speed=13.123000 sumo_sim_time_us=7600000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=7600000 longitude_deg=-8.4336449 latitude_deg=41.3853648
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=7600000 reference_time_its_ms=719748007600 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=7600000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=14800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=76][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20438.149000,5208.846000) speed=13.137000 sumo_sim_time_us=7700000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=7700000 longitude_deg=-8.4336585 latitude_deg=41.3853708
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=7700000 reference_time_its_ms=719748007700 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=7700000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=14900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=77][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20437.017000,5209.506000) speed=13.105000 sumo_sim_time_us=7800000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=7800000 longitude_deg=-8.4336719 latitude_deg=41.3853768
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=7800000 reference_time_its_ms=719748007800 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=7800000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=15000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=78][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20435.884000,5210.165000) speed=13.105000 sumo_sim_time_us=7900000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=7900000 longitude_deg=-8.4336854 latitude_deg=41.3853828
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=7900000 reference_time_its_ms=719748007900 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=7900000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=15100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=79][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20434.746000,5210.827000) speed=13.164000 sumo_sim_time_us=8000000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=8000000 longitude_deg=-8.433699 latitude_deg=41.3853889
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=8000000 reference_time_its_ms=719748008000 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=8000000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=15200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=80][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20433.612000,5211.487000) speed=13.119000 sumo_sim_time_us=8100000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=8100000 longitude_deg=-8.4337125 latitude_deg=41.3853949
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=8100000 reference_time_its_ms=719748008100 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=8100000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=15300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=81][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20432.425000,5212.034000) speed=13.079000 sumo_sim_time_us=8200000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=8200000 longitude_deg=-8.4337267 latitude_deg=41.3853999
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=8200000 reference_time_its_ms=719748008200 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=8200000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=15400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=82][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20431.226000,5212.566000) speed=13.121000 sumo_sim_time_us=8300000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=8300000 longitude_deg=-8.433741 latitude_deg=41.3854047
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=8300000 reference_time_its_ms=719748008300 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=8300000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=15500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=83][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20430.023000,5213.100000) speed=13.162000 sumo_sim_time_us=8400000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=8400000 longitude_deg=-8.4337553 latitude_deg=41.3854096
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=8400000 reference_time_its_ms=719748008400 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=8400000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=15600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=84][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20428.830000,5213.629000) speed=13.045000 sumo_sim_time_us=8500000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=8500000 longitude_deg=-8.4337695 latitude_deg=41.3854145
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=8500000 reference_time_its_ms=719748008500 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=8500000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=15700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=15800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=85][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20427.637000,5214.158000) speed=13.057000 sumo_sim_time_us=8600000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=8600000 longitude_deg=-8.4337838 latitude_deg=41.3854193
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=8600000 reference_time_its_ms=719748008600 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=8600000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=15900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=86][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20426.435000,5214.691000) speed=13.142000 sumo_sim_time_us=8700000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=8700000 longitude_deg=-8.4337981 latitude_deg=41.3854242
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=8700000 reference_time_its_ms=719748008700 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=8700000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=16000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=87][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20425.240000,5215.222000) speed=13.077000 sumo_sim_time_us=8800000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=8800000 longitude_deg=-8.4338123 latitude_deg=41.385429
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=8800000 reference_time_its_ms=719748008800 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=8800000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=16100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=88][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20424.046000,5215.752000) speed=13.067000 sumo_sim_time_us=8900000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=8900000 longitude_deg=-8.4338266 latitude_deg=41.3854339
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=8900000 reference_time_its_ms=719748008900 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=8900000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=16200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=89][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20422.851000,5216.282000) speed=13.064000 sumo_sim_time_us=9000000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=9000000 longitude_deg=-8.4338408 latitude_deg=41.3854387
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=9000000 reference_time_its_ms=719748009000 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=9000000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=16300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=90][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20421.655000,5216.813000) speed=13.091000 sumo_sim_time_us=9100000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=9100000 longitude_deg=-8.4338551 latitude_deg=41.3854435
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=9100000 reference_time_its_ms=719748009100 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=9100000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=16400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=91][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20420.459000,5217.343000) speed=13.080000 sumo_sim_time_us=9200000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=9200000 longitude_deg=-8.4338694 latitude_deg=41.3854484
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=9200000 reference_time_its_ms=719748009200 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=9200000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=16500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=92][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20419.264000,5217.873000) speed=13.076000 sumo_sim_time_us=9300000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=9300000 longitude_deg=-8.4338836 latitude_deg=41.3854532
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=9300000 reference_time_its_ms=719748009300 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=9300000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=16600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=93][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20418.068000,5218.404000) speed=13.081000 sumo_sim_time_us=9400000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=9400000 longitude_deg=-8.4338979 latitude_deg=41.3854581
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=9400000 reference_time_its_ms=719748009400 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=9400000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=16700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=94][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20416.865000,5218.938000) speed=13.164000 sumo_sim_time_us=9500000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=9500000 longitude_deg=-8.4339122 latitude_deg=41.385463
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=9500000 reference_time_its_ms=719748009500 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=9500000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=16800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=95][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20415.672000,5219.467000) speed=13.051000 sumo_sim_time_us=9600000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=9600000 longitude_deg=-8.4339264 latitude_deg=41.3854678
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=9600000 reference_time_its_ms=719748009600 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=9600000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=16900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=96][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20414.469000,5220.001000) speed=13.162000 sumo_sim_time_us=9700000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=9700000 longitude_deg=-8.4339408 latitude_deg=41.3854727
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=9700000 reference_time_its_ms=719748009700 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=9700000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=17000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=97][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20413.276000,5220.531000) speed=13.057000 sumo_sim_time_us=9800000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=9800000 longitude_deg=-8.433955 latitude_deg=41.3854775
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=9800000 reference_time_its_ms=719748009800 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=9800000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=17100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=98][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20412.074000,5221.064000) speed=13.147000 sumo_sim_time_us=9900000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=9900000 longitude_deg=-8.4339694 latitude_deg=41.3854824
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=9900000 reference_time_its_ms=719748009900 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=9900000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=17200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=99][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20410.871000,5221.598000) speed=13.160000 sumo_sim_time_us=10000000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=10000000 longitude_deg=-8.4339837 latitude_deg=41.3854873
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=10000000 reference_time_its_ms=719748010000 observed_vehicles=1 known_objects=1 perceived_objects=1 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=10000000 bytes=49 encoded_bits=388 perceived_objects=1 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=17300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=100][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20409.677000,5222.127000) speed=13.065000 sumo_sim_time_us=10100000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=10100000 longitude_deg=-8.4339979 latitude_deg=41.3854921
+[SIM_STEP=100][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15682.045000,13693.749000) speed=0.000000 sumo_sim_time_us=10100000
+[NET_DEBUG] node=1 device=0 type=ns3::WifiNetDevice address=01-06-00:00:00:00:00:02
+[NET] node=1 ip=10.0.0.2
+[VRT_INIT] ===========================================
+[VRT_INIT] Initializing VanetzaRuntime
+[VRT_INIT] Vehicle    : 1
+[VRT_INIT] Node       : 1
+[VRT_INIT] Station ID : 2
+[SECURITY] DENM V3 signer=DUMMY veh=1
+[SECURITY] DENM V3 verifier=REAL veh=1
+[ROUTER] set_address() 02:00:00:02:00:00
+[BTP_RX] hook_undispatched installed
+[BTP_RX] Router transport handler = BTP_B
+[VRT_INIT] VanetzaGeoNetAdapter initialized
+[BTP_RX] Non-interactive handler installed port=2001
+[GEO_RX] BTP RX handler forwarded to adapter port=2001
+[BTP_RX] Non-interactive handler installed port=2002
+[GEO_RX] BTP RX handler forwarded to adapter port=2002
+[BTP_RX] Non-interactive handler installed port=2004
+[GEO_RX] BTP RX handler forwarded to adapter port=2004
+[VRT_INIT] GeoNet adapter : OK
+[VRT_INIT] Identity authority: VehicleIdentity
+[VRT_INIT] GN_ADDR authority: VanetzaRuntime
+[VRT_INIT] VehicleRegistry role: reverse indexes only
+[VRT_INIT] VanetzaRuntime initialization completed
+[VRT_INIT] ===========================================
+[SIM_STEP=100][VEH=1][NODE=1][STATION=2][SEQ=-1][LVL=INFO][MOD=VEHICLE][EV=IDENTITY_READY] Vehicle identity initialized before VanetzaRuntime
+[NET] node=1 veh=1 wifiDeviceIndex=1 ip=10.0.0.2 linkMac=00:00:00:00:00:02
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=10100000 longitude_deg=-8.4899429 latitude_deg=41.4620621
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=10100000 reference_time_its_ms=719748010100 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=10100000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DENM_EVENT_INGEST] vehicle=1 event=1-stopped-0001 trigger_us=10100000 ingest_sim_us=17300000 ingest_monotonic_us=21178035426
+[DCC_CBR] veh=0 node=0 station=1 sim_us=17400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=17400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=101][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20408.478000,5222.659000) speed=13.113000 sumo_sim_time_us=10200000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=10200000 longitude_deg=-8.4340122 latitude_deg=41.385497
+[SIM_STEP=101][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15682.036000,13693.774000) speed=0.259000 sumo_sim_time_us=10200000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=10200000 longitude_deg=-8.489943 latitude_deg=41.4620623
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=10200000 reference_time_its_ms=719748010200 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=10200000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=17500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=17500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=102][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20407.286000,5223.188000) speed=13.047000 sumo_sim_time_us=10300000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=10300000 longitude_deg=-8.4340265 latitude_deg=41.3855018
+[SIM_STEP=102][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15682.019000,13693.822000) speed=0.510000 sumo_sim_time_us=10300000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=10300000 longitude_deg=-8.4899432 latitude_deg=41.4620627
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=10300000 reference_time_its_ms=719748010300 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=10300000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=17600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=17600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=103][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20406.087000,5223.720000) speed=13.108000 sumo_sim_time_us=10400000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=10400000 longitude_deg=-8.4340407 latitude_deg=41.3855067
+[SIM_STEP=103][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15681.993000,13693.893000) speed=0.758000 sumo_sim_time_us=10400000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=10400000 longitude_deg=-8.4899435 latitude_deg=41.4620634
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=10400000 reference_time_its_ms=719748010400 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=10400000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=17700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=17700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=104][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20404.848000,5224.143000) speed=13.093000 sumo_sim_time_us=10500000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=10500000 longitude_deg=-8.4340555 latitude_deg=41.3855106
+[SIM_STEP=104][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15681.960000,13693.985000) speed=0.974000 sumo_sim_time_us=10500000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=10500000 longitude_deg=-8.4899439 latitude_deg=41.4620642
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=10500000 reference_time_its_ms=719748010500 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=10500000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=17800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=17800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=105][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20403.601000,5224.561000) speed=13.158000 sumo_sim_time_us=10600000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=10600000 longitude_deg=-8.4340704 latitude_deg=41.3855144
+[SIM_STEP=105][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15681.920000,13694.096000) speed=1.181000 sumo_sim_time_us=10600000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=10600000 longitude_deg=-8.4899444 latitude_deg=41.4620652
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=10600000 reference_time_its_ms=719748010600 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=10600000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DENM_EVENT_INGEST] vehicle=1 event=1-traffic_jam-0001 trigger_us=10600000 ingest_sim_us=17800000 ingest_monotonic_us=21178531947
+[DCC_CBR] veh=0 node=0 station=1 sim_us=17900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=17900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=106][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20402.353000,5224.979000) speed=13.158000 sumo_sim_time_us=10700000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=10700000 longitude_deg=-8.4340853 latitude_deg=41.3855182
+[SIM_STEP=106][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15681.873000,13694.227000) speed=1.394000 sumo_sim_time_us=10700000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=10700000 longitude_deg=-8.4899449 latitude_deg=41.4620664
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=10700000 reference_time_its_ms=719748010700 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=10700000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=18000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=18000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=107][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20401.106000,5225.397000) speed=13.152000 sumo_sim_time_us=10800000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=10800000 longitude_deg=-8.4341002 latitude_deg=41.3855221
+[SIM_STEP=107][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15681.817000,13694.382000) speed=1.646000 sumo_sim_time_us=10800000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=10800000 longitude_deg=-8.4899456 latitude_deg=41.4620678
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=10800000 reference_time_its_ms=719748010800 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=10800000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=18100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=18100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=108][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20399.858000,5225.815000) speed=13.165000 sumo_sim_time_us=10900000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=10900000 longitude_deg=-8.4341151 latitude_deg=41.3855259
+[SIM_STEP=108][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15681.756000,13694.553000) speed=1.818000 sumo_sim_time_us=10900000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=10900000 longitude_deg=-8.4899463 latitude_deg=41.4620693
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=10900000 reference_time_its_ms=719748010900 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=10900000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=18200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=18200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=109][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20398.621000,5226.230000) speed=13.044000 sumo_sim_time_us=11000000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=11000000 longitude_deg=-8.4341298 latitude_deg=41.3855297
+[SIM_STEP=109][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15681.687000,13694.743000) speed=2.023000 sumo_sim_time_us=11000000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=11000000 longitude_deg=-8.4899471 latitude_deg=41.4620711
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=11000000 reference_time_its_ms=719748011000 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=11000000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=18300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=18300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=110][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20397.380000,5226.646000) speed=13.086000 sumo_sim_time_us=11100000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=11100000 longitude_deg=-8.4341447 latitude_deg=41.3855335
+[SIM_STEP=110][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15681.613000,13694.950000) speed=2.199000 sumo_sim_time_us=11100000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=11100000 longitude_deg=-8.489948 latitude_deg=41.4620729
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=11100000 reference_time_its_ms=719748011100 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=11100000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=18400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=18400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=111][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20396.135000,5227.063000) speed=13.137000 sumo_sim_time_us=11200000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=11200000 longitude_deg=-8.4341595 latitude_deg=41.3855374
+[SIM_STEP=111][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15681.530000,13695.181000) speed=2.451000 sumo_sim_time_us=11200000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=11200000 longitude_deg=-8.489949 latitude_deg=41.462075
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=11200000 reference_time_its_ms=719748011200 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=11200000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=18500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=18500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=112][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20394.896000,5227.478000) speed=13.062000 sumo_sim_time_us=11300000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=11300000 longitude_deg=-8.4341743 latitude_deg=41.3855412
+[SIM_STEP=112][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15681.440000,13695.432000) speed=2.666000 sumo_sim_time_us=11300000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=11300000 longitude_deg=-8.48995 latitude_deg=41.4620773
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=11300000 reference_time_its_ms=719748011300 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=11300000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=18600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=18600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=113][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20393.658000,5227.893000) speed=13.055000 sumo_sim_time_us=11400000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=11400000 longitude_deg=-8.4341891 latitude_deg=41.385545
+[SIM_STEP=113][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15681.342000,13695.704000) speed=2.887000 sumo_sim_time_us=11400000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=11400000 longitude_deg=-8.4899512 latitude_deg=41.4620797
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=11400000 reference_time_its_ms=719748011400 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=11400000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=18700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=18700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=114][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20392.420000,5228.308000) speed=13.056000 sumo_sim_time_us=11500000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=11500000 longitude_deg=-8.4342038 latitude_deg=41.3855488
+[SIM_STEP=114][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15681.239000,13695.991000) speed=3.051000 sumo_sim_time_us=11500000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=11500000 longitude_deg=-8.4899524 latitude_deg=41.4620823
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=11500000 reference_time_its_ms=719748011500 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=11500000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=18800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=18800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=115][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20391.173000,5228.726000) speed=13.151000 sumo_sim_time_us=11600000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=11600000 longitude_deg=-8.4342187 latitude_deg=41.3855526
+[SIM_STEP=115][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15681.127000,13696.302000) speed=3.311000 sumo_sim_time_us=11600000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=11600000 longitude_deg=-8.4899537 latitude_deg=41.4620851
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=11600000 reference_time_its_ms=719748011600 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=11600000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=18900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=18900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=116][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20389.937000,5229.140000) speed=13.044000 sumo_sim_time_us=11700000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=11700000 longitude_deg=-8.4342335 latitude_deg=41.3855565
+[SIM_STEP=116][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15681.009000,13696.631000) speed=3.494000 sumo_sim_time_us=11700000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=11700000 longitude_deg=-8.4899551 latitude_deg=41.4620881
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=11700000 reference_time_its_ms=719748011700 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=11700000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=19000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=19000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=117][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20388.654000,5229.388000) speed=13.155000 sumo_sim_time_us=11800000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=11800000 longitude_deg=-8.4342488 latitude_deg=41.3855588
+[SIM_STEP=117][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15680.884000,13696.979000) speed=3.696000 sumo_sim_time_us=11800000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=11800000 longitude_deg=-8.4899566 latitude_deg=41.4620912
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=11800000 reference_time_its_ms=719748011800 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=11800000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=19100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=19100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=118][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20387.350000,5229.506000) speed=13.094000 sumo_sim_time_us=11900000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=11900000 longitude_deg=-8.4342644 latitude_deg=41.3855599
+[SIM_STEP=118][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15680.752000,13697.346000) speed=3.901000 sumo_sim_time_us=11900000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=11900000 longitude_deg=-8.4899581 latitude_deg=41.4620945
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=11900000 reference_time_its_ms=719748011900 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=11900000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=19200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=19200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=119][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20386.042000,5229.625000) speed=13.131000 sumo_sim_time_us=12000000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=12000000 longitude_deg=-8.43428 latitude_deg=41.3855611
+[SIM_STEP=119][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15680.615000,13697.727000) speed=4.046000 sumo_sim_time_us=12000000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=12000000 longitude_deg=-8.4899597 latitude_deg=41.462098
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=12000000 reference_time_its_ms=719748012000 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=12000000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=19300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=19300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=120][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20384.739000,5229.744000) speed=13.084000 sumo_sim_time_us=12100000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=12100000 longitude_deg=-8.4342956 latitude_deg=41.3855622
+[SIM_STEP=120][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15680.474000,13698.120000) speed=4.179000 sumo_sim_time_us=12100000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=12100000 longitude_deg=-8.4899614 latitude_deg=41.4621015
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=12100000 reference_time_its_ms=719748012100 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=12100000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=19400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=19400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=121][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20383.431000,5229.862000) speed=13.132000 sumo_sim_time_us=12200000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=12200000 longitude_deg=-8.4343112 latitude_deg=41.3855633
+[SIM_STEP=121][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15680.326000,13698.530000) speed=4.364000 sumo_sim_time_us=12200000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=12200000 longitude_deg=-8.4899631 latitude_deg=41.4621052
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=12200000 reference_time_its_ms=719748012200 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=12200000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=19500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=19500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=122][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20382.124000,5229.981000) speed=13.122000 sumo_sim_time_us=12300000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=12300000 longitude_deg=-8.4343269 latitude_deg=41.3855645
+[SIM_STEP=122][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15680.170000,13698.965000) speed=4.620000 sumo_sim_time_us=12300000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=12300000 longitude_deg=-8.489965 latitude_deg=41.4621092
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=12300000 reference_time_its_ms=719748012300 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=12300000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=19600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=19600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=123][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20380.818000,5230.100000) speed=13.117000 sumo_sim_time_us=12400000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=12400000 longitude_deg=-8.4343425 latitude_deg=41.3855656
+[SIM_STEP=123][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15680.006000,13699.421000) speed=4.848000 sumo_sim_time_us=12400000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=12400000 longitude_deg=-8.4899669 latitude_deg=41.4621133
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=12400000 reference_time_its_ms=719748012400 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=12400000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=19700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=19700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=124][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20379.509000,5230.219000) speed=13.139000 sumo_sim_time_us=12500000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=12500000 longitude_deg=-8.4343581 latitude_deg=41.3855668
+[SIM_STEP=124][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15679.837000,13699.890000) speed=4.982000 sumo_sim_time_us=12500000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=12500000 longitude_deg=-8.4899689 latitude_deg=41.4621175
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=12500000 reference_time_its_ms=719748012500 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=12500000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=19800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=19800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=125][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20378.240000,5230.334000) speed=12.742000 sumo_sim_time_us=12600000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=12600000 longitude_deg=-8.4343733 latitude_deg=41.3855679
+[SIM_STEP=125][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15679.661000,13700.379000) speed=5.197000 sumo_sim_time_us=12600000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=12600000 longitude_deg=-8.489971 latitude_deg=41.4621219
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=12600000 reference_time_its_ms=719748012600 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=12600000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=19900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=19900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=20000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=20000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=126][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20377.016000,5230.445000) speed=12.292000 sumo_sim_time_us=12700000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=12700000 longitude_deg=-8.4343879 latitude_deg=41.385569
+[SIM_STEP=126][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15679.481000,13700.882000) speed=5.338000 sumo_sim_time_us=12700000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=12700000 longitude_deg=-8.4899731 latitude_deg=41.4621265
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=12700000 reference_time_its_ms=719748012700 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=12700000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DENM_EVENT_INGEST] vehicle=0 event=0-hard_brake-0001 trigger_us=12700000 ingest_sim_us=20000000 ingest_monotonic_us=21180732386
+[DCC_CBR] veh=0 node=0 station=1 sim_us=20100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=20100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=127][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20375.837000,5230.553000) speed=11.842000 sumo_sim_time_us=12800000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=12800000 longitude_deg=-8.434402 latitude_deg=41.38557
+[SIM_STEP=127][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15679.292000,13701.407000) speed=5.588000 sumo_sim_time_us=12800000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=12800000 longitude_deg=-8.4899753 latitude_deg=41.4621312
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=12800000 reference_time_its_ms=719748012800 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=12800000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=20200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=20200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=128][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20374.702000,5230.656000) speed=11.392000 sumo_sim_time_us=12900000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=12900000 longitude_deg=-8.4344156 latitude_deg=41.385571
+[SIM_STEP=128][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15679.096000,13701.952000) speed=5.785000 sumo_sim_time_us=12900000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=12900000 longitude_deg=-8.4899776 latitude_deg=41.4621361
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=12900000 reference_time_its_ms=719748012900 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=12900000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=20300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=20300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=129][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20373.609000,5230.755000) speed=10.979000 sumo_sim_time_us=13000000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=13000000 longitude_deg=-8.4344286 latitude_deg=41.385572
+[SIM_STEP=129][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15678.894000,13702.514000) speed=5.975000 sumo_sim_time_us=13000000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=13000000 longitude_deg=-8.48998 latitude_deg=41.4621412
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=13000000 reference_time_its_ms=719748013000 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=13000000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=20400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=20400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=130][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20372.560000,5230.850000) speed=10.529000 sumo_sim_time_us=13100000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=13100000 longitude_deg=-8.4344412 latitude_deg=41.3855729
+[SIM_STEP=130][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15678.687000,13703.090000) speed=6.117000 sumo_sim_time_us=13100000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=13100000 longitude_deg=-8.4899824 latitude_deg=41.4621464
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=13100000 reference_time_its_ms=719748013100 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=13100000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=20500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=20500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=131][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20371.557000,5230.942000) speed=10.079000 sumo_sim_time_us=13200000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=13200000 longitude_deg=-8.4344532 latitude_deg=41.3855738
+[SIM_STEP=131][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15678.474000,13703.683000) speed=6.309000 sumo_sim_time_us=13200000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=13200000 longitude_deg=-8.489985 latitude_deg=41.4621518
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=13200000 reference_time_its_ms=719748013200 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=13200000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=20600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=20600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=132][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20370.596000,5231.029000) speed=9.642000 sumo_sim_time_us=13300000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=13300000 longitude_deg=-8.4344646 latitude_deg=41.3855746
+[SIM_STEP=132][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15678.252000,13704.301000) speed=6.557000 sumo_sim_time_us=13300000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=13300000 longitude_deg=-8.4899876 latitude_deg=41.4621573
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=13300000 reference_time_its_ms=719748013300 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=13300000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=20700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=20700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=133][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20369.681000,5231.112000) speed=9.192000 sumo_sim_time_us=13400000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=13400000 longitude_deg=-8.4344756 latitude_deg=41.3855754
+[SIM_STEP=133][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15678.025000,13704.932000) speed=6.711000 sumo_sim_time_us=13400000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=13400000 longitude_deg=-8.4899902 latitude_deg=41.462163
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=13400000 reference_time_its_ms=719748013400 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=13400000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=20800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=20800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=134][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20368.810000,5231.191000) speed=8.742000 sumo_sim_time_us=13500000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=13500000 longitude_deg=-8.434486 latitude_deg=41.3855762
+[SIM_STEP=134][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15677.806000,13705.541000) speed=6.476000 sumo_sim_time_us=13500000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=13500000 longitude_deg=-8.4899928 latitude_deg=41.4621685
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=13500000 reference_time_its_ms=719748013500 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=13500000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=20900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=20900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=135][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20367.985000,5231.266000) speed=8.292000 sumo_sim_time_us=13600000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=13600000 longitude_deg=-8.4344959 latitude_deg=41.3855769
+[SIM_STEP=135][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15677.558000,13706.166000) speed=6.736000 sumo_sim_time_us=13600000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=13600000 longitude_deg=-8.4899957 latitude_deg=41.4621742
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=13600000 reference_time_its_ms=719748013600 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=13600000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=21000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=21000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=136][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20367.204000,5231.337000) speed=7.842000 sumo_sim_time_us=13700000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=13700000 longitude_deg=-8.4345052 latitude_deg=41.3855776
+[SIM_STEP=136][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15677.229000,13706.785000) speed=6.996000 sumo_sim_time_us=13700000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=13700000 longitude_deg=-8.4899996 latitude_deg=41.4621798
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=13700000 reference_time_its_ms=719748013700 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=13700000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=21100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=21100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=137][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20366.467000,5231.404000) speed=7.392000 sumo_sim_time_us=13800000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=13800000 longitude_deg=-8.434514 latitude_deg=41.3855782
+[SIM_STEP=137][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15676.889000,13707.426000) speed=7.256000 sumo_sim_time_us=13800000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=13800000 longitude_deg=-8.4900037 latitude_deg=41.4621855
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=13800000 reference_time_its_ms=719748013800 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=13800000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=21200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=21200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=138][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20365.776000,5231.467000) speed=6.942000 sumo_sim_time_us=13900000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=13900000 longitude_deg=-8.4345223 latitude_deg=41.3855788
+[SIM_STEP=138][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15676.537000,13708.090000) speed=7.516000 sumo_sim_time_us=13900000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=13900000 longitude_deg=-8.4900078 latitude_deg=41.4621915
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=13900000 reference_time_its_ms=719748013900 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=13900000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=21300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=21300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=139][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20365.130000,5231.526000) speed=6.492000 sumo_sim_time_us=14000000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=14000000 longitude_deg=-8.43453 latitude_deg=41.3855794
+[SIM_STEP=139][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15676.172000,13708.777000) speed=7.776000 sumo_sim_time_us=14000000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=14000000 longitude_deg=-8.4900122 latitude_deg=41.4621978
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=14000000 reference_time_its_ms=719748014000 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=14000000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=21400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=21400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=140][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20364.457000,5231.587000) speed=6.752000 sumo_sim_time_us=14100000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=14100000 longitude_deg=-8.434538 latitude_deg=41.38558
+[SIM_STEP=140][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15675.780000,13709.475000) speed=8.036000 sumo_sim_time_us=14100000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=14100000 longitude_deg=-8.4900168 latitude_deg=41.4622041
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=14100000 reference_time_its_ms=719748014100 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=14100000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=21500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=21500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=141][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20363.759000,5231.650000) speed=7.012000 sumo_sim_time_us=14200000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=14200000 longitude_deg=-8.4345464 latitude_deg=41.3855806
+[SIM_STEP=141][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15675.140000,13710.001000) speed=8.293000 sumo_sim_time_us=14200000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=14200000 longitude_deg=-8.4900244 latitude_deg=41.4622088
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=14200000 reference_time_its_ms=719748014200 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=14200000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=21600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=21600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=142][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20363.041000,5231.715000) speed=7.205000 sumo_sim_time_us=14300000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=14300000 longitude_deg=-8.4345549 latitude_deg=41.3855812
+[SIM_STEP=142][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15674.486000,13710.535000) speed=8.457000 sumo_sim_time_us=14300000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=14300000 longitude_deg=-8.4900322 latitude_deg=41.4622137
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=14300000 reference_time_its_ms=719748014300 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=14300000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=21700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=21700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=143][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20362.368000,5231.777000) speed=6.755000 sumo_sim_time_us=14400000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=14400000 longitude_deg=-8.434563 latitude_deg=41.3855818
+[SIM_STEP=143][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15673.821000,13711.078000) speed=8.588000 sumo_sim_time_us=14400000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=14400000 longitude_deg=-8.4900401 latitude_deg=41.4622186
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=14400000 reference_time_its_ms=719748014400 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=14400000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=21800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=21800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=144][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20361.740000,5231.834000) speed=6.305000 sumo_sim_time_us=14500000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=14500000 longitude_deg=-8.4345705 latitude_deg=41.3855824
+[SIM_STEP=144][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15673.111000,13711.518000) speed=8.557000 sumo_sim_time_us=14500000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=14500000 longitude_deg=-8.4900486 latitude_deg=41.4622226
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=14500000 reference_time_its_ms=719748014500 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=14500000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=21900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=21900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=145][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20361.157000,5231.887000) speed=5.855000 sumo_sim_time_us=14600000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=14600000 longitude_deg=-8.4345775 latitude_deg=41.3855829
+[SIM_STEP=145][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15672.267000,13711.696000) speed=8.630000 sumo_sim_time_us=14600000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=14600000 longitude_deg=-8.4900587 latitude_deg=41.4622242
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=14600000 reference_time_its_ms=719748014600 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=14600000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=22000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=22000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=146][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20360.620000,5231.945000) speed=5.405000 sumo_sim_time_us=14700000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=14700000 longitude_deg=-8.4345839 latitude_deg=41.3855834
+[SIM_STEP=146][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15671.427000,13711.872000) speed=8.591000 sumo_sim_time_us=14700000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=14700000 longitude_deg=-8.4900688 latitude_deg=41.4622259
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=14700000 reference_time_its_ms=719748014700 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=14700000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=22100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=22100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=147][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20360.097000,5232.073000) speed=5.385000 sumo_sim_time_us=14800000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=14800000 longitude_deg=-8.4345901 latitude_deg=41.3855846
+[SIM_STEP=147][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15670.585000,13712.049000) speed=8.612000 sumo_sim_time_us=14800000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=14800000 longitude_deg=-8.4900788 latitude_deg=41.4622275
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=14800000 reference_time_its_ms=719748014800 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=14800000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=22200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=22200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=148][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20359.574000,5232.200000) speed=5.380000 sumo_sim_time_us=14900000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=14900000 longitude_deg=-8.4345964 latitude_deg=41.3855858
+[SIM_STEP=148][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15669.749000,13712.045000) speed=8.529000 sumo_sim_time_us=14900000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=14900000 longitude_deg=-8.4900888 latitude_deg=41.4622275
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=14900000 reference_time_its_ms=719748014900 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=14900000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=22300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=22300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=149][VEH=0][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(20359.051000,5232.329000) speed=5.388000 sumo_sim_time_us=15000000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=0 sumo_sim_time_us=15000000 longitude_deg=-8.4346026 latitude_deg=41.385587
+[SIM_STEP=149][VEH=1][NODE=0][STATION=0][SEQ=-1][LVL=DEBUG][MOD=SUMO][EV=RX_VEHICLE_STATE] pos=(15668.912000,13711.887000) speed=8.530000 sumo_sim_time_us=15000000
+[VEHICLE_STATE_GEODETIC_APPLIED] veh_id=1 sumo_sim_time_us=15000000 longitude_deg=-8.4900989 latitude_deg=41.4622262
+[CPM_PERCEPTION] BUILD_ACCEPTED reference_sumo_us=15000000 reference_time_its_ms=719748015000 observed_vehicles=2 known_objects=2 perceived_objects=2 mode=BUILD_ONLY
+[CPM_CODEC] ENCODE_ACCEPTED reference_sumo_us=15000000 bytes=63 encoded_bits=500 perceived_objects=2 mode=NO_TX
+[DCC_CBR] veh=0 node=0 station=1 sim_us=22400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=22400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=22500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=22500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=22600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=22600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=22700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=22700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=22800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=22800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=22900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=22900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=23000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=23000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=23100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=23100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=23200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=23200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=23300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=23300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=23400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=23400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=23500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=23500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=23600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=23600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=23700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=23700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=23800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=23800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=23900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=23900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=24000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=24000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=24100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=24100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=24200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=24200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=24300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=24300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=24400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=24400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=24500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=24500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=24600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=24600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=24700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=24700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=24800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=24800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=24900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=24900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=25000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=25000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=25100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=25100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=25200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=25200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=25300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=25300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=25400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=25400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=25500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=25500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=25600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=25600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=25700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=25700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=25800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=25800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=25900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=25900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=26000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=26000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=26100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=26100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=26200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=26200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=26300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=26300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=26400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=26400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=26500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=26500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=26600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=26600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=26700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=26700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=26800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=26800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=26900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=26900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=27000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=27000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=27100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=27100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=27200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=27200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=27300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=27300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=27400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=27400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=27500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=27500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=27600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=27600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=27700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=27700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=27800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=27800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=27900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=27900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=28000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=28000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=28100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=28100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=28200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=28200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=28300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=28300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=28400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=28400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=28500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=28500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=28600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=28600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=28700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=28700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=28800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=28800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=28900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=28900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=29000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=29000000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=29100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=29100000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=29200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=29200000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=29300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=29300000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=29400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=29400000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=29500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=29500000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=29600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=29600000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=29700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=29700000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=29800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=29800000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=0 node=0 station=1 sim_us=29900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[DCC_CBR] veh=1 node=1 station=2 sim_us=29900000 cbr=0 state_before=Relaxed state_after=Relaxed rx_start=0 tx_start=0 cca_busy=0
+[SIM_STEP=150][VEH=-][NODE=0][STATION=0][SEQ=-1][LVL=INFO][MOD=SUMO][EV=SOCKET_CLOSED] UDP adapter socket closed
