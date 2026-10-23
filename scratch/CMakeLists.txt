@@ -249,6 +249,7 @@ add_library(vanetza_cpm_perception_obj OBJECT
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/cpm/perception/cpm_synthetic_perception_source.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/cpm/perception/cpm_temporal_transform.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/cpm/perception/cpm_track_history.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/cpm/perception/cpm_generation_manager.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/cpm/perception/cpm_vehicle_perception_source.cc
 )
 
