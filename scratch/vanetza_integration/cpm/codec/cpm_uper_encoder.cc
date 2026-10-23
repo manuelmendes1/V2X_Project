@@ -324,7 +324,7 @@ bool AddPerceivedObjectsContainer(
         wrapper->containerData.choice.PerceivedObjectContainer;
     container.numberOfPerceivedObjects =
         static_cast<Vanetza_ITS2_CardinalNumber1B_t>(
-            input.perceivedObjects.size());
+            input.knownObjectCount);
 
     for (const auto& semanticObject : input.perceivedObjects)
     {

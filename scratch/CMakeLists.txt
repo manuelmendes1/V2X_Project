@@ -243,6 +243,7 @@ target_link_libraries(vanetza_spatem_obj
 
 add_library(vanetza_cpm_perception_obj OBJECT
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/cpm/codec/cpm_uper_encoder.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/cpm/codec/cpm_uper_decoder.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/cpm/perception/cpm_coordinate_quantizer.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/cpm/perception/cpm_coordinate_transform.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/cpm/perception/cpm_geodetic_transform.cc

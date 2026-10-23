@@ -188,3 +188,6 @@ sumo/current/**/.cache/
 /sumo/versions/
 /sumo/current/scenario/georeferenced/vila-nova-de-famalicao/famalicao.net.xml
 /sumo/current/scenario/georeferenced/vila-nova-de-famalicao/netconvert.log
+
+# CPM Etapa 10.6 ASN.1/UPER codec report
+!/scratch/docs/CPM/ETAPA_10_6_CODEC_ASN1_UPER.md

@@ -565,8 +565,9 @@ struct CpmSemanticData
     CpmReferencePosition referencePosition{};
     std::optional<CpmMessageSegmentationInfo> segmentationInfo;
     std::optional<CpmMessageRateRange> messageRateRange;
-    // Total global conhecido no LDM; distinto da contagem regional.
-    // Não representa apenas os objetos incluídos na mensagem.
+    // Total de objetos conhecidos pelo emissor no LDM no momento
+    // da geração da mensagem. Corresponde a numberOfPerceivedObjects
+    // no ASN.1 e pode ser superior ao número de objetos incluídos.
     std::uint8_t knownObjectCount{};
     std::vector<CpmPerceivedObject> perceivedObjects;
     std::vector<CpmSensorInformation> sensorInformation;
