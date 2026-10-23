@@ -41,6 +41,11 @@ struct BtpTxRequest
 
     // Required for GBC, absent for SHB.
     std::optional<BtpGeoArea> destinationArea;
+
+    // Optional GeoNetworking overrides. Unset values preserve the MIB
+    // defaults. Lifetime is expressed in milliseconds at this boundary.
+    std::optional<uint32_t> maximumLifetimeMs;
+    std::optional<unsigned> maximumHopLimit;
 };
 
 } // namespace ns3

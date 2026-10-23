@@ -19,6 +19,8 @@
 #include <vanetza/geonet/areas.hpp>
 #include <vanetza/geonet/data_request.hpp>
 #include <vanetza/geonet/interface.hpp>
+#include <vanetza/geonet/lifetime.hpp>
+#include <vanetza/units/time.hpp>
 #include <vanetza/geonet/mib.hpp>
 #include <vanetza/geonet/router.hpp>
 #include <vanetza/geonet/traffic_class.hpp>
@@ -562,6 +564,37 @@ VanetzaBtpAdapter::SendBtpB(
     request.gn.traffic_class =
         vanetza::geonet::TrafficClass(
             txRequest.trafficClass);
+
+    // Apply optional GeoNetworking packet lifetime override.
+    // Vanetza encodes lifetime in its standardized GN representation.
+    if (txRequest.maximumLifetimeMs.has_value())
+    {
+        const auto maxLifetime =
+            m_mib.itsGnMaxPacketLifetime.decode();
+
+        auto requestedLifetime =
+            vanetza::units::Duration::from_value(
+                static_cast<double>(
+                    *txRequest.maximumLifetimeMs) / 1000.0);
+
+        // Do not request a lifetime above the local GeoNetworking MIB.
+        if (requestedLifetime > maxLifetime)
+        {
+            requestedLifetime = maxLifetime;
+        }
+
+        vanetza::geonet::Lifetime encodedLifetime;
+        encodedLifetime.encode(requestedLifetime);
+        request.gn.maximum_lifetime = encodedLifetime;
+    }
+
+    // Leave Vanetza's configured MIB default untouched when no
+    // explicit hop-limit override was supplied.
+    if (txRequest.maximumHopLimit.has_value())
+    {
+        request.gn.maximum_hop_limit =
+            *txRequest.maximumHopLimit;
+    }
 
     //----------------------------------------------------------------------
     // Select GeoNetworking transport.
