@@ -16,10 +16,13 @@
 !/scratch/
 !/scratch/CMakeLists.txt
 
-# CPM Etapa 10.4 evidence note (only this new note is unignored)
+# CPM evidence notes explicitly allowlisted below
 !/scratch/docs/
 !/scratch/docs/CPM/
 !/scratch/docs/CPM/ETAPA_10_4_FONTE_COORDENADAS_TEMPO.md
+
+# CPM Etapa 10.5 generation manager report
+!/scratch/docs/CPM/ETAPA_10_5_GESTAO_GERACAO.md
 
 !/scratch/denm_trigger_test/
 !/scratch/denm_trigger_test/**
