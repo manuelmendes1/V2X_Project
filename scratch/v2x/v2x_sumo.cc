@@ -48,6 +48,8 @@ int main(int argc, char* argv[]) {
     uint32_t cpmStationId = 0;
     double cpmLatitudeDeg = std::numeric_limits<double>::quiet_NaN();
     double cpmLongitudeDeg = std::numeric_limits<double>::quiet_NaN();
+    double cpmNs3X = 0.0;
+    double cpmNs3Y = 0.0;
     double cpmPerceptionRangeMeters = 50.0;
 
     CommandLine cmd;
@@ -94,6 +96,8 @@ int main(int argc, char* argv[]) {
     cmd.AddValue("cpmPerceptionRangeMeters",
         "Alcance horizontal de perceção em metros",
         cpmPerceptionRangeMeters);
+    cmd.AddValue("cpmNs3X", "Coordenada X ns-3 da RSU emissora de CPM", cpmNs3X);
+    cmd.AddValue("cpmNs3Y", "Coordenada Y ns-3 da RSU emissora de CPM", cpmNs3Y);
 
     cmd.AddValue(
         "enableSpatem",
@@ -151,7 +155,9 @@ int main(int argc, char* argv[]) {
 
     if (!SimulationController::ConfigureCpmPerception(
             enableCpm, cpmStationId, cpmLatitudeDeg,
-            cpmLongitudeDeg, cpmPerceptionRangeMeters))
+            cpmLongitudeDeg,
+            cpmNs3X, cpmNs3Y,
+            cpmPerceptionRangeMeters))
     {
         std::cerr << "[CPM_PERCEPTION] invalid configuration; startup aborted\n";
         return 2;
@@ -186,7 +192,8 @@ int main(int argc, char* argv[]) {
 
     Simulator::Run();
 
-    // Explicitly release SPATEM while its registry is still alive.
+    // Release CPM and SPATEM while ns-3 and the station registry are alive.
+    SimulationController::ShutdownCpmEmitter();
     SimulationController::ShutdownSpatemEmitter();
 
     Simulator::Destroy();

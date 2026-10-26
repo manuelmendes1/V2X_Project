@@ -15,6 +15,9 @@ class CpmVehiclePerceptionSource;
 namespace ns3
 {
 
+class CpmEmitterEndpoint;
+class CpmRsuRuntime;
+
 struct SumoTrafficLightState;
 class SpatemEmitterEndpoint;
 class SpatemRsuRuntime;
@@ -40,6 +43,8 @@ public:
         uint32_t stationId,
         double latitudeDeg,
         double longitudeDeg,
+        double ns3X,
+        double ns3Y,
         double perceptionRangeMeters);
 
     static void HandleVehicleUpdateFromSumo(const VehicleState& parsedVs);
@@ -78,12 +83,16 @@ public:
 
     static void StopSimulation();
 
+    // Release RSU runtimes and endpoints before Simulator::Destroy().
+    static void ShutdownCpmEmitter();
+
     // Release SPATEM resources before ns-3 and static teardown.
     static void ShutdownSpatemEmitter();
 
 private:
 
     static void SendSpatemSnapshot();
+    static bool EnsureCpmRuntime();
     static void RunCpmPerception(std::uint64_t referenceTimeUs);
     static void HandleSumoStepComplete(std::uint64_t referenceTimeUs);
 
@@ -115,7 +124,11 @@ private:
     static uint32_t m_cpmStationId;
     static double m_cpmLatitudeDeg;
     static double m_cpmLongitudeDeg;
+    static double m_cpmNs3X;
+    static double m_cpmNs3Y;
     static double m_cpmPerceptionRangeMeters;
+    static std::unique_ptr<CpmEmitterEndpoint> m_cpmEmitter;
+    static std::unique_ptr<CpmRsuRuntime> m_cpmRuntime;
     static int64_t m_cpmItsStartClockUs;
     static std::optional<std::uint64_t> m_cpmLastEncodedReferenceTimeUs;
     static std::unique_ptr<::CpmVehiclePerceptionSource>

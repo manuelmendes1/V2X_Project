@@ -13,49 +13,89 @@ def repository_root(start):
 
 
 class TestCpmVehiclePerceptionCodecWiring(unittest.TestCase):
-    def test_controller_builds_and_encodes_without_transmitting(self):
+    def test_controller_delegates_encoding_and_transmission_to_runtime(self):
         root = repository_root(Path(__file__))
-        source_path = (
+        controller_path = (
             root
             / "scratch/vanetza_integration/context/"
             "simulation_controller/simulation_controller.cc"
         )
-        source = source_path.read_text()
+        runtime_path = (
+            root
+            / "scratch/vanetza_integration/cpm/emitter/cpm_rsu_runtime.cc"
+        )
+        service_path = (
+            root / "scratch/vanetza_integration/cpm/service/cpm_service.cc"
+        )
 
-        start = source.find("SimulationController::RunCpmPerception(std::uint64_t referenceTimeUs)")
+        controller = controller_path.read_text()
+        runtime = runtime_path.read_text()
+        service = service_path.read_text()
+
+        start = controller.find(
+            "SimulationController::RunCpmPerception(std::uint64_t referenceTimeUs)"
+        )
         self.assertGreaterEqual(start, 0, "RunCpmPerception não encontrado")
 
-        end = source.find("SimulationController::PollLoop()", start)
+        end = controller.find("SimulationController::PollLoop()", start)
         self.assertGreater(end, start, "Fim de RunCpmPerception não encontrado")
-        method = source[start:end]
 
-        self.assertIn(
-            '#include "vanetza_integration/cpm/codec/cpm_uper_encoder.h"',
-            source,
-            "Header do encoder não incluído no controlador",
+        method = controller[start:end]
+        method_normalized = " ".join(method.split())
+        runtime_normalized = " ".join(runtime.split())
+        service_normalized = " ".join(service.split())
+
+        build = method_normalized.find("m_cpmPerceptionSource->Build(")
+        ensure_runtime = method_normalized.find("EnsureCpmRuntime()")
+        send = method_normalized.find(
+            "m_cpmRuntime->Send(context, input, cpmTrafficClass)"
         )
-        self.assertIn(
+
+        self.assertGreaterEqual(build, 0, "Falta a construção do modelo CPM")
+        self.assertGreater(
+            ensure_runtime, build, "O runtime deve ser assegurado após Build"
+        )
+        self.assertGreater(
+            send,
+            ensure_runtime,
+            "O controlador deve delegar a transmissão ao runtime",
+        )
+
+        self.assertNotIn(
             "CpmUperEncoder::Encode(input)",
             method,
-            "O resultado de Build ainda não é codificado",
+            "A codificação deve ficar na camada CpmService",
         )
-        self.assertIn(
-            "[CPM_CODEC] ENCODE_REJECTED",
-            method,
-            "Falta registo de falhas de codificação",
+        self.assertNotIn(
+            "vanetza_integration/cpm/codec/cpm_uper_encoder.h",
+            controller,
+            "O controlador não deve depender diretamente do encoder",
         )
-        self.assertIn(
-            "[CPM_CODEC] ENCODE_ACCEPTED",
-            method,
-            "Falta registo de codificação aceite",
-        )
-        self.assertIn("encoded.bytes.size()", method)
-        self.assertIn("encoded.encodedBits", method)
-        self.assertIn("mode=NO_TX", method)
         self.assertNotIn("BtpTxRequest", method)
         self.assertNotIn("sendto(", method)
 
-        print("CPM_CONTROLLER_CODEC_WIRING=PASS")
+        self.assertRegex(
+            runtime_normalized,
+            r"return\s+CpmService::Send\s*\(\s*context,\s*input,\s*gateway,\s*trafficClass\s*\)\s*;",
+            "CpmRsuRuntime deve delegar para CpmService",
+        )
+        self.assertIn(
+            "CpmUperEncoder::Encode(input)",
+            service_normalized,
+            "CpmService deve codificar o input CPM",
+        )
+        self.assertIn(
+            "encoded.success",
+            service_normalized,
+            "CpmService deve validar o resultado da codificação",
+        )
+        self.assertIn(
+            "encoded.bytes.empty()",
+            service_normalized,
+            "CpmService deve validar o payload codificado",
+        )
+
+        print("CPM_RUNTIME_CODEC_WIRING=PASS")
 
 
 if __name__ == "__main__":

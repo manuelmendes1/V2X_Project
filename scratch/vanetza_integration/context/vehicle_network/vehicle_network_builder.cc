@@ -1,6 +1,7 @@
 #include "vehicle_network_builder.h"
 #include "vanetza_integration/core/phy_audit/phy_audit.h"
 #include "vanetza_integration/spatem/emitter/spatem_emitter_endpoint.h"
+#include "vanetza_integration/cpm/emitter/cpm_emitter_endpoint.h"
 #include "vanetza_integration/context/station_registry/station_endpoint_registry.h"
 
 #include "vanetza_integration/context/vehicle_state.h"
@@ -54,6 +55,26 @@ VehicleNetworkBuilder::InitializeSpatemEmitter(
 
     // Este método usa m_ipv4 diretamente. Não cria uma cópia do
     // alocador já avançado pelos endereços atribuídos aos veículos.
+    Callback<void, Ptr<Socket>> noReceiveCallback;
+
+    return endpoint.InitializeNetwork(
+        m_channel,
+        m_ipv4,
+        noReceiveCallback);
+}
+
+bool
+VehicleNetworkBuilder::InitializeCpmEmitter(
+    CpmEmitterEndpoint& endpoint)
+{
+    if (m_channel == nullptr)
+    {
+        NS_LOG_UNCOND(
+            "[NET] Cannot initialize CPM emitter: Wi-Fi channel is null");
+        return false;
+    }
+
+    // Reuse the active allocator; do not duplicate already assigned IPv4s.
     Callback<void, Ptr<Socket>> noReceiveCallback;
 
     return endpoint.InitializeNetwork(

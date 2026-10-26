@@ -1,7 +1,9 @@
 #include <cmath>
 #include "simulation_controller.h"
 #include "vanetza_integration/cpm/perception/cpm_vehicle_perception_source.h"
-#include "vanetza_integration/cpm/codec/cpm_uper_encoder.h"
+#include "vanetza_integration/cpm/emitter/cpm_emitter_endpoint.h"
+#include "vanetza_integration/cpm/emitter/cpm_rsu_runtime.h"
+#include "vanetza_integration/context/packet/packet_id_manager.h"
 #include "vanetza_integration/context/vehicle_dispatcher/vehicle_dispatcher.h"
 #include <vanetza/common/clock.hpp>
 #include <optional>
@@ -66,7 +68,11 @@ double SimulationController::m_cpmLatitudeDeg =
     std::numeric_limits<double>::quiet_NaN();
 double SimulationController::m_cpmLongitudeDeg =
     std::numeric_limits<double>::quiet_NaN();
+double SimulationController::m_cpmNs3X = 0.0;
+double SimulationController::m_cpmNs3Y = 0.0;
 double SimulationController::m_cpmPerceptionRangeMeters = 50.0;
+std::unique_ptr<CpmEmitterEndpoint> SimulationController::m_cpmEmitter;
+std::unique_ptr<CpmRsuRuntime> SimulationController::m_cpmRuntime;
 int64_t SimulationController::m_cpmItsStartClockUs = 0;
 std::optional<std::uint64_t> SimulationController::m_cpmLastEncodedReferenceTimeUs;
 std::unique_ptr<::CpmVehiclePerceptionSource>
@@ -292,30 +298,58 @@ SimulationController::RunCpmPerception(std::uint64_t referenceTimeUs)
         << " observed_vehicles=" << observations.size()
         << " known_objects=" << static_cast<unsigned>(input.knownObjectCount)
         << " perceived_objects=" << input.perceivedObjects.size()
-        << " mode=BUILD_ONLY");
+        << " mode=TX_READY");
 
-    const auto encoded = CpmUperEncoder::Encode(input);
-
-    if (!encoded.success)
+    if (!EnsureCpmRuntime())
     {
         NS_LOG_UNCOND(
-            "[CPM_CODEC] ENCODE_REJECTED"
-            << " reference_sumo_us=" << referenceTimeUs
-            << " perceived_objects=" << input.perceivedObjects.size()
-            << " reason=" << encoded.error
-            << " mode=NO_TX");
+            "[CPM_RSU] TX_REJECTED reason=RUNTIME_NOT_READY"
+            << " reference_sumo_us=" << referenceTimeUs);
         return;
     }
 
-    m_cpmLastEncodedReferenceTimeUs = referenceTimeUs;
+    auto context = std::make_shared<PacketContext>();
+    context->simulationStep =
+        static_cast<int64_t>(SimulationContext::simulationStep);
+    context->simulationTime = Simulator::Now().GetSeconds();
+    context->timestamp =
+        static_cast<uint64_t>(Simulator::Now().GetMicroSeconds());
+
+    // CPM is emitted by its dedicated RSU, not by a perceived vehicle.
+    context->senderNodeId = m_cpmEmitter->GetNode()->GetId();
+    context->senderStationId = m_cpmEmitter->StationId();
+    context->packetId = PacketIdManager::Instance().NextPacketId();
+    context->sequenceId = PacketIdManager::Instance().NextSequenceId(
+        m_cpmEmitter->LogicalId(),
+        PayloadType::CPM);
+
+    // The selected traffic class is an explicit local configuration
+    // choice; this value is not asserted to be a normative default.
+    constexpr uint8_t cpmTrafficClass = 0;
+
+    const bool sent =
+        m_cpmRuntime->Send(context, input, cpmTrafficClass);
+
+    // Preserve the original anti-duplicate gate once UPER bytes exist,
+    // even if a subsequent transport step rejects the request.
+    if (context->payload.type == PayloadType::CPM &&
+        !context->payload.bytes.empty())
+    {
+        m_cpmLastEncodedReferenceTimeUs = referenceTimeUs;
+    }
 
     NS_LOG_UNCOND(
-        "[CPM_CODEC] ENCODE_ACCEPTED"
-        << " reference_sumo_us=" << referenceTimeUs
-        << " bytes=" << encoded.bytes.size()
-        << " encoded_bits=" << encoded.encodedBits
+        "[CPM_RSU] TX_RESULT"
+        << " result=" << (sent ? "ACCEPTED" : "FAILED")
+        << " packet_id=" << context->packetId
+        << " station_id=" << context->senderStationId
+        << " sequence_id=" << context->sequenceId
+        << " btp_port=2009"
+        << " its_aid=639"
+        << " bytes=" << context->payload.bytes.size()
         << " perceived_objects=" << input.perceivedObjects.size()
-        << " mode=NO_TX");
+        << " sim_time_s=" << Simulator::Now().GetSeconds());
+
 }
 
 void
@@ -356,17 +390,103 @@ void SimulationController::SendCam() {
 }
 
 bool
+SimulationController::EnsureCpmRuntime()
+{
+    if (m_cpmRuntime && m_cpmRuntime->IsInitialized())
+    {
+        return true;
+    }
+
+    // The endpoint owns an independent RSU identity and physical position.
+    if (!m_cpmEmitter)
+    {
+        CpmEmitterConfig config;
+        config.logicalId = "cpm-rsu-" + std::to_string(m_cpmStationId);
+        config.stationId = m_cpmStationId;
+        config.latitudeDeg = m_cpmLatitudeDeg;
+        config.longitudeDeg = m_cpmLongitudeDeg;
+        config.ns3X = m_cpmNs3X;
+        config.ns3Y = m_cpmNs3Y;
+
+        auto endpoint = CpmEmitterEndpoint::Create(config);
+        if (!endpoint)
+        {
+            NS_LOG_UNCOND(
+                "[CPM_RSU] ERROR endpoint configuration rejected"
+                << " station_id=" << m_cpmStationId);
+            return false;
+        }
+
+        if (!VehicleNetworkBuilder::InitializeCpmEmitter(*endpoint))
+        {
+            NS_LOG_UNCOND(
+                "[CPM_RSU] ERROR network initialization failed"
+                << " station_id=" << m_cpmStationId);
+            return false;
+        }
+
+        m_cpmEmitter = std::move(endpoint);
+
+        NS_LOG_UNCOND(
+            "[CPM_RSU] ENDPOINT_READY"
+            << " logical_id=" << m_cpmEmitter->LogicalId()
+            << " station_id=" << m_cpmEmitter->StationId()
+            << " node_id=" << m_cpmEmitter->GetNode()->GetId()
+            << " ipv4=" << m_cpmEmitter->GetIpv4Address()
+            << " link_mac=" << m_cpmEmitter->GetLinkMac()
+            << " latitude_deg=" << m_cpmEmitter->LatitudeDeg()
+            << " longitude_deg=" << m_cpmEmitter->LongitudeDeg()
+            << " ns3_x=" << m_cpmNs3X
+            << " ns3_y=" << m_cpmNs3Y);
+    }
+
+    auto runtime = std::make_unique<CpmRsuRuntime>(*m_cpmEmitter);
+    if (!runtime->Initialize())
+    {
+        runtime.reset();
+        m_cpmEmitter.reset();
+        NS_LOG_UNCOND(
+            "[CPM_RSU] ERROR runtime initialization failed"
+            << " station_id=" << m_cpmStationId);
+        return false;
+    }
+
+    m_cpmRuntime = std::move(runtime);
+    return true;
+}
+
+void
+SimulationController::ShutdownCpmEmitter()
+{
+    const bool hadResources =
+        static_cast<bool>(m_cpmRuntime) ||
+        static_cast<bool>(m_cpmEmitter);
+
+    // Runtime depends on the endpoint; destroy it first.
+    m_cpmRuntime.reset();
+    m_cpmEmitter.reset();
+
+    if (hadResources)
+    {
+        NS_LOG_UNCOND("[CPM_RSU] SHUTDOWN_COMPLETE");
+    }
+}
+
+bool
 SimulationController::ConfigureCpmPerception(
     bool enabled,
     uint32_t stationId,
     double latitudeDeg,
     double longitudeDeg,
+    double ns3X,
+    double ns3Y,
     double perceptionRangeMeters)
 {
     // Desativar primeiro impede que uma configuração inválida deixe ativa
     // uma instância anterior da fonte.
     m_cpmEnabled = false;
     m_cpmPerceptionSource.reset();
+    ShutdownCpmEmitter();
 
     if (!enabled)
     {
@@ -379,6 +499,8 @@ SimulationController::ConfigureCpmPerception(
         latitudeDeg < -90.0 || latitudeDeg > 90.0 ||
         !std::isfinite(longitudeDeg) ||
         longitudeDeg < -180.0 || longitudeDeg > 180.0 ||
+        !std::isfinite(ns3X) ||
+        !std::isfinite(ns3Y) ||
         !std::isfinite(perceptionRangeMeters) ||
         perceptionRangeMeters < 0.0)
     {
@@ -432,6 +554,8 @@ SimulationController::ConfigureCpmPerception(
     m_cpmStationId = stationId;
     m_cpmLatitudeDeg = latitudeDeg;
     m_cpmLongitudeDeg = longitudeDeg;
+    m_cpmNs3X = ns3X;
+    m_cpmNs3Y = ns3Y;
     m_cpmPerceptionRangeMeters = perceptionRangeMeters;
     m_cpmItsStartClockUs = startClockUs;
     m_cpmPerceptionSource =
@@ -443,9 +567,11 @@ SimulationController::ConfigureCpmPerception(
         << " station_id=" << stationId
         << " latitude_deg=" << latitudeDeg
         << " longitude_deg=" << longitudeDeg
+        << " ns3_x=" << ns3X
+        << " ns3_y=" << ns3Y
         << " range_m=" << perceptionRangeMeters
         << " its_start_clock_us=" << startClockUs
-        << " mode=BUILD_ONLY");
+        << " mode=TX_ENABLED");
 
     return true;
 }
