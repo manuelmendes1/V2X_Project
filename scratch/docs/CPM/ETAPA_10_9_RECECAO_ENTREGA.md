@@ -1,6 +1,6 @@
 ---
 title: "Etapa 10.9 — Receção e entrega CPM"
-status: "PARTIAL"
+status: "PASS_WITH_SCOPE_LIMITS"
 type: "EVIDENCE AND VALIDATION REPORT"
 date: 2026-10-26
 project: "ns-3.47 + Vanetza + SUMO V2X Integration"
@@ -16,13 +16,23 @@ semanticamente a mensagem, mantém a representação neutra da aplicação e
 entrega as mensagens validadas através de uma fila consumida pelo
 `SimulationController`.
 
-Estado: **PARTIAL**.
+Estado do fecho: **PASS_WITH_SCOPE_LIMITS**.
 
-A pipeline de receção e consumo foi demonstrada numa simulação E2E de
-curta distância. Na posição original da RSU, as transmissões foram
-aceites pelo runtime, mas não houve receção na PHY nem entrega à aplicação.
-A etapa permanece parcial até essa limitação de topologia/cobertura ficar
-explicitamente resolvida ou aceite como condição do cenário.
+O incremento de implementação da receção e entrega CPM fica encerrado
+com os testes locais e a demonstração E2E de curta distância registados
+neste relatório. Nesta configuração próxima foram observadas 92 receções
+e 92 entregas à aplicação.
+
+Na posição original da RSU, apesar de 150 resultados CPM TX aceites,
+não foram observados eventos de receção PHY nem entregas à aplicação.
+Esta limitação é aceite como condição explicitamente registada para o
+fecho deste incremento; não significa que a causa esteja identificada,
+que o alcance rádio tenha sido caracterizado ou que o cenário original
+esteja validado.
+
+A análise da ausência de receção na posição original permanece um item
+de seguimento caso esse cenário seja um requisito obrigatório. A
+verificação criptográfica da assinatura permanece reservada à Etapa 10.10.
 
 O estado `PROPOSED` do plano global `ETAPA_10_CPM_PLANO.md` não é alterado
 por este relatório.
@@ -181,3 +191,18 @@ Subdiretórios:
 
 O arquivo não inclui artefactos de `sumo/`; estes permanecem fora do
 staging e não foram alterados por este procedimento.
+
+## 9. Decisão de fecho
+
+**Decisão:** encerrar o incremento de implementação da Etapa 10.9 com
+estado `PASS_WITH_SCOPE_LIMITS`.
+
+O contrato funcional de receção e entrega foi demonstrado na configuração
+E2E de curta distância e coberto pelos testes documentados. O resultado
+não constitui validação da receção na posição original da RSU, estimativa
+de alcance máximo, verificação criptográfica, interoperabilidade ETSI ou
+conformidade OTA.
+
+A pendência relativa à posição original permanece explicitamente
+documentada para seguimento, caso seja necessária para os critérios do
+cenário de integração.
