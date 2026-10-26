@@ -242,6 +242,7 @@ target_link_libraries(vanetza_spatem_obj
 # =========================================================
 
 add_library(vanetza_cpm_perception_obj OBJECT
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/cpm/rx/cpm_rx_pipeline.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/cpm/emitter/cpm_emitter_endpoint.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/cpm/emitter/cpm_rsu_position_provider.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/cpm/emitter/cpm_rsu_runtime.cc

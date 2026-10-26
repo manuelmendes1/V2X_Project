@@ -11,6 +11,7 @@
 #include "vanetza_integration/context/vehicle_security/replay/replay_context.h"
 #include "vanetza_integration/denm/replay/denm_replay_context.h"
 #include "vanetza_integration/spatem/replay/spatem_replay_context.h"
+#include "vanetza_integration/cpm/replay/cpm_replay_context.h"
 
 namespace ns3
 {
@@ -70,6 +71,7 @@ struct VehicleSecurityContext
     ReplayContext replay;
     DenmReplayContext denmReplay;
     SpatemReplayContext spatemReplay;
+    CpmReplayContext cpmReplay;
 
     // ------------------------------------------------------------------------
     // Construction

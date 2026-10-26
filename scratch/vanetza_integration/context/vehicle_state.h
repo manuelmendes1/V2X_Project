@@ -13,6 +13,8 @@
 
 #include "context/neighbor/neighbor_types.h"
 #include "context/vehicle_security/vehicle_security_context.h"
+#include "vanetza_integration/cpm/types/cpm_message.h"
+#include "vanetza_integration/cpm/reception/cpm_reception_queue.h"
 #include "context/vehicle_mobility/vehicle_mobility_context.h"
 #include "vanetza_integration/vanetza_runtime/vanetza_runtime.h"
 
@@ -97,6 +99,8 @@ namespace ns3 {
         // ------------------------------------------------------------------------
 
         VehicleSecurityContext security;
+
+        CpmReceptionQueue cpmReception;
 
         // ------------------------------------------------------------------------
         // Networking

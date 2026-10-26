@@ -91,6 +91,7 @@ public:
 
 private:
 
+    static void DrainCpmReceptionQueues();
     static void SendSpatemSnapshot();
     static bool EnsureCpmRuntime();
     static void RunCpmPerception(std::uint64_t referenceTimeUs);

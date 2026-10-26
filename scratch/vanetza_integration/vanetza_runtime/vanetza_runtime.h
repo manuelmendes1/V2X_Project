@@ -7,6 +7,9 @@
 #include <ns3/packet.h>
 #include <ns3/ptr.h>
 
+// CpmMessage is defined in the global namespace by cpm_message.h.
+struct CpmMessage;
+
 namespace ns3
 {
 
@@ -55,6 +58,11 @@ public:
     void Shutdown();
 
     bool IsInitialized() const;
+
+    // Retrieve one validated CPM message from the application-facing queue.
+    // Returns false when no CPM message is waiting.
+    bool TryReceiveCpm(CpmMessage& message);
+
 
     VehicleState& Vehicle();
 

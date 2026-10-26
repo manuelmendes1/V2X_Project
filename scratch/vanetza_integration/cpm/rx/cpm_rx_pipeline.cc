@@ -1,0 +1,338 @@
+#include "vanetza_integration/cpm/rx/cpm_rx_pipeline.h"
+
+#include "vanetza_integration/core/v2x_log.h"
+#include "vanetza_integration/cpm/codec/cpm_uper_decoder.h"
+#include "vanetza_integration/cpm/transport/cpm_transport_policy.h"
+
+#include <cmath>
+#include <cstdint>
+#include <string>
+#include <unordered_set>
+#include <utility>
+
+namespace ns3
+{
+namespace
+{
+
+constexpr std::int64_t kMaximumTimestampItsMs = 4398046511103LL;
+constexpr std::int32_t kMaximumSupportedObjectAgeMs = 1500;
+
+bool ValidateCpmSemantics(
+    const CpmMessage& message,
+    std::string& error)
+{
+    if (message.station.stationId == 0)
+    {
+        error = "cpm_station_id_invalid";
+        return false;
+    }
+
+    if (!std::holds_alternative<CpmRoadSideUnitStationData>(
+            message.station.origin))
+    {
+        error = "cpm_station_origin_outside_supported_rsu_profile";
+        return false;
+    }
+
+    if (message.referenceTimeItsMs < 0 ||
+        message.referenceTimeItsMs > kMaximumTimestampItsMs)
+    {
+        error = "cpm_reference_time_out_of_range";
+        return false;
+    }
+
+    const auto& reference = message.referencePosition;
+
+    // The supported RSU application profile requires a usable WGS84
+    // horizontal reference position for interpreting relative object data.
+    if (!reference.latitudeDeg || !reference.longitudeDeg)
+    {
+        error = "cpm_reference_position_unavailable";
+        return false;
+    }
+
+    if (!std::isfinite(*reference.latitudeDeg) ||
+        !std::isfinite(*reference.longitudeDeg) ||
+        *reference.latitudeDeg < -90.0 ||
+        *reference.latitudeDeg > 90.0 ||
+        *reference.longitudeDeg < -180.0 ||
+        *reference.longitudeDeg > 180.0)
+    {
+        error = "cpm_reference_position_invalid";
+        return false;
+    }
+
+    if (message.perceivedObjects.size() > 255 ||
+        message.knownObjectCount < message.perceivedObjects.size())
+    {
+        error = "cpm_object_cardinality_invalid";
+        return false;
+    }
+
+    std::unordered_set<std::uint16_t> objectIds;
+    objectIds.reserve(message.perceivedObjects.size());
+
+    for (const auto& object : message.perceivedObjects)
+    {
+        if (object.objectId == 0 ||
+            !objectIds.insert(object.objectId).second)
+        {
+            error = "cpm_object_id_missing_or_duplicate";
+            return false;
+        }
+
+        if (object.measurementDeltaTimeMs < -2048 ||
+            object.measurementDeltaTimeMs > 2047)
+        {
+            error = "cpm_measurement_delta_time_out_of_range";
+            return false;
+        }
+
+        if (object.objectAgeMs &&
+            (*object.objectAgeMs < 0 ||
+             *object.objectAgeMs > kMaximumSupportedObjectAgeMs))
+        {
+            error = "cpm_object_age_out_of_supported_range";
+            return false;
+        }
+
+        if (!std::isfinite(object.position.xEast.value) ||
+            !std::isfinite(object.position.yNorth.value))
+        {
+            error = "cpm_object_position_non_finite";
+            return false;
+        }
+    }
+
+    error.clear();
+    return true;
+}
+
+bool Fail(
+    PacketContext& context,
+    const char* event,
+    const std::string& reason,
+    PipelineResult result = PipelineResult::FAIL)
+{
+    context.reason = reason;
+    context.MarkResult(result);
+
+    V2XWriteLog(
+        context,
+        result == PipelineResult::DROP
+            ? V2XLogLevel::WARN
+            : V2XLogLevel::ERROR,
+        "CPM",
+        event,
+        reason);
+
+    return false;
+}
+
+} // namespace
+
+bool
+CpmRxPipeline::Process(
+    PacketContext& context,
+    const std::vector<std::uint8_t>& payload,
+    CpmMessage& message,
+    std::int64_t receivedAtUnixMs,
+    CpmReplayContext& replay,
+    CpmReceptionQueue& receptionQueue)
+{
+    // GEONET_RX: the Router has delivered an upper-layer indication.
+    context.AdvancePipeline(PipelineStage::GEONET_RX);
+    context.MarkSuccess();
+
+    V2XWriteLog(
+        context,
+        V2XLogLevel::DEBUG,
+        "CPM",
+        "CPM_GEONET_RX_OK",
+        "GeoNetworking upper-layer indication");
+
+    // BTP_RX: check the application boundary and retain the original bytes.
+    context.AdvancePipeline(PipelineStage::BTP_RX);
+
+    if (context.btpDestinationPort != kCpmBtpPort)
+    {
+        return Fail(
+            context,
+            "CPM_BTP_RX_FAIL",
+            "cpm_invalid_btp_port");
+    }
+
+    if (payload.empty())
+    {
+        return Fail(
+            context,
+            "CPM_BTP_RX_FAIL",
+            "cpm_empty_payload");
+    }
+
+    context.payload.bytes = payload;
+    context.payload.type = PayloadType::CPM;
+    context.MarkSuccess();
+
+    V2XWriteLog(
+        context,
+        V2XLogLevel::DEBUG,
+        "CPM",
+        "CPM_BTP_RX_OK",
+        "port=" + std::to_string(kCpmBtpPort) +
+        " payload=" + std::to_string(payload.size()));
+
+    // VERIFY: validate the advertised CPM transport profile. This is not
+    // cryptographic signature verification; that remains a separate gate
+    // for Etapa 10.10.
+    context.AdvancePipeline(PipelineStage::VERIFY);
+
+    if (!context.geonet.hasItsAid ||
+        context.geonet.itsAid != kCpmItsAid)
+    {
+        return Fail(
+            context,
+            "CPM_PROFILE_CHECK_FAIL",
+            "cpm_invalid_its_aid");
+    }
+
+    context.MarkSuccess();
+
+    V2XWriteLog(
+        context,
+        V2XLogLevel::DEBUG,
+        "CPM",
+        "CPM_PROFILE_CHECK_OK",
+        "BTP port and ITS-AID match the supported CPM profile; "
+        "cryptographic verification is pending Etapa 10.10");
+
+    // DECODE: convert ASN.1/UPER into the neutral CpmMessage.
+    context.AdvancePipeline(PipelineStage::DECODE);
+
+    const auto decoded =
+        CpmUperDecoder::Decode(payload, receivedAtUnixMs);
+
+    if (!decoded.success || !decoded.message)
+    {
+        return Fail(
+            context,
+            "CPM_DECODE_FAIL",
+            "cpm_decode_failed: " + decoded.error);
+    }
+
+    std::string semanticError;
+
+    if (!ValidateCpmSemantics(*decoded.message, semanticError))
+    {
+        return Fail(
+            context,
+            "CPM_SEMANTIC_VALIDATION_FAIL",
+            semanticError);
+    }
+
+    // Bind the semantic origin to the identity resolved by the RX boundary.
+    if (context.senderStationId == 0)
+    {
+        return Fail(
+            context,
+            "CPM_SENDER_IDENTITY_FAIL",
+            "cpm_sender_identity_missing",
+            PipelineResult::DROP);
+    }
+
+    if (decoded.message->station.stationId != context.senderStationId)
+    {
+        return Fail(
+            context,
+            "CPM_SENDER_IDENTITY_FAIL",
+            "cpm_sender_identity_mismatch",
+            PipelineResult::DROP);
+    }
+
+    if (context.senderStationId == context.receiverStationId &&
+        context.senderNodeId == context.receiverNodeId)
+    {
+        return Fail(
+            context,
+            "CPM_SELF_RECEPTION_DROP",
+            "cpm_self_reception",
+            PipelineResult::DROP);
+    }
+
+    // Reserve application capacity before mutating replay history. ns-3
+    // processes this callback synchronously; no other callback can fill this
+    // queue between this check and the subsequent push.
+    if (!receptionQueue.CanAccept())
+    {
+        return Fail(
+            context,
+            "CPM_APPLICATION_QUEUE_FULL",
+            "cpm_application_reception_queue_full",
+            PipelineResult::DROP);
+    }
+
+    // REPLAY: suppress exact duplicate payloads per station within the
+    // bounded local window. This is preliminary duplicate protection,
+    // not proof of signature-bound replay protection.
+    context.AdvancePipeline(PipelineStage::REPLAY);
+
+    if (!replay.AcceptIfNew(
+            decoded.message->station.stationId,
+            payload))
+    {
+        return Fail(
+            context,
+            "CPM_REPLAY_DROP",
+            "cpm_exact_payload_replay_detected",
+            PipelineResult::DROP);
+    }
+
+    // RECEPTION: publish the validated neutral representation to the caller.
+    context.AdvancePipeline(PipelineStage::RECEPTION);
+    message = *decoded.message;
+
+    if (!receptionQueue.TryPush(message))
+    {
+        return Fail(
+            context,
+            "CPM_APPLICATION_QUEUE_FULL",
+            "cpm_application_reception_queue_full",
+            PipelineResult::DROP);
+    }
+
+    context.MarkSuccess();
+
+    V2XWriteLog(
+        context,
+        V2XLogLevel::INFO,
+        "CPM",
+        "CPM_RECEPTION_OK",
+        "station=" +
+            std::to_string(message.station.stationId) +
+        " known_objects=" +
+            std::to_string(message.knownObjectCount) +
+        " included_objects=" +
+            std::to_string(message.perceivedObjects.size()));
+
+    // DELIVER: this succeeds only after decode, semantic checks, identity
+    // binding and the bounded duplicate check have all passed.
+    context.AdvancePipeline(PipelineStage::DELIVER);
+    context.MarkSuccess();
+
+    V2XWriteLog(
+        context,
+        V2XLogLevel::INFO,
+        "CPM",
+        "CPM_DELIVER_OK",
+        "station=" +
+            std::to_string(message.station.stationId) +
+        " received_at_unix_ms=" +
+            std::to_string(message.receivedAtUnixMs) +
+        " included_objects=" +
+            std::to_string(message.perceivedObjects.size()));
+
+    return true;
+}
+
+} // namespace ns3

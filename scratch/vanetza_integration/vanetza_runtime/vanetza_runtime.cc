@@ -1,7 +1,10 @@
+#include "vanetza_integration/cpm/types/cpm_message.h"
 #include "vanetza_runtime.h"
 #include "vanetza_integration/context/station_registry/station_endpoint_registry.h"
 
 #include "vanetza_integration/spatem/rx/spatem_rx_pipeline.h"
+#include "vanetza_integration/cpm/rx/cpm_rx_pipeline.h"
+#include "vanetza_integration/cpm/transport/cpm_transport_policy.h"
 #include "vanetza_integration/context/packet/packet_id_manager.h"
 #include "vanetza_integration/core/packet_id_tag/packet_id_tag.h"
 #include "vanetza_integration/context/rx_bridge/rx_bridge_context.h"
@@ -472,6 +475,91 @@ VanetzaRuntime::Initialize()
     });
 
     //=========================================================================
+
+    //=========================================================================
+    // CPM BTP RX boundary
+    //
+    // Etapa 10.9: dispatch dedicado para o perfil CPM R2.
+    // A verificação criptográfica permanece uma responsabilidade separada.
+    //=========================================================================
+
+    m_geonet->SetBtpRxHandler(
+        kCpmBtpPort,
+        [this](const VanetzaGeoNetAdapter::BtpRxData& rx)
+        {
+            PacketContext* ctx =
+                RxBridgeContext::Current();
+
+            if (!ctx)
+            {
+                NS_LOG_UNCOND(
+                    "[CPM_RX] ERROR: RxBridgeContext is null");
+                return;
+            }
+
+            ctx->btpDestinationPort =
+                rx.destinationPort;
+
+            ctx->geonet.hasItsAid =
+                rx.hasItsAid;
+
+            if (rx.hasItsAid)
+            {
+                ctx->geonet.itsAid =
+                    rx.itsAid;
+            }
+
+            ctx->geonet.hasSenderMid =
+                rx.hasSourceMid;
+
+            if (rx.hasSourceMid)
+            {
+                ctx->geonet.senderMid =
+                    rx.sourceMid;
+            }
+
+            V2XWriteLog(
+                *ctx,
+                V2XLogLevel::INFO,
+                "CPM",
+                "CPM_RX_DISPATCH",
+                "port=" +
+                    std::to_string(rx.destinationPort) +
+                " payload=" +
+                    std::to_string(rx.payload.size()) +
+                " aid=" +
+                    std::to_string(
+                        rx.hasItsAid ? rx.itsAid : 0));
+
+            // This is local reception metadata, not the CPM reference time
+            // and not the ns-3 simulation timestamp.
+            const auto receivedAtUnixMs =
+                std::chrono::duration_cast<std::chrono::milliseconds>(
+                    std::chrono::system_clock::now().time_since_epoch())
+                    .count();
+
+            CpmMessage message{};
+
+            const bool processed =
+                CpmRxPipeline::Process(
+                    *ctx,
+                    rx.payload,
+                    message,
+                    receivedAtUnixMs,
+                    m_vehicle.security.cpmReplay,
+                    m_vehicle.cpmReception);
+
+            NS_LOG_UNCOND(
+                "[CPM_RX] BTP handler "
+                << (processed ? "accepted" : "rejected")
+                << " receiver="
+                << m_vehicle.identity.vehId
+                << " station="
+                << (processed ? message.station.stationId : 0)
+                << " objects="
+                << (processed ? message.perceivedObjects.size() : 0));
+        });
+
     // SPATEM BTP RX boundary
     // =========================================================================
     //
@@ -973,6 +1061,13 @@ VanetzaRuntime::ReceivePacket(
         NS_LOG_UNCOND(
             "[VRT_RX] GeoNetworking adapter rejected packet");
     }
+}
+
+
+bool
+VanetzaRuntime::TryReceiveCpm(CpmMessage& message)
+{
+    return m_vehicle.cpmReception.TryPop(message);
 }
 
 } // namespace ns3
