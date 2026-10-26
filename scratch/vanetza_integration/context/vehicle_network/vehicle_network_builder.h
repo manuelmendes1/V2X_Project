@@ -11,6 +11,7 @@ namespace ns3
 {
 
 class SpatemEmitterEndpoint;
+class CpmEmitterEndpoint;
 
 struct VehicleState;
 
@@ -27,6 +28,9 @@ public:
     // canal Wi-Fi e o mesmo alocador IPv4 que os veículos.
     static bool InitializeSpatemEmitter(
         SpatemEmitterEndpoint& endpoint);
+
+    static bool InitializeCpmEmitter(
+        CpmEmitterEndpoint& endpoint);
 
     static Ptr<Socket> Build(
         Ptr<Node> node);
