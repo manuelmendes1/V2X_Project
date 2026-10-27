@@ -90,6 +90,14 @@ int main()
     passed &= Check(sameContext, "PACKET_CONTEXT_PRESERVED");
 
     passed &= Check(
+        context->hasTxBtpMetadata &&
+            context->txBtpDestinationPort == 2009 &&
+            context->txItsAid == 639 &&
+            context->txGnUpperProtocol == "BTP_B" &&
+            context->txGnTransportType == "SHB",
+        "TX_METADATA_AVAILABLE_FROM_GENERATION");
+
+    passed &= Check(
         !capturedPayload.empty(),
         "UPER_PAYLOAD_PRODUCED");
 

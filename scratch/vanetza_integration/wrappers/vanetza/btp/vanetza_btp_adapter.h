@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <functional>
 #include <memory>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -34,6 +35,10 @@ namespace ns3 {
             struct RxData {
 
                 uint16_t destinationPort = 0;
+
+                // Captured from the original GeoNetworking indication.
+                std::string upperProtocol = "UNKNOWN";
+                std::string transportType = "UNKNOWN";
 
                 std::vector<uint8_t> payload;
 
@@ -82,6 +87,7 @@ namespace ns3 {
         private:
 
             class RxIndicationHandler;
+            class GeoNetTransportBridge;
 
             vanetza::geonet::Router& m_router;
             const vanetza::geonet::MIB& m_mib;
@@ -90,6 +96,12 @@ namespace ns3 {
             std::unique_ptr<RxIndicationHandler> m_rxHandler;
 
             std::unordered_map<uint16_t, RxHandler> m_handlers;
+
+            // Scoped to the synchronous GeoNetworking -> BTP dispatch.
+            std::string m_currentGeoNetUpperProtocol = "UNKNOWN";
+            std::string m_currentGeoNetTransportType = "UNKNOWN";
+
+            std::unique_ptr<GeoNetTransportBridge> m_geonetTransportBridge;
     };
 
 } // namespace ns3

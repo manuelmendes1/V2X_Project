@@ -822,6 +822,11 @@ VanetzaGeoNetAdapter::SetBtpRxHandler(
             data.destinationPort =
                 rx.destinationPort;
 
+            data.upperProtocol =
+                rx.upperProtocol;
+            data.transportType =
+                rx.transportType;
+
             data.payload =
                 rx.payload;
 

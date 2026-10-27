@@ -12,6 +12,18 @@
 namespace ns3
 {
 
+inline void
+SetPacketContextTxBtpMetadata(
+    PacketContext& context,
+    const BtpTxRequest& request)
+{
+    context.hasTxBtpMetadata = true;
+    context.txBtpDestinationPort = request.destinationPort;
+    context.txItsAid = request.itsAid;
+    context.txGnUpperProtocol = "BTP_B";
+    context.txGnTransportType = BtpTransportName(request.transport);
+}
+
 class CpmTransportGateway
 {
 public:
@@ -31,13 +43,23 @@ public:
         const std::vector<uint8_t>& payload,
         uint8_t trafficClass) const
     {
+        const BtpTxRequest request =
+            MakeCpmBtpRequest(trafficClass);
+
+        return Send(context, request, payload);
+    }
+
+    bool Send(
+        PacketContext& context,
+        const BtpTxRequest& request,
+        const std::vector<uint8_t>& payload) const
+    {
         if (!m_sendFunction || payload.empty())
         {
             return false;
         }
 
-        const BtpTxRequest request =
-            MakeCpmBtpRequest(trafficClass);
+        SetPacketContextTxBtpMetadata(context, request);
 
         return m_sendFunction(
             context,

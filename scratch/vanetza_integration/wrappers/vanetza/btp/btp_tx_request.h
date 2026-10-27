@@ -12,6 +12,20 @@ enum class BtpTransportType : uint8_t
     GBC
 };
 
+inline const char*
+BtpTransportName(BtpTransportType transport) noexcept
+{
+    switch (transport)
+    {
+        case BtpTransportType::SHB:
+            return "SHB";
+        case BtpTransportType::GBC:
+            return "GBC";
+    }
+
+    return "UNKNOWN";
+}
+
 enum class BtpCommunicationProfile : uint8_t
 {
     ITS_G5 = 0
