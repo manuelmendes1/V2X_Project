@@ -124,18 +124,32 @@ def compute(
         Criterion(
             "Sem falhas TX/RX observadas",
             (
-                tx.encode_fail == 0
+                tx.generate_fail == 0
+                and tx.encode_fail == 0
+                and tx.btp_tx_fail == 0
                 and tx.sign_fail == 0
                 and tx.send_fail == 0
                 and rx.verify_fail == 0
+                and rx.profile_check_fail == 0
+                and rx.btp_rx_fail == 0
                 and rx.decode_fail == 0
+                and rx.semantic_validation_fail == 0
+                and rx.sender_identity_fail == 0
+                and rx.application_queue_full == 0
             ),
             (
+                f"generate={tx.generate_fail} "
                 f"encode={tx.encode_fail} "
+                f"btp_tx={tx.btp_tx_fail} "
                 f"sign={tx.sign_fail} "
                 f"send={tx.send_fail} "
+                f"btp_rx={rx.btp_rx_fail} "
+                f"profile={rx.profile_check_fail} "
                 f"verify={rx.verify_fail} "
                 f"decode={rx.decode_fail} "
+                f"semantic={rx.semantic_validation_fail} "
+                f"identity={rx.sender_identity_fail} "
+                f"queue={rx.application_queue_full} "
                 f"replay_drop_filtered={rx.replay_drop}"
             ),
         )

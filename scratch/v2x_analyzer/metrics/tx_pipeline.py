@@ -12,6 +12,7 @@ from ..parser import LogEntry
 @dataclass
 class TxPipelineMetrics:
     generate_ok: int = 0
+    generate_fail: int = 0
 
     encode_begin: int = 0
     encode_ok: int = 0
@@ -23,6 +24,7 @@ class TxPipelineMetrics:
 
     btp_tx_begin: int = 0
     btp_tx_ok: int = 0
+    btp_tx_fail: int = 0
 
     geonet_tx_begin: int = 0
     geonet_tx_ok: int = 0
@@ -48,6 +50,8 @@ class TxPipelineMetrics:
 
 
 _MAP = {
+    ("CPM", "CPM_GENERATE_OK"): "generate_ok",
+    ("CPM", "CPM_GENERATE_FAIL"): "generate_fail",
     ("CAM", "GENERATE_OK"): "generate_ok",
     ("SPATEM", "SPATEM_GENERATE_OK"): "generate_ok",
     ("DENM", "GENERATE_OK"): "generate_ok",
@@ -56,6 +60,8 @@ _MAP = {
     ("CAM", "ENCODE_OK"): "encode_ok",
     ("SPATEM", "SPATEM_ENCODE_OK"): "encode_ok",
     ("DENM", "ENCODE_OK"): "encode_ok",
+    ("CPM", "CPM_ENCODE_OK"): "encode_ok",
+    ("CPM", "CPM_ENCODE_FAIL"): "encode_fail",
     ("CAM", "ENCODE_FAIL"): "encode_fail",
 
     ("SECURITY", "SIGN_BEGIN"): "sign_begin",
@@ -64,6 +70,7 @@ _MAP = {
 
     ("BTP", "BTP_TX_BEGIN"): "btp_tx_begin",
     ("BTP", "BTP_TX_OK"): "btp_tx_ok",
+    ("CPM", "CPM_BTP_TX_FAIL"): "btp_tx_fail",
 
     ("GEONET", "GEONET_TX_BEGIN"): "geonet_tx_begin",
     ("GEONET", "GEONET_TX_OK"): "geonet_tx_ok",
