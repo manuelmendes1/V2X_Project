@@ -1,3 +1,4 @@
+#include <iomanip>
 #include "vanetza_integration/cpm/rx/cpm_rx_pipeline.h"
 
 #include "vanetza_integration/core/v2x_log.h"
@@ -130,6 +131,22 @@ std::string ObjectIds(const Objects& objects)
     return first ? "-" : out.str();
 }
 
+std::string PayloadFingerprint(
+    const std::vector<std::uint8_t>& bytes)
+{
+    std::uint64_t hash = 14695981039346656037ULL;
+
+    for (const std::uint8_t byte : bytes)
+    {
+        hash ^= byte;
+        hash *= 1099511628211ULL;
+    }
+
+    std::ostringstream out;
+    out << std::hex << std::setw(16) << std::setfill('0') << hash;
+    return out.str();
+}
+
 std::string MessageSummary(const CpmMessage& message)
 {
     return "station=" + std::to_string(message.station.stationId) +
@@ -213,7 +230,8 @@ CpmRxPipeline::Process(
         "CPM",
         "CPM_BTP_RX_OK",
         "port=" + std::to_string(kCpmBtpPort) +
-        " payload=" + std::to_string(payload.size()));
+        " payload=" + std::to_string(payload.size()) +
+        " payload_fnv1a64=" + PayloadFingerprint(payload));
 
     // VERIFY: validate the advertised CPM transport profile. This is not
     // cryptographic signature verification; that remains a separate gate

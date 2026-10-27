@@ -1,3 +1,5 @@
+#include <iomanip>
+#include <cstdint>
 #include "vanetza_integration/cpm/service/cpm_service.h"
 
 #include <sstream>
@@ -30,6 +32,22 @@ std::string ObjectIds(const Objects& objects)
     }
 
     return first ? "-" : out.str();
+}
+
+std::string PayloadFingerprint(
+    const std::vector<std::uint8_t>& bytes)
+{
+    std::uint64_t hash = 14695981039346656037ULL;
+
+    for (const std::uint8_t byte : bytes)
+    {
+        hash ^= byte;
+        hash *= 1099511628211ULL;
+    }
+
+    std::ostringstream out;
+    out << std::hex << std::setw(16) << std::setfill('0') << hash;
+    return out.str();
 }
 
 std::string InputSummary(const CpmInput& input)
@@ -132,7 +150,8 @@ CpmService::Send(
         "CPM_ENCODE_OK",
         InputSummary(input) +
             " encoded_bits=" + std::to_string(encoded.encodedBits) +
-            " encoded_bytes=" + std::to_string(encoded.bytes.size()));
+            " encoded_bytes=" + std::to_string(encoded.bytes.size()) +
+            " payload_fnv1a64=" + PayloadFingerprint(encoded.bytes));
 
     // The access layer owns the successful asynchronous TX lifecycle.
     // On failure, this service removes the context it pushed.
