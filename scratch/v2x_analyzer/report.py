@@ -12,6 +12,7 @@ from .parser import LogEntry, ParseStats
 from .identity import IdentityMap, build_identity_map
 from .metrics import (
     connectivity,
+    cpm,
     denm,
     duplicates,
     errors,
@@ -32,6 +33,7 @@ class FullReport:
     tx: tx_pipeline.TxPipelineMetrics
     triggers: trigger_reasons.TriggerReasonMetrics
     rx: rx_pipeline.RxPipelineMetrics
+    cpm: cpm.CpmMetrics
     err: errors.ErrorMetrics
     conn: connectivity.ConnectivityMetrics
     veh: vehicles.VehicleMetrics
@@ -56,6 +58,7 @@ def build_report(
     tx = tx_pipeline.compute(entries)
     triggers = trigger_reasons.compute(entries)
     rx = rx_pipeline.compute(entries)
+    cpm_metrics = cpm.compute(entries)
     err = errors.compute(entries)
     conn = connectivity.compute(
         entries,
@@ -74,6 +77,7 @@ def build_report(
         tx=tx,
         triggers=triggers,
         rx=rx,
+        cpm=cpm_metrics,
         err=err,
         conn=conn,
         veh=veh,
@@ -124,6 +128,7 @@ def render_text(r: FullReport) -> str:
 
     tx_rows = [
         ("Generate OK", r.tx.generate_ok),
+        ("Generate Fail", r.tx.generate_fail),
         ("Encode Begin", r.tx.encode_begin),
         ("Encode OK", r.tx.encode_ok),
         ("Encode Fail", r.tx.encode_fail),
@@ -132,6 +137,7 @@ def render_text(r: FullReport) -> str:
         ("Sign Fail", r.tx.sign_fail),
         ("BTP TX Begin", r.tx.btp_tx_begin),
         ("BTP TX OK", r.tx.btp_tx_ok),
+        ("BTP TX Fail", r.tx.btp_tx_fail),
         ("GeoNet TX Begin", r.tx.geonet_tx_begin),
         ("GeoNet TX OK", r.tx.geonet_tx_ok),
         ("Access TX Begin", r.tx.access_tx_begin),
@@ -169,9 +175,16 @@ def render_text(r: FullReport) -> str:
         ("GeoNet RX OK", r.rx.geonet_rx_ok),
         ("BTP RX Begin", r.rx.btp_rx_begin),
         ("BTP RX OK", r.rx.btp_rx_ok),
+        ("BTP RX Fail", r.rx.btp_rx_fail),
         ("Verify Begin", r.rx.verify_begin),
         ("Verify OK", r.rx.verify_ok),
         ("Verify Fail", r.rx.verify_fail),
+        ("Profile Check Fail", r.rx.profile_check_fail),
+        ("Semantic Validation Fail",
+         r.rx.semantic_validation_fail),
+        ("Sender Identity Fail", r.rx.sender_identity_fail),
+        ("Application Queue Full",
+         r.rx.application_queue_full),
         ("Decode OK", r.rx.decode_ok),
         ("Decode Fail", r.rx.decode_fail),
         ("Replay OK", r.rx.replay_ok),
@@ -184,6 +197,96 @@ def render_text(r: FullReport) -> str:
 
     for label, value in rx_rows:
         w(f"  {label:<24}{value:>7}")
+
+    w("")
+    w("-" * 72)
+    w("CPM")
+    w("-" * 72)
+    w("  RX counts CPM_RX_DISPATCH events.")
+    w("  Object totals are sums per message.")
+    w("  Encoded sizes are UPER bytes,")
+    w("  not total ns-3 packet bytes.")
+
+    cpm_rows = [
+        ("Generate OK", r.cpm.generate_ok),
+        ("Generate Fail", r.cpm.generate_fail),
+        ("Encode OK", r.cpm.encode_ok),
+        ("Encode Fail", r.cpm.encode_fail),
+        ("BTP TX Begin", r.cpm.btp_tx_begin),
+        ("TX Complete", r.cpm.tx_complete),
+        ("Physical RX packets", r.cpm.physical_rx_packets),
+        ("GeoNet RX OK", r.cpm.geonet_rx_ok),
+        ("BTP RX OK", r.cpm.btp_rx_ok),
+        ("Profile Check OK", r.cpm.profile_check_ok),
+        ("Decode OK", r.cpm.decode_ok),
+        ("Replay OK", r.cpm.replay_ok),
+        ("Reception OK", r.cpm.reception_ok),
+        ("Deliver OK", r.cpm.deliver_ok),
+        ("Known objects (sum)", r.cpm.known_objects_total),
+        ("Known object samples", r.cpm.known_objects_samples),
+        ("Included objects (sum)", r.cpm.included_objects_total),
+        ("Included object samples", r.cpm.included_objects_samples),
+        ("Delivered objects (sum)", r.cpm.delivered_objects_total),
+        ("Delivered object samples", r.cpm.delivered_objects_samples),
+        ("Encoded size samples", r.cpm.encoded_size_samples),
+    ]
+
+    for label, value in cpm_rows:
+        w(f"  {label:<30}{value:>8}")
+
+    mean = r.cpm.known_objects_mean
+    w(
+        f"  {'Known objects mean':<30}{mean:>8.2f}"
+        if mean is not None
+        else f"  {'Known objects mean':<30}{'N/A':>8}"
+    )
+
+    maximum = r.cpm.encoded_size_max
+    w(
+        f"  {'Max encoded size (bytes)':<30}{maximum:>8}"
+        if maximum is not None
+        else f"  {'Max encoded size (bytes)':<30}{'N/A':>8}"
+    )
+
+    sizes = ", ".join(
+        f"{size}B:{count}"
+        for size, count in sorted(
+            r.cpm.encoded_size_distribution.items()
+        )
+    )
+    w(f"  Encoded size distribution: {sizes or 'none'}")
+
+    interval_count = r.cpm.generation_interval_samples
+    if interval_count:
+        w(
+            "  Generation interval (ms): "
+            f"n={interval_count} "
+            f"min={r.cpm.generation_interval_min_ms} "
+            f"mean={r.cpm.generation_interval_mean_ms:.2f} "
+            f"max={r.cpm.generation_interval_max_ms}"
+        )
+    else:
+        w("  Generation interval (ms): sem amostras")
+
+    w("  Falhas e rejeições:")
+    failure_rows = [
+        ("BTP TX fail", r.cpm.btp_tx_fail),
+        ("BTP RX fail", r.cpm.btp_rx_fail),
+        ("Profile check fail", r.cpm.profile_check_fail),
+        ("Security fail", r.cpm.security_fail),
+        ("Decode fail", r.cpm.decode_fail),
+        (
+            "Semantic validation fail",
+            r.cpm.semantic_validation_fail,
+        ),
+        ("Sender identity fail", r.cpm.sender_identity_fail),
+        ("Self reception drop", r.cpm.self_reception_drop),
+        ("Application queue full", r.cpm.application_queue_full),
+        ("Replay drop", r.cpm.replay_drop),
+    ]
+
+    for label, value in failure_rows:
+        w(f"    {label:<28}{value:>8}")
 
     w("")
     w("-" * 72)

@@ -27,7 +27,7 @@ related:
 > References to earlier logger/parser formats are historical regression
 > context and must not be interpreted as the current operational log format.
 
-Analisador modular de logs V2X (ns-3 + SUMO + Vanetza CAM + DENM), em Python.
+Analisador modular de logs V2X (ns-3 + SUMO + Vanetza CAM + DENM + SPATEM + CPM), em Python.
 
 ## Novidades desta versão (face à v1.0.0 em `code_analyzer.txt`)
 
@@ -147,23 +147,25 @@ v2x_analyzer/
 
 ## Testes
 
+Executar os testes presentes nesta checkout:
+
 ```bash
-pip install pytest --break-system-packages
-python3 -m pytest v2x_analyzer/tests/ -v
+PYTHONPATH=scratch python3 -m unittest discover -s scratch/v2x_analyzer/tests -v
 ```
 
-26 testes atualmente: parsing (incluindo as 5 linhas reais do
-`analisador_output.txt` como regressão literal do achado N1, mais
-independência de ordem de campos e aliases STEP/SIM_STEP e T/SIM_TIME),
-métricas (regressões dos bugs históricos do bash **e** dos achados
-N2–N9 desta sessão), e um teste de integração ponta-a-ponta contra
-`tests/fixtures/small_run.log`.
+A referência histórica a 26 testes e a
+`tests/test_metrics.py` não corresponde aos ficheiros
+encontrados nesta checkout.
 
-**Nota sobre o fixture de integração:** o `small_run.log` da versão
-anterior não foi incluído nos ficheiros fornecidos nesta sessão (só o
-código Python foi fornecido, não os dados de teste). O fixture atual é
-**novo**, escrito de propósito, com todos os números calculados à mão
-— ver comentários no topo de `tests/test_integration.py`.
+## Métricas CPM — Etapa 10.12
+
+- A receção conta eventos `CPM_RX_DISPATCH`.
+- Os totais de objetos são somas por mensagem,
+  não contagens de objetos únicos.
+- Os tamanhos representam bytes UPER CPM,
+  não o tamanho total do pacote ns-3.
+- Os intervalos respeitam a ordem dos eventos no log.
+- As falhas das diferentes etapas são separadas.
 
 ## Limitações conhecidas / por fazer
 
