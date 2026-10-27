@@ -1,3 +1,6 @@
+#include <vanetza/geonet/packet.hpp>
+#include <vanetza/geonet/transport_interface.hpp>
+#include <vanetza/geonet/data_indication.hpp>
 #include "vanetza_btp_adapter.h"
 
 #include "vanetza_integration/core/v2x_log.h"
@@ -134,6 +137,11 @@ public:
 
         data.destinationPort =
             ind.destination_port.get();
+
+        data.upperProtocol =
+            m_owner.m_currentGeoNetUpperProtocol;
+        data.transportType =
+            m_owner.m_currentGeoNetTransportType;
 
         //----------------------------------------------------------------------
         // Extract application payload from Vanetza UpPacket.
@@ -330,6 +338,99 @@ private:
 };
 
 
+namespace
+{
+
+const char*
+GeoNetUpperProtocolName(vanetza::geonet::UpperProtocol protocol)
+{
+    switch (protocol)
+    {
+        case vanetza::geonet::UpperProtocol::Unknown:
+            return "UNKNOWN";
+        case vanetza::geonet::UpperProtocol::BTP_A:
+            return "BTP_A";
+        case vanetza::geonet::UpperProtocol::BTP_B:
+            return "BTP_B";
+        case vanetza::geonet::UpperProtocol::IPv6:
+            return "IPv6";
+    }
+
+    return "UNKNOWN";
+}
+
+const char*
+GeoNetTransportTypeName(vanetza::geonet::TransportType transport)
+{
+    switch (transport)
+    {
+        case vanetza::geonet::TransportType::GUC:
+            return "GUC";
+        case vanetza::geonet::TransportType::GAC:
+            return "GAC";
+        case vanetza::geonet::TransportType::GBC:
+            return "GBC";
+        case vanetza::geonet::TransportType::TSB:
+            return "TSB";
+        case vanetza::geonet::TransportType::SHB:
+            return "SHB";
+    }
+
+    return "UNKNOWN";
+}
+
+} // namespace
+
+class VanetzaBtpAdapter::GeoNetTransportBridge final
+    : public vanetza::geonet::TransportInterface
+{
+public:
+    GeoNetTransportBridge(
+        VanetzaBtpAdapter& owner,
+        vanetza::btp::PortDispatcher& dispatcher)
+        : m_owner(owner),
+          m_dispatcher(dispatcher)
+    {
+    }
+
+    void indicate(
+        const vanetza::geonet::DataIndication& indication,
+        std::unique_ptr<vanetza::UpPacket> packet) override
+    {
+        // The BTP dispatcher invokes its application handler synchronously.
+        // Restore previous values even if dispatch throws or is nested.
+        struct RestoreMetadata
+        {
+            std::string& upperProtocol;
+            std::string& transportType;
+            std::string previousUpperProtocol;
+            std::string previousTransportType;
+
+            ~RestoreMetadata()
+            {
+                upperProtocol = std::move(previousUpperProtocol);
+                transportType = std::move(previousTransportType);
+            }
+        } restore{
+            m_owner.m_currentGeoNetUpperProtocol,
+            m_owner.m_currentGeoNetTransportType,
+            m_owner.m_currentGeoNetUpperProtocol,
+            m_owner.m_currentGeoNetTransportType
+        };
+
+        m_owner.m_currentGeoNetUpperProtocol =
+            GeoNetUpperProtocolName(indication.upper_protocol);
+        m_owner.m_currentGeoNetTransportType =
+            GeoNetTransportTypeName(indication.transport_type);
+
+        m_dispatcher.indicate(indication, std::move(packet));
+    }
+
+private:
+    VanetzaBtpAdapter& m_owner;
+    vanetza::btp::PortDispatcher& m_dispatcher;
+};
+
 //=============================================================================
 // Constructor
 //
@@ -344,7 +445,9 @@ VanetzaBtpAdapter::VanetzaBtpAdapter(
       m_dispatcher(
           std::make_unique<vanetza::btp::PortDispatcher>()),
       m_rxHandler(
-          std::make_unique<RxIndicationHandler>(*this))
+          std::make_unique<RxIndicationHandler>(*this)),
+      m_geonetTransportBridge(
+          std::make_unique<GeoNetTransportBridge>(*this, *m_dispatcher))
 {
     //-------------------------------------------------------------------------
     // Undispatched BTP diagnostics.
@@ -381,7 +484,7 @@ VanetzaBtpAdapter::VanetzaBtpAdapter(
     //-------------------------------------------------------------------------
     m_router.set_transport_handler(
         vanetza::geonet::UpperProtocol::BTP_B,
-        m_dispatcher.get());
+        m_geonetTransportBridge.get());
 
     NS_LOG_UNCOND(
         "[BTP_RX] Router transport handler = BTP_B");

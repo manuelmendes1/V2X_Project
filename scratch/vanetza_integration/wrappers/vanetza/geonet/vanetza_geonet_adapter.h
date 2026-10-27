@@ -25,6 +25,9 @@ namespace ns3 {
 
                 uint16_t destinationPort = 0;
 
+                std::string upperProtocol = "UNKNOWN";
+                std::string transportType = "UNKNOWN";
+
                 std::vector<uint8_t> payload;
 
                 bool hasSourcePosition = false;

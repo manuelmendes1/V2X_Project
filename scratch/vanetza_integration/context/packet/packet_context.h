@@ -121,6 +121,16 @@ struct PacketContext
     std::string signerCertificateIdHex;
 
     //=========================================================================
+    // BTP TX metadata, derived from the effective transmission request.
+    // Kept separate from the GeoNetworking metadata observed at RX.
+    //=========================================================================
+    bool hasTxBtpMetadata = false;
+    uint16_t txBtpDestinationPort = 0;
+    uint32_t txItsAid = 0;
+    std::string txGnUpperProtocol = "UNKNOWN";
+    std::string txGnTransportType = "UNKNOWN";
+
+    //=========================================================================
     // BTP RX context
     //=========================================================================
 

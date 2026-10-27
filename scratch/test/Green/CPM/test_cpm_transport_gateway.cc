@@ -54,6 +54,15 @@ int main()
     passed &= Check(sent, "TRANSPORT_RESULT_PROPAGATED");
     passed &= Check(callbackCalls == 1, "CALLBACK_INVOKED_ONCE");
     passed &= Check(sameContext, "PACKET_CONTEXT_PRESERVED");
+
+    passed &= Check(
+        context.hasTxBtpMetadata &&
+            context.txBtpDestinationPort == 2009 &&
+            context.txItsAid == 639 &&
+            context.txGnUpperProtocol == "BTP_B" &&
+            context.txGnTransportType == "SHB",
+        "TX_PACKET_CONTEXT_METADATA");
+
     passed &= Check(
         capturedPayload == encodedPayload,
         "ENCODED_BYTES_PRESERVED");

@@ -298,8 +298,10 @@ VanetzaRuntime::Initialize()
             // BTP information
             //=================================================================
 
-            ctx->btpDestinationPort =
-                rx.destinationPort;
+            ctx->btpDestinationPort = rx.destinationPort;
+
+            ctx->geonet.upperProtocol = rx.upperProtocol;
+            ctx->geonet.transportType = rx.transportType;
 
             ctx->reason =
                 "BTP dst_port=" +
@@ -326,11 +328,7 @@ VanetzaRuntime::Initialize()
             // GeoNetworking transport
             //=================================================================
 
-            ctx->geonet.upperProtocol =
-                "BTP_B";
 
-            ctx->geonet.transportType =
-                "SHB";
 
             //=================================================================
             // Traffic class
@@ -431,8 +429,10 @@ VanetzaRuntime::Initialize()
             return;
         }
 
-        ctx->btpDestinationPort =
-            rx.destinationPort;
+        ctx->btpDestinationPort = rx.destinationPort;
+
+        ctx->geonet.upperProtocol = rx.upperProtocol;
+        ctx->geonet.transportType = rx.transportType;
 
         ctx->geonet.hasItsAid =
             rx.hasItsAid;
@@ -497,8 +497,10 @@ VanetzaRuntime::Initialize()
                 return;
             }
 
-            ctx->btpDestinationPort =
-                rx.destinationPort;
+            ctx->btpDestinationPort = rx.destinationPort;
+
+            ctx->geonet.upperProtocol = rx.upperProtocol;
+            ctx->geonet.transportType = rx.transportType;
 
             ctx->geonet.hasItsAid =
                 rx.hasItsAid;
@@ -582,8 +584,10 @@ VanetzaRuntime::Initialize()
                 return;
             }
 
-            ctx->btpDestinationPort =
-                rx.destinationPort;
+            ctx->btpDestinationPort = rx.destinationPort;
+
+            ctx->geonet.upperProtocol = rx.upperProtocol;
+            ctx->geonet.transportType = rx.transportType;
 
             ctx->geonet.hasItsAid =
                 rx.hasItsAid;

@@ -31,6 +31,7 @@ class TestCpmService(unittest.TestCase):
             root / "scratch/vanetza_integration/context/packet/packet_payload.cc",
             root / "scratch/vanetza_integration/context/packet/packet_types.cc",
             root / "scratch/vanetza_integration/context/tx_bridge/tx_bridge_context.cc",
+            root / "scratch/vanetza_integration/core/v2x_log.cc",
         ]
 
         with tempfile.TemporaryDirectory(
@@ -51,6 +52,10 @@ class TestCpmService(unittest.TestCase):
                 "-I/usr/local/include/vanetza/asn1",
                 "-I/usr/local/include/vanetza/asn1/support",
                 *[str(source) for source in sources],
+                f"-L{root / 'build/lib'}",
+                f"-Wl,-rpath,{root / 'build/lib'}",
+                "-lns3.47-network-default",
+                "-lns3.47-core-default",
                 "-L/usr/local/lib",
                 "-Wl,-rpath,/usr/local/lib",
                 "-lvanetza_asn1_its_r2",

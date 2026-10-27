@@ -6,6 +6,7 @@
 
 #include <cmath>
 #include <cstdint>
+#include <sstream>
 #include <string>
 #include <unordered_set>
 #include <utility>
@@ -107,6 +108,37 @@ bool ValidateCpmSemantics(
 
     error.clear();
     return true;
+}
+
+template <typename Objects>
+std::string ObjectIds(const Objects& objects)
+{
+    std::ostringstream out;
+    bool first = true;
+
+    for (const auto& object : objects)
+    {
+        if (!first)
+        {
+            out << ',';
+        }
+
+        out << object.objectId;
+        first = false;
+    }
+
+    return first ? "-" : out.str();
+}
+
+std::string MessageSummary(const CpmMessage& message)
+{
+    return "station=" + std::to_string(message.station.stationId) +
+        " reference_time_its_ms=" +
+            std::to_string(message.referenceTimeItsMs) +
+        " known_objects=" + std::to_string(message.knownObjectCount) +
+        " included_objects=" +
+            std::to_string(message.perceivedObjects.size()) +
+        " object_ids=" + ObjectIds(message.perceivedObjects);
 }
 
 bool Fail(
@@ -250,6 +282,15 @@ CpmRxPipeline::Process(
             "cpm_decode_failed: " + decoded.error);
     }
 
+    context.MarkSuccess();
+
+    V2XWriteLog(
+        context,
+        V2XLogLevel::DEBUG,
+        "CPM",
+        "CPM_DECODE_OK",
+        MessageSummary(*decoded.message));
+
     std::string semanticError;
 
     if (!ValidateCpmSemantics(*decoded.message, semanticError))
@@ -317,6 +358,15 @@ CpmRxPipeline::Process(
             PipelineResult::DROP);
     }
 
+    context.MarkSuccess();
+
+    V2XWriteLog(
+        context,
+        V2XLogLevel::DEBUG,
+        "CPM",
+        "CPM_REPLAY_OK",
+        MessageSummary(*decoded.message));
+
     // RECEPTION: publish the validated neutral representation to the caller.
     context.AdvancePipeline(PipelineStage::RECEPTION);
     message = *decoded.message;
@@ -337,12 +387,7 @@ CpmRxPipeline::Process(
         V2XLogLevel::INFO,
         "CPM",
         "CPM_RECEPTION_OK",
-        "station=" +
-            std::to_string(message.station.stationId) +
-        " known_objects=" +
-            std::to_string(message.knownObjectCount) +
-        " included_objects=" +
-            std::to_string(message.perceivedObjects.size()));
+        MessageSummary(message));
 
     // DELIVER: this succeeds only after decode, semantic checks, identity
     // binding and the bounded duplicate check have all passed.
@@ -354,12 +399,9 @@ CpmRxPipeline::Process(
         V2XLogLevel::INFO,
         "CPM",
         "CPM_DELIVER_OK",
-        "station=" +
-            std::to_string(message.station.stationId) +
-        " received_at_unix_ms=" +
+        "received_at_unix_ms=" +
             std::to_string(message.receivedAtUnixMs) +
-        " included_objects=" +
-            std::to_string(message.perceivedObjects.size()));
+        " " + MessageSummary(message));
 
     return true;
 }
