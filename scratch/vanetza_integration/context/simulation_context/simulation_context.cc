@@ -8,5 +8,6 @@ namespace SimulationContext
     uint64_t packetCounter = 0;
 
     std::string itsStartTime;
+    std::string cpmPkiDirectory;
 
 }

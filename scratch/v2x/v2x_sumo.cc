@@ -41,6 +41,7 @@ int main(int argc, char* argv[]) {
     double denmRadiusMeters = 1000.0;
 
     std::string denmPkiDir;
+    std::string cpmPkiDir;
 
     std::string itsStartTime;
 
@@ -87,6 +88,11 @@ int main(int argc, char* argv[]) {
 
     cmd.AddValue("enableCpm",
         "Ativa a construção de CpmInput; sem transmissão", enableCpm);
+
+    cmd.AddValue(
+        "cpmPkiDir",
+        "Diretório com certificados e chave ETSI ITS Security V3 da RSU CPM",
+        cpmPkiDir);
     cmd.AddValue("cpmStationId",
         "stationId da RSU CPM", cpmStationId);
     cmd.AddValue("cpmLatitudeDeg",
@@ -141,6 +147,13 @@ int main(int argc, char* argv[]) {
 
     cmd.Parse(argc, argv);
 
+    if (enableCpm && cpmPkiDir.empty())
+    {
+        std::cerr << "[CPM_SECURITY] CPM_PKIDIR_REQUIRED: "
+                     "--cpmPkiDir is mandatory when --enableCpm=true\n";
+        return 2;
+    }
+
     SimulationController::ConfigureSpatemEmitter(
         enableSpatem,
         spatemStationId,
@@ -152,6 +165,7 @@ int main(int argc, char* argv[]) {
         spatemNs3Y);
 
     SimulationContext::itsStartTime = itsStartTime;
+    SimulationContext::cpmPkiDirectory = cpmPkiDir;
 
     if (!SimulationController::ConfigureCpmPerception(
             enableCpm, cpmStationId, cpmLatitudeDeg,

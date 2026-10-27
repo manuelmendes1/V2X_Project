@@ -1,5 +1,8 @@
 #pragma once
 
+#include <vanetza/security/persistence.hpp>
+#include <vanetza/security/backend_openssl.hpp>
+
 #include "vehicle_credential.h"
 
 #include <algorithm>
@@ -26,8 +29,24 @@ public:
             const auto certificate =
                 vanetza::security::v3::load_certificate_from_file(credential.certFile);
 
-            const auto keyPair =
-                vanetza::security::v3::load_private_key_from_file(credential.keyFile);
+            const auto privateKey =
+                vanetza::security::load_private_key_from_pem_file(credential.keyFile);
+
+            if (privateKey.type != vanetza::security::KeyType::NistP256)
+            {
+                return false;
+            }
+
+            // Derive the public point from the loaded private scalar using
+            // the configured OpenSSL backend, then compare it with the
+            // public key carried by the certificate.
+            const auto derivedPublicKey =
+                vanetza::security::openssl::derive_public_key(privateKey);
+
+            if (derivedPublicKey.type != vanetza::security::KeyType::NistP256)
+            {
+                return false;
+            }
 
             const auto certificatePublicKey =
                 vanetza::security::v3::get_public_key(*certificate.content());
@@ -42,7 +61,7 @@ public:
                 return false;
             }
 
-            if (certificatePublicKey->x.size() != keyPair.public_key.x.size())
+            if (certificatePublicKey->x.size() != derivedPublicKey.x.size())
             {
                 return false;
             }
@@ -50,7 +69,7 @@ public:
             const bool xMatch =
                 std::equal(certificatePublicKey->x.begin(),
                            certificatePublicKey->x.end(),
-                           keyPair.public_key.x.begin());
+                           derivedPublicKey.x.begin());
 
             if (!xMatch)
             {
@@ -61,34 +80,34 @@ public:
             {
                 case vanetza::security::KeyCompression::NoCompression:
                 {
-                    if (certificatePublicKey->y.size() != keyPair.public_key.y.size())
+                    if (certificatePublicKey->y.size() != derivedPublicKey.y.size())
                     {
                         return false;
                     }
 
                     return std::equal(certificatePublicKey->y.begin(),
                                       certificatePublicKey->y.end(),
-                                      keyPair.public_key.y.begin());
+                                      derivedPublicKey.y.begin());
                 }
 
                 case vanetza::security::KeyCompression::Y0:
                 {
-                    if (keyPair.public_key.y.empty())
+                    if (derivedPublicKey.y.empty())
                     {
                         return false;
                     }
 
-                    return (keyPair.public_key.y.back() & 0x01U) == 0U;
+                    return (derivedPublicKey.y.back() & 0x01U) == 0U;
                 }
 
                 case vanetza::security::KeyCompression::Y1:
                 {
-                    if (keyPair.public_key.y.empty())
+                    if (derivedPublicKey.y.empty())
                     {
                         return false;
                     }
 
-                    return (keyPair.public_key.y.back() & 0x01U) == 1U;
+                    return (derivedPublicKey.y.back() & 0x01U) == 1U;
                 }
             }
 

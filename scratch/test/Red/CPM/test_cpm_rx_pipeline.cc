@@ -62,6 +62,18 @@ ns3::PacketContext MakeContext()
     return context;
 }
 
+// Unit-level security boundary fixture. This injects a successful neutral
+// verdict; it does not exercise Vanetza signature verification.
+ns3::PacketContext MakeVerifiedContext()
+{
+    auto context = MakeContext();
+    context.verificationPerformed = true;
+    context.verificationSucceeded = true;
+    context.verificationReport = 0;
+    context.verifiedItsAid = ns3::kCpmItsAid;
+    return context;
+}
+
 } // namespace
 
 int main()
@@ -77,9 +89,97 @@ int main()
         return 1;
     }
 
+    // Etapa 10.10 RED: a mensagem CPM não pode ser entregue
+    // quando não existe resultado de verificação criptográfica.
+    PacketContext unverifiedContext = MakeContext();
+    CpmReplayContext unverifiedReplay{};
+    CpmReceptionQueue unverifiedQueue{};
+    CpmMessage unverifiedMessage{};
+
+    const bool unverifiedResult = CpmRxPipeline::Process(
+        unverifiedContext,
+        encoded.bytes,
+        unverifiedMessage,
+        987654320,
+        unverifiedReplay,
+        unverifiedQueue);
+
+    Check("UNVERIFIED_CPM_REJECTED", !unverifiedResult);
+    Check(
+        "UNVERIFIED_CPM_STOPS_AT_VERIFY",
+        !unverifiedResult &&
+            unverifiedContext.pipelineStage == PipelineStage::VERIFY &&
+            unverifiedContext.pipelineResult == PipelineResult::DROP);
+    Check(
+        "UNVERIFIED_CPM_NOT_ENQUEUED",
+        unverifiedQueue.Size() == 0);
+
+    PacketContext failedVerificationContext = MakeContext();
+    failedVerificationContext.verificationPerformed = true;
+    failedVerificationContext.verificationSucceeded = false;
+    failedVerificationContext.verificationReport = 1;
+    failedVerificationContext.verifiedItsAid = kCpmItsAid;
+
+    CpmReplayContext failedVerificationReplay{};
+    CpmReceptionQueue failedVerificationQueue{};
+    CpmMessage failedVerificationMessage{};
+
+    const bool failedVerificationResult = CpmRxPipeline::Process(
+        failedVerificationContext,
+        encoded.bytes,
+        failedVerificationMessage,
+        987654320,
+        failedVerificationReplay,
+        failedVerificationQueue);
+
+    Check(
+        "FAILED_VERIFICATION_CPM_REJECTED",
+        !failedVerificationResult);
+    Check(
+        "FAILED_VERIFICATION_STOPS_AT_VERIFY",
+        !failedVerificationResult &&
+            failedVerificationContext.pipelineStage == PipelineStage::VERIFY &&
+            failedVerificationContext.pipelineResult == PipelineResult::DROP &&
+            failedVerificationContext.reason ==
+                "cpm_cryptographic_verification_failed");
+    Check(
+        "FAILED_VERIFICATION_NOT_ENQUEUED",
+        failedVerificationQueue.Size() == 0);
+
+    PacketContext wrongVerifiedAidContext = MakeContext();
+    wrongVerifiedAidContext.verificationPerformed = true;
+    wrongVerifiedAidContext.verificationSucceeded = true;
+    wrongVerifiedAidContext.verifiedItsAid = 37;
+
+    CpmReplayContext wrongVerifiedAidReplay{};
+    CpmReceptionQueue wrongVerifiedAidQueue{};
+    CpmMessage wrongVerifiedAidMessage{};
+
+    const bool wrongVerifiedAidResult = CpmRxPipeline::Process(
+        wrongVerifiedAidContext,
+        encoded.bytes,
+        wrongVerifiedAidMessage,
+        987654320,
+        wrongVerifiedAidReplay,
+        wrongVerifiedAidQueue);
+
+    Check(
+        "WRONG_VERIFIED_AID_CPM_REJECTED",
+        !wrongVerifiedAidResult);
+    Check(
+        "WRONG_VERIFIED_AID_STOPS_AT_VERIFY",
+        !wrongVerifiedAidResult &&
+            wrongVerifiedAidContext.pipelineStage == PipelineStage::VERIFY &&
+            wrongVerifiedAidContext.pipelineResult == PipelineResult::DROP &&
+            wrongVerifiedAidContext.reason ==
+                "cpm_verified_its_aid_mismatch");
+    Check(
+        "WRONG_VERIFIED_AID_NOT_ENQUEUED",
+        wrongVerifiedAidQueue.Size() == 0);
+
     CpmReplayContext replay{};
     CpmReceptionQueue receptionQueue{};
-    PacketContext context = MakeContext();
+    PacketContext context = MakeVerifiedContext();
     CpmMessage delivered{};
 
     const bool result = CpmRxPipeline::Process(
@@ -118,7 +218,7 @@ int main()
         "APPLICATION_QUEUE_CONTAINS_DELIVERED_CPM",
         receptionQueue.Size() == 1);
 
-    PacketContext duplicateContext = MakeContext();
+    PacketContext duplicateContext = MakeVerifiedContext();
     CpmMessage duplicateMessage{};
 
     const bool duplicateResult = CpmRxPipeline::Process(
@@ -156,7 +256,7 @@ int main()
         "APPLICATION_QUEUE_EMPTY_AFTER_POP",
         receptionQueue.Empty());
 
-    PacketContext malformedContext = MakeContext();
+    PacketContext malformedContext = MakeVerifiedContext();
     CpmReplayContext malformedReplay{};
     CpmReceptionQueue malformedQueue{};
     CpmMessage malformedMessage{};
@@ -175,7 +275,7 @@ int main()
         malformedContext.pipelineStage == PipelineStage::DECODE &&
             malformedContext.pipelineResult == PipelineResult::FAIL);
 
-    PacketContext badAidContext = MakeContext();
+    PacketContext badAidContext = MakeVerifiedContext();
     badAidContext.geonet.itsAid = 37;
     CpmReplayContext badAidReplay{};
     CpmReceptionQueue badAidQueue{};
@@ -195,7 +295,7 @@ int main()
         badAidContext.pipelineStage == PipelineStage::VERIFY &&
             badAidContext.pipelineResult == PipelineResult::FAIL);
 
-    PacketContext identityMismatchContext = MakeContext();
+    PacketContext identityMismatchContext = MakeVerifiedContext();
     identityMismatchContext.senderStationId = 9003;
     CpmReplayContext identityMismatchReplay{};
     CpmReceptionQueue identityMismatchQueue{};
@@ -215,7 +315,7 @@ int main()
         identityMismatchContext.pipelineStage == PipelineStage::DECODE &&
             identityMismatchContext.pipelineResult == PipelineResult::DROP);
 
-    PacketContext fullQueueContext = MakeContext();
+    PacketContext fullQueueContext = MakeVerifiedContext();
     CpmReplayContext fullQueueReplay{};
     CpmReceptionQueue fullQueue{};
     CpmMessage placeholder{};

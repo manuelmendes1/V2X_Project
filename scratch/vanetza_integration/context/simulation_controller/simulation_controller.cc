@@ -293,6 +293,20 @@ SimulationController::RunCpmPerception(std::uint64_t referenceTimeUs)
         return;
     }
 
+    // The current UPER profile requires at least one perceived object.
+    // An empty perception result is an intentional skip, not a TX failure.
+    if (input.perceivedObjects.empty())
+    {
+        NS_LOG_UNCOND(
+            "[CPM_PERCEPTION] TX_SKIPPED"
+            << " reference_sumo_us=" << referenceTimeUs
+            << " observed_vehicles=" << observations.size()
+            << " known_objects="
+            << static_cast<unsigned>(input.knownObjectCount)
+            << " reason=NO_PERCEIVED_OBJECTS");
+        return;
+    }
+
     NS_LOG_UNCOND(
         "[CPM_PERCEPTION] BUILD_ACCEPTED"
         << " reference_sumo_us=" << referenceTimeUs

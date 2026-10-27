@@ -1980,8 +1980,10 @@ Ns3AccessAdapter::request(
     ValidateBasicHeaderTx(
         networkBytes);
 
+#if defined(V2X_ENABLE_SECURITY_TEST_HOOKS)
     vanetza::ItsAid securedTxAid = 0;
     bool securedTxAidValid = false;
+#endif
 
     if (m_mib.itsGnSecurity)
     {
@@ -2013,8 +2015,10 @@ Ns3AccessAdapter::request(
         }
         else
         {
+#if defined(V2X_ENABLE_SECURITY_TEST_HOOKS)
             securedTxAid = securedAid;
             securedTxAidValid = true;
+#endif
 
             vanetza::geonet::Parser payloadParser(
                 securedPayload.begin(),
@@ -2192,6 +2196,8 @@ Ns3AccessAdapter::request(
     }
 
     //----------------------------------------------------------------------
+#if defined(V2X_ENABLE_SECURITY_TEST_HOOKS)
+
     // TEST HOOK: deterministic DENM V3 wire tampering.
     //
     // Applied only after the complete secured frame has been serialized
@@ -2250,6 +2256,60 @@ Ns3AccessAdapter::request(
             << " network_size="
             << networkBytes.size());
     }
+
+
+    //----------------------------------------------------------------------
+    // TEST HOOK: deterministic CPM V3 signature tampering.
+    //
+    // Mutate the serialized secured frame only after normal TX validation.
+    // This is test-only behavior, disabled unless V2X_CPM_TAMPER=1.
+    // It is scoped exclusively to CPM ITS-AID 639.
+    //----------------------------------------------------------------------
+
+    const char* cpmTamperEnv =
+        std::getenv("V2X_CPM_TAMPER");
+
+    if (securedTxAidValid &&
+        securedTxAid == 639 &&
+        cpmTamperEnv != nullptr &&
+        std::string(cpmTamperEnv) == "1" &&
+        !frame.empty() &&
+        !networkBytes.empty() &&
+        networkBytes.size() <= frame.size())
+    {
+        const std::size_t networkOffset =
+            frame.size() - networkBytes.size();
+
+        const std::size_t tamperOffset =
+            networkOffset + networkBytes.size() - 1;
+
+        const uint8_t originalByte =
+            frame[tamperOffset];
+
+        frame[tamperOffset] ^= 0x01;
+
+        NS_LOG_UNCOND(
+            "[CPM_V3_TAMPER] "
+            "aid=639 "
+            "target=network_last_byte "
+            "offset="
+            << tamperOffset
+            << " original=0x"
+            << std::hex
+            << std::setw(2)
+            << std::setfill('0')
+            << static_cast<unsigned>(originalByte)
+            << " tampered=0x"
+            << std::setw(2)
+            << static_cast<unsigned>(frame[tamperOffset])
+            << std::dec
+            << " frame_size="
+            << frame.size()
+            << " network_size="
+            << networkBytes.size());
+    }
+
+#endif // V2X_ENABLE_SECURITY_TEST_HOOKS
 
     //----------------------------------------------------------------------
     // STEP 6 : ACCESS_TX
@@ -2314,6 +2374,8 @@ Ns3AccessAdapter::request(
         m_socket;
 
     //----------------------------------------------------------------------
+#if defined(V2X_ENABLE_SECURITY_TEST_HOOKS)
+
     // TEST HOOK: deterministic DENM V3 duplicate.
     //
     // Reuses an exact copy of the already serialized ns3::Packet so that
@@ -2345,12 +2407,29 @@ Ns3AccessAdapter::request(
         spatemDuplicateEnv != nullptr &&
         std::string(spatemDuplicateEnv) == "1";
 
+    // CPM-specific physical duplicate injection. Disabled by default.
+    const char* cpmDuplicateEnv =
+        std::getenv("V2X_CPM_DUPLICATE");
+
+    const bool duplicateCpm =
+        ctx &&
+        securedTxAidValid &&
+        securedTxAid == 639 &&
+        cpmDuplicateEnv != nullptr &&
+        std::string(cpmDuplicateEnv) == "1";
+
+#else
+    const bool duplicateDenm = false;
+    const bool duplicateSpatem = false;
+    const bool duplicateCpm = false;
+#endif // V2X_ENABLE_SECURITY_TEST_HOOKS
+
     //----------------------------------------------------------------------
     // Deferred send
     //----------------------------------------------------------------------
 
     Simulator::ScheduleNow(
-        [ctx, socket, ns3Packet, duplicateDenm, duplicateSpatem]()
+        [ctx, socket, ns3Packet, duplicateDenm, duplicateSpatem, duplicateCpm]()
         {
 
             //--------------------------------------------------------------
@@ -2371,6 +2450,8 @@ Ns3AccessAdapter::request(
             }
 
             //------------------------------------------------------------------
+#if defined(V2X_ENABLE_SECURITY_TEST_HOOKS)
+
             // TEST HOOK: send an identical DENM frame again.
             //
             // The first SEND follows the normal path below. The duplicate is
@@ -2443,6 +2524,47 @@ Ns3AccessAdapter::request(
                             << duplicatePacket->GetSize());
                     });
             }
+
+
+            //------------------------------------------------------------------
+            // TEST HOOK: retransmit an exact CPM V3 packet.
+            //
+            // The duplicate preserves the serialized security envelope and
+            // Packet tags. Disabled unless V2X_CPM_DUPLICATE=1.
+            //------------------------------------------------------------------
+
+            if (duplicateCpm)
+            {
+                Ptr<Packet> duplicatePacket =
+                    ns3Packet->Copy();
+
+                const uint64_t duplicatePacketId =
+                    ctx->packetId;
+
+                Simulator::Schedule(
+                    MicroSeconds(2000),
+                    [socket, duplicatePacket, duplicatePacketId]()
+                    {
+                        const int duplicateSent =
+                            socket->SendTo(
+                                duplicatePacket,
+                                0,
+                                InetSocketAddress(
+                                    Ipv4Address("10.0.0.255"),
+                                    5000));
+
+                        NS_LOG_UNCOND(
+                            "[CPM_V3_DUPLICATE] "
+                            "aid=639 packet_id="
+                            << duplicatePacketId
+                            << " delay_us=2000 sent_bytes="
+                            << duplicateSent
+                            << " packet_bytes="
+                            << duplicatePacket->GetSize());
+                    });
+            }
+
+#endif // V2X_ENABLE_SECURITY_TEST_HOOKS
 
             //--------------------------------------------------------------
             // STEP 7 : SEND

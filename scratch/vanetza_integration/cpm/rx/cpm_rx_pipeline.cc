@@ -197,6 +197,36 @@ CpmRxPipeline::Process(
             "cpm_invalid_its_aid");
     }
 
+    // SECURITY GATE: consume the neutral verification result produced
+    // by the Vanetza security layer. This check is not itself a signature
+    // verifier. Until the real CPM verifier is wired into RX, fail closed.
+    if (!context.verificationPerformed)
+    {
+        return Fail(
+            context,
+            "CPM_CRYPTO_VERIFY_FAIL",
+            "cpm_cryptographic_verification_missing",
+            PipelineResult::DROP);
+    }
+
+    if (!context.verificationSucceeded)
+    {
+        return Fail(
+            context,
+            "CPM_CRYPTO_VERIFY_FAIL",
+            "cpm_cryptographic_verification_failed",
+            PipelineResult::DROP);
+    }
+
+    if (context.verifiedItsAid != kCpmItsAid)
+    {
+        return Fail(
+            context,
+            "CPM_CRYPTO_VERIFY_FAIL",
+            "cpm_verified_its_aid_mismatch",
+            PipelineResult::DROP);
+    }
+
     context.MarkSuccess();
 
     V2XWriteLog(
@@ -204,8 +234,7 @@ CpmRxPipeline::Process(
         V2XLogLevel::DEBUG,
         "CPM",
         "CPM_PROFILE_CHECK_OK",
-        "BTP port and ITS-AID match the supported CPM profile; "
-        "cryptographic verification is pending Etapa 10.10");
+        "BTP profile and successful security verification accepted for AID 639");
 
     // DECODE: convert ASN.1/UPER into the neutral CpmMessage.
     context.AdvancePipeline(PipelineStage::DECODE);
