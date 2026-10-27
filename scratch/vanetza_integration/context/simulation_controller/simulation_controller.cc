@@ -1,4 +1,6 @@
 #include <cmath>
+#include "vanetza_integration/context/vehicle_registry/vehicle_registry.h"
+#include "vanetza_integration/cpm/types/cpm_message.h"
 #include "simulation_controller.h"
 #include "vanetza_integration/cpm/perception/cpm_vehicle_perception_source.h"
 #include "vanetza_integration/cpm/emitter/cpm_emitter_endpoint.h"
@@ -291,6 +293,20 @@ SimulationController::RunCpmPerception(std::uint64_t referenceTimeUs)
         return;
     }
 
+    // The current UPER profile requires at least one perceived object.
+    // An empty perception result is an intentional skip, not a TX failure.
+    if (input.perceivedObjects.empty())
+    {
+        NS_LOG_UNCOND(
+            "[CPM_PERCEPTION] TX_SKIPPED"
+            << " reference_sumo_us=" << referenceTimeUs
+            << " observed_vehicles=" << observations.size()
+            << " known_objects="
+            << static_cast<unsigned>(input.knownObjectCount)
+            << " reason=NO_PERCEIVED_OBJECTS");
+        return;
+    }
+
     NS_LOG_UNCOND(
         "[CPM_PERCEPTION] BUILD_ACCEPTED"
         << " reference_sumo_us=" << referenceTimeUs
@@ -352,6 +368,63 @@ SimulationController::RunCpmPerception(std::uint64_t referenceTimeUs)
 
 }
 
+
+void
+SimulationController::DrainCpmReceptionQueues()
+{
+    const auto& vehicles =
+        VehicleRegistry::Instance().GetAllVehicles();
+
+    for (const auto& [vehicleId, vehiclePtr] : vehicles)
+    {
+        if (!vehiclePtr)
+        {
+            continue;
+        }
+
+        VehicleState& receiver = *vehiclePtr;
+
+        if (!receiver.runtime ||
+            !receiver.runtime->IsInitialized())
+        {
+            continue;
+        }
+
+        ::CpmMessage message{};
+
+        while (receiver.runtime->TryReceiveCpm(message))
+        {
+            NS_LOG_UNCOND(
+                "[CPM_APP_RX] DELIVER_OK"
+                << " receiver=" << vehicleId
+                << " receiver_station_id="
+                << receiver.identity.stationId
+                << " sender_station_id="
+                << message.station.stationId
+                << " known_objects="
+                << static_cast<unsigned>(message.knownObjectCount)
+                << " included_objects="
+                << message.perceivedObjects.size()
+                << " received_at_unix_ms="
+                << message.receivedAtUnixMs);
+
+            for (const auto& object : message.perceivedObjects)
+            {
+                NS_LOG_UNCOND(
+                    "[CPM_APP_RX_OBJECT]"
+                    << " receiver=" << vehicleId
+                    << " sender_station_id="
+                    << message.station.stationId
+                    << " object_id=" << object.objectId
+                    << " measurement_delta_time_ms="
+                    << object.measurementDeltaTimeMs
+                    << " x_east_m=" << object.position.xEast.value
+                    << " y_north_m=" << object.position.yNorth.value);
+            }
+        }
+    }
+}
+
 void
 SimulationController::PollLoop()
 {
@@ -360,6 +433,9 @@ SimulationController::PollLoop()
     SendSpatemSnapshot();
 
     SimulationStep();
+
+    // Consume validated CPM messages on the existing simulation cadence.
+    DrainCpmReceptionQueues();
 
     Simulator::Schedule(
         m_stepLength,

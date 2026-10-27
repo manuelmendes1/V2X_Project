@@ -1,6 +1,7 @@
 #include "vanetza_integration/cpm/emitter/cpm_rsu_runtime.h"
 #include "vanetza_integration/cpm/emitter/cpm_rsu_position_provider.h"
 
+#include <exception>
 #include <utility>
 
 #include <ns3/log.h>
@@ -22,7 +23,8 @@
 #include "vanetza_integration/wrappers/vanetza/access/ns3_access_adapter.h"
 #include "vanetza_integration/wrappers/vanetza/access/ns3_dcc_adapter.h"
 #include "vanetza_integration/wrappers/vanetza/btp/vanetza_btp_adapter.h"
-#include "vanetza_integration/wrappers/vanetza/security/denm_v3_verify_service.h"
+#include "vanetza_integration/wrappers/vanetza/security/cpm_v3_sign_service.h"
+#include "vanetza_integration/wrappers/vanetza/security/v2x_v3_verify_service.h"
 
 namespace ns3
 {
@@ -85,19 +87,40 @@ CpmRsuRuntime::Initialize()
         m_endpoint.LatitudeDeg(),
         m_endpoint.LongitudeDeg());
 
-    // Matches the existing SPATEM runtime policy. Dummy signing provides
-    // a lab transmission path; it is not evidence of production PKI signing.
-    auto signService =
-        std::make_unique<vanetza::security::v3::DummySignService>(
-            *m_runtime);
-    auto verifyService =
-        std::make_unique<DenmV3VerifyService>(*m_runtime);
+    if (SimulationContext::cpmPkiDirectory.empty())
+    {
+        NS_LOG_UNCOND(
+            "[CPM_RSU_RUNTIME] ERROR --cpmPkiDir is required for CPM signing");
+        return false;
+    }
 
-    m_securityEntity =
-        std::make_unique<vanetza::security::DelegatingSecurityEntity>(
-            std::move(signService),
-            std::move(verifyService));
+    try
+    {
+        auto signService =
+            std::make_unique<CpmV3SignService>(
+                *m_runtime,
+                *m_position,
+                SimulationContext::cpmPkiDirectory);
 
+        auto verifyService =
+            std::make_unique<V2xV3VerifyService>(
+                *m_runtime,
+                *m_position,
+                SimulationContext::cpmPkiDirectory);
+
+        m_securityEntity =
+            std::make_unique<vanetza::security::DelegatingSecurityEntity>(
+                std::move(signService),
+                std::move(verifyService));
+    }
+    catch (const std::exception& error)
+    {
+        NS_LOG_UNCOND(
+            "[CPM_RSU_RUNTIME] ERROR CPM security initialization failed: "
+            << error.what());
+        m_securityEntity.reset();
+        return false;
+    }
     m_mib = std::make_unique<vanetza::geonet::MIB>();
     m_mib->vanetzaDisableBeaconing = false;
     m_mib->itsGnSecurity = true;
@@ -165,7 +188,7 @@ CpmRsuRuntime::Initialize()
         << " node_id=" << station.node->GetId()
         << " ipv4=" << station.ipv4Address
         << " link_mac=" << station.linkMac
-        << " signer=DUMMY");
+        << " signer=ETSI_V3_CPM");
 
     return true;
 }

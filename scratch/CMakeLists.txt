@@ -1,5 +1,25 @@
 set(target_prefix scratch_)
 
+option(
+    V2X_ENABLE_SECURITY_TEST_HOOKS
+    "Compile fault-injection hooks for controlled security E2E tests"
+    OFF
+)
+
+set(V2X_VANETZA_ROOT
+    "$ENV{HOME}/opt/vanetza-cpm-gcc11"
+    CACHE PATH
+    "Root of the GCC-11-compatible Vanetza installation"
+)
+
+if(NOT EXISTS "${V2X_VANETZA_ROOT}/include/vanetza/security/v3/trust_store.hpp"
+   OR NOT EXISTS "${V2X_VANETZA_ROOT}/lib/libvanetza_asn1_security_r2.a")
+    message(FATAL_ERROR
+        "The configured Vanetza prefix lacks the CPM V3 trust API or "
+        "security R2 library: ${V2X_VANETZA_ROOT}"
+    )
+endif()
+
 # =========================================================
 # GLOBAL INCLUDE PATHS (NS-3 + PROJECT)
 # =========================================================
@@ -7,19 +27,31 @@ set(target_prefix scratch_)
 include_directories(
     ${CMAKE_SOURCE_DIR}/scratch
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration
-    /usr/local/include
-    /usr/local/include/vanetza
-    /usr/local/include/vanetza/asn1
-    /usr/local/include/vanetza/asn1/support
+    ${V2X_VANETZA_ROOT}/include
+    ${V2X_VANETZA_ROOT}/include/vanetza
+    ${V2X_VANETZA_ROOT}/include/vanetza/asn1
+    ${V2X_VANETZA_ROOT}/include/vanetza/asn1/support
 )
 
-link_directories(/usr/local/lib)
+link_directories("${V2X_VANETZA_ROOT}/lib")
 
 # =========================================================
 # OPENSSL
 # =========================================================
 
 find_package(OpenSSL REQUIRED)
+
+set(V2X_CRYPTOPP_LIBRARY
+    "/usr/local/lib/libcryptopp.so"
+    CACHE FILEPATH
+    "Crypto++ library required by the selected Vanetza static security backend"
+)
+
+if(NOT EXISTS "${V2X_CRYPTOPP_LIBRARY}")
+    message(FATAL_ERROR
+        "Crypto++ library not found: ${V2X_CRYPTOPP_LIBRARY}"
+    )
+endif()
 
 # =========================================================
 # GEOGRAPHICLIB (GCC-11 COMPATIBLE)
@@ -60,9 +92,11 @@ set(VANETZA_LIBS
     vanetza_dcc
     vanetza_facilities
     vanetza_geonet
+    vanetza_geodesy
     vanetza_gnss
     vanetza_net
     vanetza_security
+    vanetza_asn1_security_r2
 )
 
 # =========================================================
@@ -154,8 +188,12 @@ add_library(vanetza_cam_encoder_obj OBJECT
 target_include_directories(vanetza_cam_encoder_obj PUBLIC
     ${CMAKE_SOURCE_DIR}/scratch
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration
-    /usr/local/include/vanetza
+    ${V2X_VANETZA_ROOT}/include/vanetza
 )
+
+if(V2X_ENABLE_SECURITY_TEST_HOOKS)
+    target_compile_definitions(vanetza_cam_encoder_obj PRIVATE V2X_ENABLE_SECURITY_TEST_HOOKS=1)
+endif()
 
 target_link_libraries(vanetza_cam_encoder_obj
     ${VANETZA_LIBS}
@@ -190,10 +228,10 @@ add_library(vanetza_denm_obj OBJECT
 target_include_directories(vanetza_denm_obj PUBLIC
     ${CMAKE_SOURCE_DIR}/scratch
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration
-    /usr/local/include
-    /usr/local/include/vanetza
-    /usr/local/include/vanetza/asn1
-    /usr/local/include/vanetza/asn1/support
+    ${V2X_VANETZA_ROOT}/include
+    ${V2X_VANETZA_ROOT}/include/vanetza
+    ${V2X_VANETZA_ROOT}/include/vanetza/asn1
+    ${V2X_VANETZA_ROOT}/include/vanetza/asn1/support
 )
 
 target_link_libraries(vanetza_denm_obj
@@ -227,10 +265,10 @@ add_library(vanetza_spatem_obj OBJECT
 target_include_directories(vanetza_spatem_obj PUBLIC
     ${CMAKE_SOURCE_DIR}/scratch
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration
-    /usr/local/include
-    /usr/local/include/vanetza
-    /usr/local/include/vanetza/asn1
-    /usr/local/include/vanetza/asn1/support
+    ${V2X_VANETZA_ROOT}/include
+    ${V2X_VANETZA_ROOT}/include/vanetza
+    ${V2X_VANETZA_ROOT}/include/vanetza/asn1
+    ${V2X_VANETZA_ROOT}/include/vanetza/asn1/support
 )
 
 target_link_libraries(vanetza_spatem_obj
@@ -242,6 +280,10 @@ target_link_libraries(vanetza_spatem_obj
 # =========================================================
 
 add_library(vanetza_cpm_perception_obj OBJECT
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/cpm/rx/cpm_rx_pipeline.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/security/cpm_v3_sign_service.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/security/cpm_v3_verify_service.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/security/v2x_v3_verify_service.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/cpm/emitter/cpm_emitter_endpoint.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/cpm/emitter/cpm_rsu_position_provider.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/cpm/emitter/cpm_rsu_runtime.cc
@@ -305,7 +347,10 @@ function(create_scratch source_files)
         LIBRARIES_TO_LINK
             ${ns3-libs}
             ${ns3-contrib-libs}
+            -Wl,--start-group
             ${VANETZA_LIBS}
+            -Wl,--end-group
+            ${V2X_CRYPTOPP_LIBRARY}
             ${V2X_GEOGRAPHICLIB_LIBRARY}
             OpenSSL::SSL
             OpenSSL::Crypto
@@ -320,7 +365,7 @@ function(create_scratch source_files)
     target_include_directories(${target_prefix}${name} PRIVATE
         ${CMAKE_SOURCE_DIR}/scratch
         ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration
-        /usr/local/include/vanetza
+        ${V2X_VANETZA_ROOT}/include/vanetza
     )
 
 endfunction()

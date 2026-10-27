@@ -10,7 +10,7 @@
 #include "vanetza_integration/wrappers/vanetza/access/ns3_dcc_adapter.h"
 #include "vanetza_integration/wrappers/vanetza/btp/vanetza_btp_adapter.h"
 #include "vanetza_integration/wrappers/vanetza/security/denm_v3_sign_service.h"
-#include "vanetza_integration/wrappers/vanetza/security/denm_v3_verify_service.h"
+#include "vanetza_integration/wrappers/vanetza/security/v2x_v3_verify_service.h"
 
 #include <vanetza/common/bit_number.hpp>
 #include <vanetza/common/byte_buffer.hpp>
@@ -216,12 +216,27 @@ namespace ns3 {
                 << m_impl->vehicle.identity.vehId);
         }
 
-        auto verifyService =
-            std::make_unique<DenmV3VerifyService>(
-                *m_impl->runtime);
+        std::unique_ptr<vanetza::security::VerifyService> verifyService;
+
+        try
+        {
+            verifyService =
+                std::make_unique<V2xV3VerifyService>(
+                    *m_impl->runtime,
+                    *m_impl->position,
+                    SimulationContext::cpmPkiDirectory);
+        }
+        catch (const std::exception& error)
+        {
+            NS_LOG_UNCOND(
+                "[SECURITY] V2X V3 verifier initialization failed "
+                << "veh=" << m_impl->vehicle.identity.vehId
+                << " reason=" << error.what());
+            return false;
+        }
 
         NS_LOG_UNCOND(
-            "[SECURITY] DENM V3 verifier=REAL "
+            "[SECURITY] V2X V3 verifier=DISPATCHER "
             << "veh=" << m_impl->vehicle.identity.vehId);
 
         m_impl->securityEntity =

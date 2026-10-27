@@ -1,4 +1,5 @@
 #include "file_credential_material_resolver.h"
+#include <vanetza/security/persistence.hpp>
 
 #include "vanetza_integration/context/vehicle_security/vehicle_credential_binding_validator.h"
 
@@ -16,16 +17,7 @@ namespace
 vanetza::security::PrivateKey
 LoadPrivateKey(const std::string& path)
 {
-    const auto keyPair =
-        vanetza::security::v3::load_private_key_from_file(path);
-
-    vanetza::security::PrivateKey key;
-    key.type = vanetza::security::KeyType::NistP256;
-    key.key.assign(
-        keyPair.private_key.key.begin(),
-        keyPair.private_key.key.end());
-
-    return key;
+    return vanetza::security::load_private_key_from_pem_file(path);
 }
 
 } // namespace

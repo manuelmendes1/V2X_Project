@@ -24,6 +24,9 @@
 # CPM Etapa 10.5 generation manager report
 !/scratch/docs/CPM/ETAPA_10_5_GESTAO_GERACAO.md
 
+# CPM Etapa 10.9 receive/delivery report
+!/scratch/docs/CPM/ETAPA_10_9_RECECAO_ENTREGA.md
+
 !/scratch/denm_trigger_test/
 !/scratch/denm_trigger_test/**
 !/scratch/denm_lifecycle_trigger_test/
