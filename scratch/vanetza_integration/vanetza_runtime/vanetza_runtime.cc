@@ -531,7 +531,9 @@ VanetzaRuntime::Initialize()
                     std::to_string(rx.payload.size()) +
                 " aid=" +
                     std::to_string(
-                        rx.hasItsAid ? rx.itsAid : 0));
+                        rx.hasItsAid ? rx.itsAid : 0) +
+                " packet_id=" +
+                    std::to_string(ctx->packetId));
 
             // This is local reception metadata, not the CPM reference time
             // and not the ns-3 simulation timestamp.
