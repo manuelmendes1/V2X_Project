@@ -18,6 +18,7 @@
 #include <cstdlib>
 #include <limits>
 #include <string>
+#include <unordered_set>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -33,6 +34,10 @@ namespace
 
 constexpr std::int64_t kMaxTimestampItsMs = 4398046511103LL;
 constexpr std::size_t kMaxEncodedBufferSize = 65536;
+
+// Limite operacional local do MVP para um único payload CPM UPER.
+// Não representa, por si só, um limite normativo ETSI ou um MTU.
+constexpr std::size_t kLocalMaxEncodedPayloadBytes = 1200;
 constexpr long kGeodeticScale = 10000000L;
 
 CpmUperEncodeResult Reject(std::string error)
@@ -461,6 +466,18 @@ CpmUperEncoder::Encode(const CpmInput& input)
             "knownObjectCount is below the number of included objects");
     }
 
+    // O mesmo objeto não pode ser incluído mais do que uma vez
+    // na mensagem CPM produzida por este codificador.
+    std::unordered_set<std::uint16_t> seenObjectIds;
+    for (const auto& object : input.perceivedObjects)
+    {
+        if (!seenObjectIds.insert(object.objectId).second)
+        {
+            return Reject(
+                "CPM perceived-object objectId values must be unique");
+        }
+    }
+
     std::string error;
     if (HasUnsupportedInput(input, error))
     {
@@ -544,6 +561,14 @@ CpmUperEncoder::Encode(const CpmInput& input)
     if (encodedBytes == 0 || encodedBytes > buffer.size())
     {
         return Reject("CPM UPER encoder returned an invalid encoded size");
+    }
+
+    // Aplicar o limite ao tamanho UPER efetivo, não à estimativa
+    // usada anteriormente pelo CpmGenerationManager.
+    if (encodedBytes > kLocalMaxEncodedPayloadBytes)
+    {
+        return Reject(
+            "CPM UPER payload exceeds local maximum of 1200 bytes");
     }
 
     CpmUperEncodeResult result;

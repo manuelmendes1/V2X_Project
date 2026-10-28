@@ -45,6 +45,25 @@ CpmInput MakeValidInput()
     return input;
 }
 
+CpmInput MakeInputWithObjectCount(std::size_t objectCount)
+{
+    CpmInput input = MakeValidInput();
+    const CpmPerceivedObject templateObject =
+        input.perceivedObjects.front();
+
+    input.perceivedObjects.clear();
+    input.knownObjectCount = objectCount;
+
+    for (std::size_t i = 0; i < objectCount; ++i)
+    {
+        CpmPerceivedObject object = templateObject;
+        object.objectId = static_cast<std::uint16_t>(i + 1);
+        input.perceivedObjects.push_back(object);
+    }
+
+    return input;
+}
+
 std::shared_ptr<ns3::PacketContext> MakeContext()
 {
     auto context = std::make_shared<ns3::PacketContext>();
@@ -162,6 +181,28 @@ int main()
         callbackCalls == callsBeforeInvalid &&
             TxBridgeContext::Current() == nullptr,
         "ENCODE_FAILURE_NOT_DISPATCHED");
+
+    // Um payload acima do limite UPER local tem de falhar na fase
+    // ENCODE, antes da invocação do gateway e sem deixar bytes no contexto.
+    const auto oversizedInput = MakeInputWithObjectCount(255);
+    auto oversizedContext = MakeContext();
+    const unsigned callsBeforeOversized = callbackCalls;
+
+    const bool oversizedSent = CpmService::Send(
+        oversizedContext, oversizedInput, gateway, 3);
+
+    passed &= Check(
+        !oversizedSent &&
+            oversizedContext->pipelineResult == PipelineResult::FAIL &&
+            oversizedContext->reason ==
+                "CPM UPER payload exceeds local maximum of 1200 bytes",
+        "OVERSIZED_CPM_REJECTED_BEFORE_TRANSPORT");
+
+    passed &= Check(
+        callbackCalls == callsBeforeOversized &&
+            oversizedContext->payload.bytes.empty() &&
+            TxBridgeContext::Current() == nullptr,
+        "OVERSIZED_CPM_NOT_DISPATCHED_OR_RETAINED");
 
     auto failedTransportContext = MakeContext();
 

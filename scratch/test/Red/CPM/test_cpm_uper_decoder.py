@@ -96,6 +96,8 @@ class TestCpmUperDecoder(unittest.TestCase):
             self.assertEqual(result.returncode, 0, msg=output)
             self.assertIn("CPM_UPER_DECODER_CONTRACT=PASS", output)
             self.assertIn("CPM_UPER_DECODER_FAILED=0", output)
+            self.assertIn("[PASS] SEGMENTATION_FIXTURE_CREATED", output)
+            self.assertIn("[PASS] SEGMENTATION_METADATA_REJECTED", output)
 
 
 if __name__ == "__main__":
