@@ -35,7 +35,7 @@ class SpatemPhysicalDuplicateHookTest(unittest.TestCase):
 
     def test_duplicate_copies_the_serialized_packet_and_is_deferred(self):
         self.assertIn(
-            "[ctx, socket, ns3Packet, duplicateDenm, duplicateSpatem]()",
+            "[ctx, socket, ns3Packet, duplicateDenm, duplicateSpatem, duplicateCpm]()",
             self.source,
         )
         self.assertRegex(
