@@ -147,6 +147,92 @@ std::string PayloadFingerprint(
     return out.str();
 }
 
+std::string ReferencePositionSummary(
+    const CpmReferencePosition& reference)
+{
+    std::ostringstream out;
+    out << std::fixed << std::setprecision(7)
+        << "reference_latitude_deg=";
+
+    if (reference.latitudeDeg.has_value())
+    {
+        out << *reference.latitudeDeg;
+    }
+    else
+    {
+        out << "unavailable";
+    }
+
+    out << " reference_longitude_deg=";
+    if (reference.longitudeDeg.has_value())
+    {
+        out << *reference.longitudeDeg;
+    }
+    else
+    {
+        out << "unavailable";
+    }
+
+    return out.str();
+}
+
+template <typename Objects>
+std::string ObjectPositionsEnu(const Objects& objects)
+{
+    std::ostringstream out;
+    out << std::fixed << std::setprecision(3);
+
+    bool first = true;
+    for (const auto& object : objects)
+    {
+        if (!first)
+        {
+            out << ';';
+        }
+
+        out << object.objectId << ':'
+            << object.position.xEast.value << ','
+            << object.position.yNorth.value;
+
+        first = false;
+    }
+
+    return first ? "-" : out.str();
+}
+
+template <typename Objects>
+std::string ObjectTemporalSummary(const Objects& objects)
+{
+    std::ostringstream out;
+    bool first = true;
+
+    for (const auto& object : objects)
+    {
+        if (!first)
+        {
+            out << ';';
+        }
+
+        out << object.objectId
+            << ":measurement_delta_ms="
+            << object.measurementDeltaTimeMs
+            << ",object_age_ms=";
+
+        if (object.objectAgeMs.has_value())
+        {
+            out << *object.objectAgeMs;
+        }
+        else
+        {
+            out << "unavailable";
+        }
+
+        first = false;
+    }
+
+    return first ? "-" : out.str();
+}
+
 std::string MessageSummary(const CpmMessage& message)
 {
     return "station=" + std::to_string(message.station.stationId) +
@@ -155,7 +241,12 @@ std::string MessageSummary(const CpmMessage& message)
         " known_objects=" + std::to_string(message.knownObjectCount) +
         " included_objects=" +
             std::to_string(message.perceivedObjects.size()) +
-        " object_ids=" + ObjectIds(message.perceivedObjects);
+        " object_ids=" + ObjectIds(message.perceivedObjects) +
+        " " + ReferencePositionSummary(message.referencePosition) +
+        " object_positions_enu_m=" +
+            ObjectPositionsEnu(message.perceivedObjects) +
+        " object_temporal_ms=" +
+            ObjectTemporalSummary(message.perceivedObjects);
 }
 
 bool Fail(

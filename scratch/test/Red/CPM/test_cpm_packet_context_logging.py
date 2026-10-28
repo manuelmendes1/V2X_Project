@@ -100,6 +100,18 @@ class TestCpmPacketContextLogging(unittest.TestCase):
             "encoded_bits=",
         ])
 
+    def test_cpm_tx_logs_per_object_temporal_fields(self):
+        self.assert_tokens(self.cpm_service, [
+            "ObjectTemporalSummary(input.perceivedObjects)",
+            "object_temporal_ms=",
+        ])
+
+    def test_cpm_rx_logs_per_object_temporal_fields(self):
+        self.assert_tokens(self.cpm_rx, [
+            "ObjectTemporalSummary(message.perceivedObjects)",
+            "object_temporal_ms=",
+        ])
+
     def test_cpm_rx_logs_object_semantics_with_packet_context(self):
         self.assert_tokens(self.cpm_rx, [
             "V2XWriteLog",
