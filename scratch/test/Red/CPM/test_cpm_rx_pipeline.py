@@ -102,6 +102,10 @@ class TestCpmRxPipeline(unittest.TestCase):
 
             self.assertEqual(run.returncode, 0, msg=output)
             self.assertIn("CPM_RX_PIPELINE=PASS", output)
+            self.assertIn("PASS TWO_DISTINCT_OBJECTS_FOR_DUPLICATE_FIXTURE_ENCODED", output)
+            self.assertIn("PASS DUPLICATE_OBJECT_ID_FIXTURE_CREATED", output)
+            self.assertIn("PASS DUPLICATE_OBJECT_ID_REJECTED_BEFORE_DELIVERY", output)
+            self.assertIn("PASS DUPLICATE_OBJECT_ID_NOT_ENQUEUED", output)
 
 
 if __name__ == "__main__":

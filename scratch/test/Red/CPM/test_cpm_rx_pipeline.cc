@@ -3,6 +3,11 @@
 #include "vanetza_integration/cpm/transport/cpm_transport_policy.h"
 #include "vanetza_integration/cpm/types/cpm_input.h"
 
+#include <vanetza/asn1/cpm.hpp>
+#include <vanetza/asn1/its/r2/CpmContainerId.h>
+#include <vanetza/asn1/its/r2/WrappedCpmContainer.h>
+#include <vanetza/asn1/its/r2/PerceivedObjectContainer.h>
+
 #include <cstdint>
 #include <iostream>
 #include <limits>
@@ -74,6 +79,77 @@ ns3::PacketContext MakeVerifiedContext()
     return context;
 }
 
+
+CpmInput MakeTwoObjectInput()
+{
+    CpmInput input = MakeValidInput();
+
+    CpmPerceivedObject second = input.perceivedObjects.front();
+    second.objectId = 502;
+    second.position.xEast.value = 18.0;
+
+    input.perceivedObjects.push_back(second);
+    input.knownObjectCount = 7;
+    return input;
+}
+
+std::vector<std::uint8_t> ReencodeWithDuplicateObjectId(
+    const std::vector<std::uint8_t>& bytes)
+{
+    using AsnCpm = vanetza::asn1::r2::Cpm;
+
+    AsnCpm message;
+    if (!message.decode(bytes.data(), bytes.size()))
+    {
+        return {};
+    }
+
+    auto* root = message.operator->();
+    if (!root)
+    {
+        return {};
+    }
+
+    auto& containers = root->payload.cpmContainers.list;
+
+    for (int index = 0; index < containers.count; ++index)
+    {
+        auto* wrapped = containers.array[index];
+
+        if (!wrapped ||
+            wrapped->containerId !=
+                Vanetza_ITS2_CpmContainerId_perceivedObjectContainer ||
+            wrapped->containerData.present !=
+                Vanetza_ITS2_WrappedCpmContainer__containerData_PR_PerceivedObjectContainer)
+        {
+            continue;
+        }
+
+        auto& objects =
+            wrapped->containerData.choice.PerceivedObjectContainer
+                .perceivedObjects.list;
+
+        if (objects.count < 2 ||
+            !objects.array ||
+            !objects.array[0] ||
+            !objects.array[1] ||
+            !objects.array[0]->objectId ||
+            !objects.array[1]->objectId)
+        {
+            return {};
+        }
+
+        // Fixture de receção: preservar o PDU ASN.1, mas duplicar
+        // semanticamente o identificador do segundo objeto.
+        *objects.array[1]->objectId = *objects.array[0]->objectId;
+
+        const auto reencoded = message.encode();
+        return {reencoded.begin(), reencoded.end()};
+    }
+
+    return {};
+}
+
 } // namespace
 
 int main()
@@ -87,6 +163,53 @@ int main()
             encoded.success && !encoded.bytes.empty())) {
         std::cout << "CPM_RX_PIPELINE=FAIL\n";
         return 1;
+    }
+
+    // Construir um PDU válido no nível ASN.1, mas com objectId duplicado.
+    const auto twoObjectEncoded =
+        CpmUperEncoder::Encode(MakeTwoObjectInput());
+
+    Check(
+        "TWO_DISTINCT_OBJECTS_FOR_DUPLICATE_FIXTURE_ENCODED",
+        twoObjectEncoded.success && !twoObjectEncoded.bytes.empty());
+
+    const auto duplicateObjectPayload =
+        twoObjectEncoded.success
+            ? ReencodeWithDuplicateObjectId(twoObjectEncoded.bytes)
+            : std::vector<std::uint8_t>{};
+
+    Check(
+        "DUPLICATE_OBJECT_ID_FIXTURE_CREATED",
+        !duplicateObjectPayload.empty() &&
+            duplicateObjectPayload != twoObjectEncoded.bytes);
+
+    if (!duplicateObjectPayload.empty())
+    {
+        PacketContext duplicateObjectContext = MakeVerifiedContext();
+        CpmReplayContext duplicateObjectReplay{};
+        CpmReceptionQueue duplicateObjectQueue{};
+        CpmMessage duplicateObjectMessage{};
+
+        const bool duplicateObjectResult = CpmRxPipeline::Process(
+            duplicateObjectContext,
+            duplicateObjectPayload,
+            duplicateObjectMessage,
+            987654322,
+            duplicateObjectReplay,
+            duplicateObjectQueue);
+
+        Check(
+            "DUPLICATE_OBJECT_ID_REJECTED_BEFORE_DELIVERY",
+            !duplicateObjectResult &&
+                duplicateObjectContext.pipelineStage == PipelineStage::DECODE &&
+                duplicateObjectContext.pipelineResult == PipelineResult::FAIL &&
+                duplicateObjectContext.reason ==
+                    "cpm_object_id_missing_or_duplicate");
+
+        Check(
+            "DUPLICATE_OBJECT_ID_NOT_ENQUEUED",
+            duplicateObjectQueue.Size() == 0 &&
+                duplicateObjectContext.pipelineStage != PipelineStage::DELIVER);
     }
 
     // Etapa 10.10 RED: a mensagem CPM não pode ser entregue

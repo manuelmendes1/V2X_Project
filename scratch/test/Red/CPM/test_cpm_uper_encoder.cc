@@ -12,6 +12,7 @@
 #include <vanetza/asn1/its/r2/CoordinateConfidence.h>
 
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
 #include <iostream>
 #include <limits>
@@ -48,6 +49,25 @@ CpmInput MakeValidInput()
     object.objectAgeMs = 1500;
 
     input.perceivedObjects.push_back(object);
+    return input;
+}
+
+CpmInput MakeInputWithObjectCount(std::size_t objectCount)
+{
+    CpmInput input = MakeValidInput();
+    const CpmPerceivedObject templateObject =
+        input.perceivedObjects.front();
+
+    input.perceivedObjects.clear();
+    input.knownObjectCount = objectCount;
+
+    for (std::size_t i = 0; i < objectCount; ++i)
+    {
+        CpmPerceivedObject object = templateObject;
+        object.objectId = static_cast<std::uint16_t>(i + 1);
+        input.perceivedObjects.push_back(object);
+    }
+
     return input;
 }
 
@@ -182,6 +202,130 @@ bool CheckRoundTrip(const CpmUperEncodeResult& encoded)
     return passed;
 }
 
+bool TestEncodedPayloadSizeLimit()
+{
+    constexpr std::size_t kLocalMaxEncodedPayloadBytes = 1200;
+    constexpr const char* kExpectedSizeError =
+        "CPM UPER payload exceeds local maximum of 1200 bytes";
+
+    const CpmUperEncodeResult small =
+        CpmUperEncoder::Encode(MakeValidInput());
+
+    const CpmInput oversizedInput = MakeInputWithObjectCount(255);
+    const CpmUperEncodeResult oversized =
+        CpmUperEncoder::Encode(oversizedInput);
+
+    const bool smallInputAccepted =
+        small.success &&
+        !small.bytes.empty() &&
+        small.bytes.size() <= kLocalMaxEncodedPayloadBytes;
+
+    if (oversized.success)
+    {
+        std::cout << "OVERSIZED_FIXTURE_ENCODED_BYTES="
+                  << oversized.bytes.size() << '\n';
+    }
+    else
+    {
+        std::cout << "OVERSIZED_FIXTURE_ERROR="
+                  << oversized.error << '\n';
+    }
+
+    const bool oversizedInputRejected =
+        !oversized.success &&
+        oversized.bytes.empty() &&
+        oversized.encodedBits == 0 &&
+        oversized.error == kExpectedSizeError;
+
+    // Varrer toda a cardinalidade representável pelo campo ASN.1
+    // e verificar o maior payload aceite e a primeira rejeição.
+    std::size_t maxAcceptedObjectCount = 0;
+    std::size_t maxAcceptedBytes = 0;
+    std::size_t firstRejectedObjectCount = 0;
+    bool sweepPassed = true;
+
+    for (std::size_t count = 1; count <= 255; ++count)
+    {
+        const CpmUperEncodeResult candidate =
+            CpmUperEncoder::Encode(MakeInputWithObjectCount(count));
+
+        if (candidate.success)
+        {
+            const bool validEncodedResult =
+                !candidate.bytes.empty() &&
+                candidate.bytes.size() <= kLocalMaxEncodedPayloadBytes &&
+                candidate.encodedBits > 0 &&
+                candidate.encodedBits <= candidate.bytes.size() * 8 &&
+                candidate.encodedBits > (candidate.bytes.size() - 1) * 8;
+
+            if (!validEncodedResult)
+            {
+                sweepPassed = false;
+                break;
+            }
+
+            maxAcceptedObjectCount = count;
+            maxAcceptedBytes = candidate.bytes.size();
+        }
+        else if (candidate.error == kExpectedSizeError &&
+                 candidate.bytes.empty() &&
+                 candidate.encodedBits == 0)
+        {
+            if (firstRejectedObjectCount == 0)
+            {
+                firstRejectedObjectCount = count;
+            }
+        }
+        else
+        {
+            std::cout << "SIZE_SWEEP_UNEXPECTED_ERROR_COUNT=" << count
+                      << " error=" << candidate.error << '\n';
+            sweepPassed = false;
+            break;
+        }
+    }
+
+    std::cout << "SIZE_SWEEP_MAX_ACCEPTED_OBJECTS="
+              << maxAcceptedObjectCount << '\n';
+    std::cout << "SIZE_SWEEP_MAX_ACCEPTED_BYTES="
+              << maxAcceptedBytes << '\n';
+    std::cout << "SIZE_SWEEP_FIRST_REJECTED_OBJECT_COUNT="
+              << firstRejectedObjectCount << '\n';
+
+    const bool boundarySweepPassed =
+        sweepPassed &&
+        maxAcceptedObjectCount > 0 &&
+        maxAcceptedBytes == kLocalMaxEncodedPayloadBytes &&
+        firstRejectedObjectCount == maxAcceptedObjectCount + 1;
+
+    const bool sweepCheck = Check(
+        boundarySweepPassed,
+        "ENCODED_UPER_SIZE_BOUNDARY_SWEEP");
+
+    return Check(
+        smallInputAccepted &&
+            oversizedInputRejected &&
+            sweepCheck,
+        "ENCODED_UPER_SIZE_LIMIT_ENFORCED");
+}
+
+
+bool TestSegmentationRejectedBySingleMessageProfile()
+{
+    auto input = MakeValidInput();
+    input.segmentationInfo = CpmMessageSegmentationInfo{2, 1};
+
+    const CpmUperEncodeResult result = CpmUperEncoder::Encode(input);
+
+    return Check(
+        !result.success &&
+            result.bytes.empty() &&
+            result.encodedBits == 0 &&
+            result.error ==
+                "CPM segmentation and message-rate metadata are not implemented",
+        "SEGMENTATION_EXPLICITLY_REJECTED_BY_PROFILE");
+}
+
 } // namespace
 
 int main()
@@ -231,6 +375,39 @@ int main()
         !badPositionResult.success && badPositionResult.bytes.empty() &&
         !badPositionResult.error.empty(),
         "NONFINITE_POSITION_REJECTED") && passed;
+
+    // A camada de codificação também tem de proteger o contrato semântico,
+    // mesmo quando o CpmInput não veio do gestor de geração.
+    auto duplicateObjectIdInput = MakeValidInput();
+    const CpmPerceivedObject duplicateObject =
+        duplicateObjectIdInput.perceivedObjects.front();
+    duplicateObjectIdInput.perceivedObjects.push_back(duplicateObject);
+    duplicateObjectIdInput.knownObjectCount = 2;
+
+    const CpmUperEncodeResult duplicateObjectIdResult =
+        CpmUperEncoder::Encode(duplicateObjectIdInput);
+
+    if (duplicateObjectIdResult.success)
+    {
+        std::cout << "DUPLICATE_ID_ENCODED_BYTES="
+                  << duplicateObjectIdResult.bytes.size() << '\n';
+    }
+    else
+    {
+        std::cout << "DUPLICATE_ID_ERROR="
+                  << duplicateObjectIdResult.error << '\n';
+    }
+
+    passed = Check(
+        !duplicateObjectIdResult.success &&
+            duplicateObjectIdResult.bytes.empty() &&
+            duplicateObjectIdResult.encodedBits == 0 &&
+            duplicateObjectIdResult.error ==
+                "CPM perceived-object objectId values must be unique",
+        "DUPLICATE_OBJECT_ID_REJECTED_BY_ENCODER") && passed;
+
+    passed = TestEncodedPayloadSizeLimit() && passed;
+    passed = TestSegmentationRejectedBySingleMessageProfile() && passed;
 
     if (!passed)
     {

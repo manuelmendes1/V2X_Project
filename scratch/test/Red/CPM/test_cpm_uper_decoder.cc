@@ -11,6 +11,7 @@
 #include <vanetza/asn1/its/r2/Longitude.h>
 #include <vanetza/asn1/its/r2/CartesianCoordinateLarge.h>
 #include <vanetza/asn1/its/r2/CpmContainerId.h>
+#include <vanetza/asn1/its/r2/MessageSegmentationInfo.h>
 #include <vanetza/asn1/support/asn_SEQUENCE_OF.h>
 extern "C"
 {
@@ -19,6 +20,7 @@ extern "C"
 
 #include <cmath>
 #include <cstdint>
+#include <cstdlib>
 #include <functional>
 #include <iostream>
 #include <string>
@@ -476,6 +478,45 @@ int main()
     }
 
     CheckValidRoundTrip(input);
+
+    // Construir uma mensagem ASN.1 válida com segmentação explícita.
+    const auto segmentedPayload = ReencodeWithHeaderMutation(
+        encoded.bytes,
+        [](AsnRoot& root) {
+            auto* segmentation =
+                static_cast<Vanetza_ITS2_MessageSegmentationInfo_t*>(
+                    std::calloc(
+                        1,
+                        sizeof(Vanetza_ITS2_MessageSegmentationInfo_t)));
+
+            if (!segmentation) {
+                return;
+            }
+
+            segmentation->totalMsgNo = 2;
+            segmentation->thisMsgNo = 1;
+            root.payload.managementContainer.segmentationInfo =
+                segmentation;
+        });
+
+    Check(
+        "SEGMENTATION_FIXTURE_CREATED",
+        !segmentedPayload.empty() &&
+            segmentedPayload != encoded.bytes);
+
+    if (!segmentedPayload.empty() &&
+        segmentedPayload != encoded.bytes)
+    {
+        const auto segmentationResult =
+            CpmUperDecoder::Decode(segmentedPayload, 987654321);
+
+        Check(
+            "SEGMENTATION_METADATA_REJECTED",
+            !segmentationResult.success &&
+                !segmentationResult.message.has_value() &&
+                segmentationResult.error ==
+                    "CPM management metadata is outside the supported profile");
+    }
 
     const auto emptyObjectList =
         ReencodeEmptyPerceivedObjectList(encoded.bytes);

@@ -506,6 +506,57 @@ bool TestCardinalityLimitAndStableOrdering()
         "CARDINALITY_LIMIT_AND_ORDER_ARE_DETERMINISTIC");
 }
 
+bool TestDefaultCardinalityLimitEight()
+{
+    CpmGenerationConfig config{};
+    CpmGenerationManager manager(config);
+    CpmGenerationResult result{};
+    std::string error;
+
+    const std::vector<CpmGenerationCandidate> candidates{
+        Candidate(9), Candidate(8), Candidate(7),
+        Candidate(6), Candidate(5), Candidate(4),
+        Candidate(3), Candidate(2), Candidate(1)};
+
+    const bool accepted =
+        manager.Evaluate(0, candidates, result, error);
+
+    const std::vector<std::uint16_t> expectedIds{
+        1, 2, 3, 4, 5, 6, 7, 8};
+
+    const auto* omitted = DecisionFor(result, 9);
+
+    const bool selectionCorrect =
+        config.maxObjectsPerMessage == 8 &&
+        accepted &&
+        error.empty() &&
+        result.generationEventDue &&
+        result.shouldCreateMessage &&
+        result.knownObjectCount == 9 &&
+        result.includedObjectIds == expectedIds &&
+        result.decisions.size() == 9 &&
+        result.transactionId.has_value();
+
+    const bool omissionVisible =
+        omitted != nullptr &&
+        !omitted->selected &&
+        omitted->reason ==
+            CpmGenerationDecisionReason::MaximumObjectCount;
+
+    bool transactionAborted = false;
+    if (result.transactionId.has_value())
+    {
+        error.clear();
+        transactionAborted =
+            manager.AbortMessageCreation(*result.transactionId, error) &&
+            error.empty();
+    }
+
+    return Check(
+        selectionCorrect && omissionVisible && transactionAborted,
+        "DEFAULT_CARDINALITY_LIMIT_EIGHT_WITH_EXPLICIT_OMISSION");
+}
+
 bool TestEstimatedPayloadBudget()
 {
     CpmGenerationConfig config{};
@@ -782,6 +833,7 @@ int main()
     passed = TestPerceptionQualityThresholdDomain() && passed;
     passed = TestKnownCountAndEmptySelection() && passed;
     passed = TestCardinalityLimitAndStableOrdering() && passed;
+    passed = TestDefaultCardinalityLimitEight() && passed;
     passed = TestEstimatedPayloadBudget() && passed;
     passed = TestObjectExpirationAndRediscovery() && passed;
     passed = TestRejectedInputPreservesStateAndOutput() && passed;

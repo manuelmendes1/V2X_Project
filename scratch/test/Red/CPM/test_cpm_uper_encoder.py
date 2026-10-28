@@ -91,6 +91,10 @@ class TestCpmUperEncoder(unittest.TestCase):
                 "OBJECT_AGE_ABOVE_1500_REJECTED",
                 "ZERO_STATION_ID_REJECTED",
                 "NONFINITE_POSITION_REJECTED",
+                "ENCODED_UPER_SIZE_BOUNDARY_SWEEP",
+                "ENCODED_UPER_SIZE_LIMIT_ENFORCED",
+                "SEGMENTATION_EXPLICITLY_REJECTED_BY_PROFILE",
+                "DUPLICATE_OBJECT_ID_REJECTED_BY_ENCODER",
                 "CPM_UPER_ENCODER_CONTRACT=PASS",
             ):
                 expected_line = (
