@@ -22,6 +22,8 @@ namespace ns3 {
 
             static bool Submit(const DenmTriggerRequest& request);
 
+            static void SetInitialTransmissionDelayUs(uint64_t delayUs);
+
             static void SetTransmissionContextObserver(
                 TransmissionContextObserver observer);
 

@@ -19,8 +19,18 @@ SumoDenmEventParser::Parse(const std::string& message)
     std::string token;
     std::string reason;
 
-    if (!std::getline(ss, prefix, ',') ||
-        prefix != "DENM_EVENT")
+    if (!std::getline(ss, prefix, ','))
+    {
+        return std::nullopt;
+    }
+
+    const bool isSumoEvent =
+        prefix == "DENM_EVENT";
+
+    const bool isScenarioEvent =
+        prefix == "DENM_SCENARIO_EVENT";
+
+    if (!isSumoEvent && !isScenarioEvent)
     {
         return std::nullopt;
     }
@@ -35,7 +45,9 @@ SumoDenmEventParser::Parse(const std::string& message)
 
     DenmScenarioEvent event;
 
-    event.source = DenmTriggerSource::SUMO;
+    event.source = isSumoEvent
+        ? DenmTriggerSource::SUMO
+        : DenmTriggerSource::SCENARIO;
 
     event.vehicleId = vehicleId;
     event.eventId = eventId;

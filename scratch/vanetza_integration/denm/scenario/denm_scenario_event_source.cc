@@ -80,11 +80,16 @@ DenmScenarioEventSource::Evaluate(uint64_t nowUs)
 
             if (m_submissionTimingCallback)
             {
+                const uint64_t delayUs =
+                    nowUs >= scheduled.event.triggerTimeUs
+                        ? nowUs - scheduled.event.triggerTimeUs
+                        : 0;
+
                 m_submissionTimingCallback(
                     scheduled.event,
                     scheduled.event.triggerTimeUs,
                     nowUs,
-                    nowUs - scheduled.event.triggerTimeUs);
+                    delayUs);
             }
         }
     }

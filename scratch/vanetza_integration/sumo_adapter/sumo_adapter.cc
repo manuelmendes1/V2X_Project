@@ -142,7 +142,8 @@ SumoAdapter::Poll()
             continue;
         }
 
-        if (message.rfind("DENM_EVENT,", 0) == 0)
+        if (message.rfind("DENM_EVENT,", 0) == 0 ||
+            message.rfind("DENM_SCENARIO_EVENT,", 0) == 0)
         {
             const auto event =
                 ns3::SumoDenmEventParser::Parse(message);

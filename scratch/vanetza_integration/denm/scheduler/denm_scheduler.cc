@@ -34,6 +34,8 @@ constexpr uint32_t DENM_MAX_REPETITIONS =
 
 bool g_compatibilityFallbackEnabled = true;
 
+uint64_t g_initialTransmissionDelayUs = 0;
+
 ns3::DenmScheduledEventStore g_events;
 
 ns3::DenmLifecycleManager g_lifecycle;
@@ -101,6 +103,9 @@ DenmScheduler::Submit(
         DenmScheduledEvent scheduledEvent;
         scheduledEvent.triggerRequest =
             request;
+        scheduledEvent.SetInitialTransmissionEligibility(
+            static_cast<uint64_t>(Simulator::Now().GetMicroSeconds()),
+            g_initialTransmissionDelayUs);
 
         return g_events.Insert(
             eventKey,
@@ -132,6 +137,12 @@ DenmScheduler::Submit(
     return g_events.UpdateTriggerRequest(
         eventKey,
         request);
+}
+
+void
+DenmScheduler::SetInitialTransmissionDelayUs(uint64_t delayUs)
+{
+    g_initialTransmissionDelayUs = delayUs;
 }
 
 void
@@ -537,6 +548,11 @@ DenmScheduler::Run(
 
                 if (scheduledEvent->initialTransmissionPending)
                 {
+                    if (!scheduledEvent->IsInitialTransmissionDue(nowUs))
+                    {
+                        continue;
+                    }
+
                     const DenmTriggerRequest& triggerRequest =
                         scheduledEvent->triggerRequest;
 

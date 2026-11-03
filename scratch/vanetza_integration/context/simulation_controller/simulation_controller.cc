@@ -671,6 +671,12 @@ SimulationController::SetDenmRadiusMeters(double radiusMeters)
 }
 
 void
+SimulationController::SetDenmInitialTxDelayUs(uint64_t delayUs)
+{
+    DenmScheduler::SetInitialTransmissionDelayUs(delayUs);
+}
+
+void
 SimulationController::SetDenmPkiDirectory(const std::string& directory)
 {
     VehicleSecurityInitializer::SetDenmPkiDirectory(directory);
