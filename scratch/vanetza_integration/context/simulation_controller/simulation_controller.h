@@ -34,6 +34,7 @@ public:
     static void SetDenmEnabled(bool enabled);
 
     static void SetDenmRadiusMeters(double radiusMeters);
+    static void SetDenmInitialTxDelayUs(uint64_t delayUs);
 
     static void SetDenmPkiDirectory(const std::string& directory);
 

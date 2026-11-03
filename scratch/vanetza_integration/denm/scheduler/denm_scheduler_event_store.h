@@ -6,6 +6,8 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <cstdint>
+#include <limits>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -18,6 +20,26 @@ namespace ns3 {
         DenmRepetitionPolicy repetitionPolicy;
         bool initialTransmissionPending = true;
         bool lifecycleTransitionPending = false;
+        uint64_t initialTransmissionEligibleAtUs = 0;
+
+        void SetInitialTransmissionEligibility(
+            uint64_t acceptedAtUs,
+            uint64_t delayUs) noexcept
+        {
+            const uint64_t maximum =
+                std::numeric_limits<uint64_t>::max();
+
+            initialTransmissionEligibleAtUs =
+                delayUs > maximum - acceptedAtUs
+                    ? maximum
+                    : acceptedAtUs + delayUs;
+        }
+
+        bool IsInitialTransmissionDue(
+            uint64_t nowUs) const noexcept
+        {
+            return nowUs >= initialTransmissionEligibleAtUs;
+        }
     };
 
     class DenmScheduledEventStore {

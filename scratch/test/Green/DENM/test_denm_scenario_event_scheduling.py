@@ -116,5 +116,84 @@ class TestDenmScenarioEventScheduling(unittest.TestCase):
         )
 
 
+    def test_scheduler_delays_initial_tx_from_acceptance_time(self):
+        scheduler = (
+            self.root / "scratch/vanetza_integration/denm/scheduler/"
+            "denm_scheduler.cc"
+        ).read_text(encoding="utf-8")
+
+        submit_start = scheduler.index("DenmScheduler::Submit(")
+        submit_end = scheduler.index(
+            "\nvoid\nDenmScheduler::SetTransmissionContextObserver",
+            submit_start,
+        )
+        submit = scheduler[submit_start:submit_end]
+
+        self.assertIn("SetInitialTransmissionEligibility", submit)
+        self.assertIn("Simulator::Now().GetMicroSeconds()", submit)
+        self.assertIn("g_initialTransmissionDelayUs", submit)
+
+        run_start = scheduler.index("DenmScheduler::Run(")
+        run_end = scheduler.index(
+            "\nTime\nDenmScheduler::RunInterval",
+            run_start,
+        )
+        run = scheduler[run_start:run_end]
+
+        pending = run.index(
+            "if (scheduledEvent->initialTransmissionPending)"
+        )
+        eligibility = run.index(
+            "IsInitialTransmissionDue(nowUs)",
+            pending,
+        )
+        lifecycle = run.index("DenmTrigger trigger", pending)
+
+        self.assertLess(
+            eligibility,
+            lifecycle,
+            "initial transmission eligibility must be checked before lifecycle processing",
+        )
+
+    def test_cli_propagates_initial_denm_delay_with_zero_default(self):
+        entry = (
+            self.root / "scratch/v2x/v2x_sumo.cc"
+        ).read_text(encoding="utf-8")
+
+        controller_header = (
+            self.root
+            / "scratch/vanetza_integration/context/"
+              "simulation_controller/simulation_controller.h"
+        ).read_text(encoding="utf-8")
+
+        controller_source = (
+            self.root
+            / "scratch/vanetza_integration/context/"
+              "simulation_controller/simulation_controller.cc"
+        ).read_text(encoding="utf-8")
+
+        scheduler_header = (
+            self.root
+            / "scratch/vanetza_integration/denm/scheduler/"
+              "denm_scheduler.h"
+        ).read_text(encoding="utf-8")
+
+        self.assertRegex(
+            entry,
+            r"uint64_t\s+denmInitialTxDelayUs\s*=\s*0\s*;",
+        )
+        self.assertIn('"denmInitialTxDelayUs"', entry)
+        self.assertIn("SetDenmInitialTxDelayUs", entry)
+        self.assertIn("SetDenmInitialTxDelayUs", controller_header)
+        self.assertIn(
+            "DenmScheduler::SetInitialTransmissionDelayUs",
+            controller_source,
+        )
+        self.assertIn(
+            "SetInitialTransmissionDelayUs",
+            scheduler_header,
+        )
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

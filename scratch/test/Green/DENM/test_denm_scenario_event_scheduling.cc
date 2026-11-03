@@ -1,6 +1,7 @@
 #include "vanetza_integration/denm/scenario/denm_scenario_event_source.h"
 #include "vanetza_integration/denm/scenario/sumo_denm_event_parser.h"
 #include "vanetza_integration/denm/scheduler/denm_scheduler.h"
+#include "vanetza_integration/denm/scheduler/denm_scheduler_event_store.h"
 
 #include <cstdint>
 #include <iostream>
@@ -206,11 +207,40 @@ TestSumoEventRemainsImmediateWithoutDelayUnderflow()
           "future SUMO timestamp does not cause unsigned delay underflow");
 }
 
+void
+TestInitialTransmissionDelayUsesSchedulerAcceptanceTime()
+{
+    ns3::DenmScheduledEvent scheduledEvent;
+    scheduledEvent.triggerRequest.triggerTimestampUs = 3000000;
+    scheduledEvent.SetInitialTransmissionEligibility(4400000, 50000);
+
+    Check(!scheduledEvent.IsInitialTransmissionDue(4449999),
+          "initial DENM transmission is held before acceptance-time delay expires");
+
+    Check(scheduledEvent.IsInitialTransmissionDue(4450000),
+          "initial DENM transmission becomes eligible at the exact delay boundary");
+
+    Check(scheduledEvent.triggerRequest.triggerTimestampUs == 3000000,
+          "initial transmission delay does not rewrite the DENM trigger timestamp");
+}
+
+void
+TestZeroInitialTransmissionDelayPreservesImmediateEligibility()
+{
+    ns3::DenmScheduledEvent scheduledEvent;
+    scheduledEvent.SetInitialTransmissionEligibility(4400000, 0);
+
+    Check(scheduledEvent.IsInitialTransmissionDue(4400000),
+          "zero initial transmission delay preserves immediate eligibility");
+}
+
 } // namespace
 
 int
 main()
 {
+    TestInitialTransmissionDelayUsesSchedulerAcceptanceTime();
+    TestZeroInitialTransmissionDelayPreservesImmediateEligibility();
     TestSumoParserPreservesImmediateOrigin();
     TestScenarioParserAcceptsScheduledOrigin();
     TestScenarioEventWaitsUntilTriggerTime();

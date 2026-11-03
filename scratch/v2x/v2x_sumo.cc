@@ -39,6 +39,7 @@ int main(int argc, char* argv[]) {
     double spatemNs3Y = 0.0;
 
     double denmRadiusMeters = 1000.0;
+    uint64_t denmInitialTxDelayUs = 0;
 
     std::string denmPkiDir;
     std::string cpmPkiDir;
@@ -74,6 +75,11 @@ int main(int argc, char* argv[]) {
         "denmRadius",
         "Raio GBC do baseline DENM em metros",
         denmRadiusMeters);
+
+    cmd.AddValue(
+        "denmInitialTxDelayUs",
+        "Atraso inicial de transmissao DENM em microssegundos (default: 0)",
+        denmInitialTxDelayUs);
 
     cmd.AddValue(
         "denmPkiDir",
@@ -197,6 +203,7 @@ int main(int argc, char* argv[]) {
     SimulationController::SetDenmEnabled(enableDenm);
 
     SimulationController::SetDenmRadiusMeters(denmRadiusMeters);
+    SimulationController::SetDenmInitialTxDelayUs(denmInitialTxDelayUs);
 
     SimulationController::SetDenmPkiDirectory(denmPkiDir);
 
