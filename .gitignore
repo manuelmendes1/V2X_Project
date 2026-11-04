@@ -27,6 +27,11 @@
 # CPM Etapa 10.9 receive/delivery report
 !/scratch/docs/CPM/ETAPA_10_9_RECECAO_ENTREGA.md
 
+# VAM closeout evidence
+!/scratch/docs/VAM/
+!/scratch/docs/VAM/ETAPA_11_1_AUDITORIA_CLOSEOUT.md
+!/scratch/docs/VAM/ETAPA_11_2_PERFIL_PAPEL_VRU_CLOSEOUT.md
+
 !/scratch/denm_trigger_test/
 !/scratch/denm_trigger_test/**
 !/scratch/denm_lifecycle_trigger_test/
