@@ -58,7 +58,6 @@ Os relatórios abaixo são a fonte primária para os detalhes técnicos, limites
 | 10.6 — Codec ASN.1 / UPER | [ETAPA_10_6_CODEC_ASN1_UPER.md](ETAPA_10_6_CODEC_ASN1_UPER.md) | Evidência do codec e dos contratos de codificação/descodificação. |
 | 10.9 — Receção e entrega | [ETAPA_10_9_RECECAO_ENTREGA.md](ETAPA_10_9_RECECAO_ENTREGA.md) | Receção CPM validada no cenário documentado, com limitações explícitas de alcance e contexto. |
 | 10.10 — Segurança e replay | [ETAPA_10_10_SEGURANCA_REPLAY.md](ETAPA_10_10_SEGURANCA_REPLAY.md) | Evidência de verificação criptográfica e proteção contra replay para os AIDs efetivamente cobertos. |
-| 10.14 — SUMO perception E2E | [ETAPA_10_14_SUMO_PERCEPTION_E2E.md](ETAPA_10_14_SUMO_PERCEPTION_E2E.md) | Evidência da integração da fonte de perceção com o cenário SUMO, segundo o âmbito e as condições do relatório. |
 | 10.16 — Regressão runtime | [ETAPA_10_16_REGRESSAO_RUNTIME_CAM_DENM_SPATEM.md](ETAPA_10_16_REGRESSAO_RUNTIME_CAM_DENM_SPATEM.md) | Relatório histórico da regressão CAM/DENM/SPATEM. Deve ser lido em conjunto com as evidências posteriores desta secção. |
 
 ### 3.1. Coordenadas e tempo
@@ -183,7 +182,7 @@ As seguintes limitações devem acompanhar a baseline e não podem ser interpret
 
 1. **Segurança por protocolo:** a cobertura criptográfica comprovada é específica dos AIDs e serviços identificados no relatório 10.10. Não há evidência para afirmar verificação criptográfica de produção uniforme em todos os protocolos.
 2. **PKI por protocolo:** cada protocolo que necessite de credenciais deve ter um espaço de certificados próprio, permissões e trust anchors adequados. Não reutilizar automaticamente certificados DENM para VAM ou para outro protocolo.
-3. **Georreferenciação e tempo:** a validade de transformações unitárias não elimina as limitações de integração geográfica, orientação e sincronização temporal identificadas nos relatórios 10.4 e 10.14.
+3. **Georreferenciação e tempo:** a validade de transformações unitárias não elimina as limitações de integração geográfica, orientação e sincronização temporal identificadas no relatório 10.4.
 4. **Combinações runtime:** há evidência de execução tripla CAM/DENM/SPATEM e evidência CPM em campanhas próprias. Este closeout não declara demonstrada uma execução simultânea CAM+DENM+SPATEM+CPM.
 5. **Analyzer:** não se declara concluída uma validação integral e atualizada do `v2x_analyzer` sem relatório de execução correspondente.
 6. **Conformidade e interoperabilidade:** não foi demonstrada, por este conjunto de evidências, certificação ETSI, ensaio formal de conformidade ou interoperabilidade OTA com equipamentos independentes.
@@ -223,7 +222,6 @@ Qualquer evolução posterior que altere estes resultados deve acrescentar nova 
 
 ## 10. Referências
 
-- [Plano da Etapa 10 — CPM](ETAPA_10_CPM_PLANO.md)
 - [Arquitetura do projeto](../../ARCHITECTURE.md)
 - [Auditoria API R2 / ASN.1](ETAPA_10_1_API_R2_AUDIT.md)
 - [Estações e identidades](ETAPA_10_2_ESTACAO_IDENTIDADES.md)
@@ -233,6 +231,5 @@ Qualquer evolução posterior que altere estes resultados deve acrescentar nova 
 - [Codec ASN.1 / UPER](ETAPA_10_6_CODEC_ASN1_UPER.md)
 - [Receção e entrega](ETAPA_10_9_RECECAO_ENTREGA.md)
 - [Segurança e replay](ETAPA_10_10_SEGURANCA_REPLAY.md)
-- [SUMO perception E2E](ETAPA_10_14_SUMO_PERCEPTION_E2E.md)
 - [Regressão runtime CAM/DENM/SPATEM](ETAPA_10_16_REGRESSAO_RUNTIME_CAM_DENM_SPATEM.md)
 - [PR #18 — scheduled events e atraso inicial DENM](https://github.com/manuelmendes1/V2X_Project/pull/18)
