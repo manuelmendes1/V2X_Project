@@ -199,3 +199,6 @@ sumo/current/**/.cache/
 
 # CPM Etapa 10.6 ASN.1/UPER codec report
 !/scratch/docs/CPM/ETAPA_10_6_CODEC_ASN1_UPER.md
+
+# VAM Etapa 11.3 origin model plan
+!/scratch/docs/VAM/ETAPA_11_VAM_PLANO.md
