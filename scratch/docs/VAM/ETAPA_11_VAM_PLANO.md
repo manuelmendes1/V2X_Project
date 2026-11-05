@@ -452,8 +452,7 @@ VamInput / VamMessage
 │   ├── stationId
 │   ├── originating ITS-S type
 │   ├── VRU profile / sub-profile
-│   ├── VRU role / VBS state
-│   └── signing pseudonym reference (metadata only)
+│   └── VRU role / VBS state
 ├── generation time
 ├── reference position / reference timestamp
 ├── high-frequency state
@@ -471,6 +470,8 @@ VamInput / VamMessage
 ├── cluster operation (optional)
 └── motion prediction (optional)
 ```
+
+A referência ao pseudónimo/certificado do signer é metadado operacional de segurança, externo a `VamSemanticData`. Não deve estabelecer uma identidade pessoal persistente nem ser copiada para o modelo semântico.
 
 Os campos, unidades, limites e condições de presença deverão ser derivados do ASN.1 normativo auditado. O modelo neutro não deverá inventar valores para campos que a fonte SUMO/sintética não fornece.
 
@@ -530,7 +531,7 @@ VamMessage = VamSemanticData + receivedAtUnixMs
 
 ### Critério de saída
 
-Modelo neutro testável, matriz de identidade e testes de unicidade, mudança de pseudónimo, saída de cluster e não colisão entre identidades.
+Modelo neutro testável, matriz de identidade e testes de unicidade, separação e não colisão entre identidades. Os testes de rotação de pseudónimo e de transições de cluster devem verificar as invariantes de privacidade e identidade; a alteração de stationId e as transições concretas cluster → emissão individual só podem ser aceites como comportamento normativo após confirmação na Etapa 11.1 e fecho da fase de clustering aplicável.
 
 ## 11. Fase 11.4 — PoTi, coordenadas e tempo
 
@@ -772,7 +773,7 @@ Validar:
 - assinatura e integridade do envelope;
 - coerência entre perfil do transmissor, permissões e tipo de mensagem.
 
-A V2.3.1 indica anexação de certificado em VAM individual pelo menos uma vez por segundo ou quando observado um novo CAM signer; para VAM de cluster, pelo menos uma vez por 500 ms. Entre anexações, aplica-se `SignerIdentifier` do tipo digest, de acordo com a política normativa. Esta política deverá ser implementada e observada em testes, não substituída por anexação permanente sem análise de impacto.
+A V2.3.1 indica anexação de certificado em VAM individual pelo menos uma vez por segundo ou quando observado um novo CAM signer; para VAM de cluster, pelo menos uma vez por 500 ms. Entre anexações, aplica-se `SignerIdentifier` do tipo digest, de acordo com a política normativa. Esta política deverá ser implementada e observada em testes, não substituída por anexação permanente sem análise de impacto. Os intervalos acima são atribuídos à TS 103 300-3 V2.3.1, referência publicada inicial deste plano; a sua adoção no perfil implementado deverá ser reconfirmada contra a edição normativa selecionada no fecho da Etapa 11.1. Estes valores não demonstram, por si só, que a instalação local ou o par ASN.1/CDD estejam validados.
 
 ### 15.4 Segurança RX
 
@@ -788,7 +789,7 @@ O recetor deverá:
 
 ### 15.5 Privacidade e pseudónimos
 
-A identidade VAM não pode funcionar como identificador permanente da pessoa. O plano deverá testar mudanças de pseudónimo/certificado e a consequente alteração de `stationId`, sem associar externamente a nova identidade à antiga através de logs ou métricas estáveis desnecessárias. Nos artefactos de teste, usar identidades e credenciais sintéticas.
+A identidade VAM não pode funcionar como identificador permanente da pessoa. O plano deverá testar a rotação de pseudónimo/certificado e verificar as invariantes de privacidade e separação de identidades, sem associar externamente identidades sucessivas através de logs ou métricas estáveis desnecessárias. A alteração de `stationId` deverá ser validada e implementada apenas se, e na forma em que, for exigida pela regra normativa confirmada para a edição aprovada. Nos artefactos de teste, usar identidades e credenciais sintéticas.
 
 ### Critério de saída
 
@@ -880,14 +881,14 @@ A ordem interna deverá respeitar o pipeline real da infraestrutura atual, mas n
 
 ### LDM e freshness
 
-O recetor deverá atualizar a entrada da VRU com base em identidade/pseudónimo, timestamp, origem e estado de cluster. Deverá definir:
+O recetor deverá atualizar a entrada da VRU com base na informação de identidade da estação e do signer autenticado, timestamp, origem e estado de cluster, respeitando o ciclo de vida dos pseudónimos e as regras normativas confirmadas. Deverá definir:
 
 - chave e ciclo de vida da entrada;
 - substituição de observações recentes;
 - validade máxima alinhada com lifetime e política VBS;
 - expiração de estado antigo;
 - comportamento perante mensagens fora de ordem;
-- eliminação/transição em saída de cluster ou rotação de pseudónimo;
+- eliminação/transição em saída de cluster ou rotação de pseudónimo, de acordo com as regras de identidade e ciclo de vida confirmadas;
 - diferenciação entre mensagem recebida, mensagem válida e VRU atualmente considerada relevante.
 
 ### Critério de saída
@@ -950,7 +951,7 @@ Quando disponíveis, registar:
 
 ```text
 packetId
-stationId (pseudonym-scoped)
+stationId (identidade ITS da estação; relação com pseudónimo sujeita a validação normativa)
 certificate digest / signer reference (sem dados secretos)
 VRU profile / originating station type
 VBS role and state
@@ -1332,8 +1333,8 @@ Não declarar interoperabilidade OTA nem conformidade ETSI apenas com base em te
 | VAM-20 | PKI folder | `certificates/VAM/` e manifest criados | TBD |
 | VAM-21 | Security TX | assinatura VAM com AID 638 / SSP | TBD |
 | VAM-22 | Security RX | certificate chain / signature / permissions validados | TBD |
-| VAM-23 | Certificate policy | attachment / digest individual e cluster testados | TBD |
-| VAM-24 | Privacy | pseudonym rotation e stationId update testados | TBD |
+| VAM-23 | Certificate policy | política de anexação/digest individual e cluster validada contra a edição aprovada e testada | TBD |
+| VAM-24 | Privacy | rotação de pseudónimo e privacidade testadas; transição de stationId conforme regra normativa confirmada | TBD |
 | VAM-25 | VAM TX | TX production path completo | TBD |
 | VAM-26 | VAM RX | verify/decode/plausibility/relevance/LDM | TBD |
 | VAM-27 | Replay/freshness | replay, stale e out-of-order demonstrados | TBD |
@@ -1492,7 +1493,7 @@ Os títulos são exemplos. Cada commit deve refletir apenas as alterações efet
 
 **Risco:** usar IDs SUMO estáveis ou logs para seguir uma pessoa através de pseudónimos.
 
-**Mitigação:** pseudonym rotation, alteração de stationId e minimização de dados nos logs/analyzer.
+**Mitigação:** rotação de pseudónimo, aplicação de alterações de stationId apenas quando exigidas pela regra normativa confirmada e minimização de dados nos logs/analyzer.
 
 ### 31.7 Posição e tempo incorretos
 
