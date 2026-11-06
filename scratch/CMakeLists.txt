@@ -129,6 +129,7 @@ add_library(vanetza_cam_encoder_obj OBJECT
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/packet/packet_types.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/packet/packet_id_manager.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/rx_bridge/rx_bridge_context.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/its_time/its_start_time_parser.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/simulation_context/simulation_context.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/simulation_controller/simulation_controller.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/simulation_export/simulation_export.cc

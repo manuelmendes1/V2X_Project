@@ -23,6 +23,7 @@
 #include "vanetza_integration/cam/scheduler/cam_scheduler.h"
 #include "vanetza_integration/context/vehicle_security/vehicle_security_initializer/vehicle_security_initializer.h"
 #include "vanetza_integration/denm/scheduler/denm_scheduler.h"
+#include "vanetza_integration/context/its_time/its_start_time_parser.h"
 #include "vanetza_integration/context/simulation_context/simulation_context.h"
 #include "vanetza_integration/context/simulation_step/simulation_step.h"
 #include "vanetza_integration/context/simulation_sync/simulation_sync.h"
@@ -592,39 +593,36 @@ SimulationController::ConfigureCpmPerception(
         return false;
     }
 
-    std::string normalized = SimulationContext::itsStartTime;
-    const auto separator = normalized.find('T');
-    if (separator != std::string::npos)
-    {
-        normalized[separator] = ' ';
-    }
-
     int64_t startClockUs = 0;
-    try
-    {
-        const auto start = vanetza::Clock::at(normalized);
-        const long double value =
-            static_cast<long double>(start.time_since_epoch().count());
+    vanetza::Clock::time_point start;
+    std::string parseError;
 
-        if (!std::isfinite(value) ||
-            value < 0.0L ||
-            value > static_cast<long double>(
-                std::numeric_limits<int64_t>::max()))
-        {
-            NS_LOG_UNCOND(
-                "[CPM_PERCEPTION] ERROR ITS clock is out of range");
-            return false;
-        }
-
-        startClockUs = static_cast<int64_t>(value);
-    }
-    catch (...)
+    if (!ItsStartTimeParser::ParseUtc(
+            SimulationContext::itsStartTime,
+            start,
+            parseError))
     {
         NS_LOG_UNCOND(
-            "[CPM_PERCEPTION] ERROR invalid --itsStartTime: "
-            << SimulationContext::itsStartTime);
+            "[CPM_PERCEPTION] ERROR invalid UTC --itsStartTime: "
+            << SimulationContext::itsStartTime
+            << " reason=" << parseError);
         return false;
     }
+
+    const long double value =
+        static_cast<long double>(start.time_since_epoch().count());
+
+    if (!std::isfinite(value) ||
+        value < 0.0L ||
+        value > static_cast<long double>(
+            std::numeric_limits<int64_t>::max()))
+    {
+        NS_LOG_UNCOND(
+            "[CPM_PERCEPTION] ERROR ITS clock is out of range");
+        return false;
+    }
+
+    startClockUs = static_cast<int64_t>(value);
 
     m_cpmLastEncodedReferenceTimeUs.reset();
     m_cpmStationId = stationId;

@@ -18,6 +18,7 @@
 #include <vanetza/security/sign_service.hpp>
 #include <vanetza/security/v3/sign_service.hpp>
 
+#include "vanetza_integration/context/its_time/its_start_time_parser.h"
 #include "vanetza_integration/context/simulation_context/simulation_context.h"
 #include "vanetza_integration/spatem/emitter/its_station_address_builder.h"
 #include "vanetza_integration/spatem/emitter/spatem_emitter_endpoint.h"
@@ -65,26 +66,18 @@ SpatemRsuRuntime::Initialize()
         return false;
     }
 
-    std::string normalizedItsStartTime =
-        SimulationContext::itsStartTime;
-
-    const auto separator = normalizedItsStartTime.find('T');
-    if (separator != std::string::npos)
-    {
-        normalizedItsStartTime[separator] = ' ';
-    }
-
     vanetza::Clock::time_point itsStartTime;
+    std::string parseError;
 
-    try
-    {
-        itsStartTime = vanetza::Clock::at(normalizedItsStartTime);
-    }
-    catch (...)
+    if (!ItsStartTimeParser::ParseUtc(
+            SimulationContext::itsStartTime,
+            itsStartTime,
+            parseError))
     {
         NS_LOG_UNCOND(
-            "[SPATEM_RSU_RUNTIME] ERROR: invalid ITS start time: "
-            << SimulationContext::itsStartTime);
+            "[SPATEM_RSU_RUNTIME] ERROR: invalid UTC ITS start time: "
+            << SimulationContext::itsStartTime
+            << " reason=" << parseError);
         return false;
     }
 

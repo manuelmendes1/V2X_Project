@@ -14,6 +14,7 @@
 
 #include <vanetza/common/bit_number.hpp>
 #include <vanetza/common/byte_buffer.hpp>
+#include <vanetza/common/clock.hpp>
 #include <vanetza/common/manual_runtime.hpp>
 #include <vanetza/geonet/address.hpp>
 #include <vanetza/geonet/basic_header.hpp>
@@ -34,6 +35,7 @@
 #include <ns3/log.h>
 #include <ns3/simulator.h>
 
+#include "vanetza_integration/context/its_time/its_start_time_parser.h"
 #include "vanetza_integration/context/simulation_context/simulation_context.h"
 
 #include <chrono>
@@ -109,34 +111,17 @@ namespace ns3 {
 
         if (!SimulationContext::itsStartTime.empty())
         {
-            try
-            {
-                std::string normalizedItsStartTime = SimulationContext::itsStartTime;
+            std::string parseError;
 
-                const auto separator = normalizedItsStartTime.find('T');
-                if (separator != std::string::npos)
-                {
-                    normalizedItsStartTime[separator] = ' ';
-                }
-
-                try
-                {
-                    m_impl->itsStartTime =
-                        vanetza::Clock::at(normalizedItsStartTime);
-                }
-                catch (...)
-                {
-                    NS_LOG_UNCOND(
-                        "[SECURITY] invalid ITS start time: "
-                        << SimulationContext::itsStartTime);
-                    return false;
-                }
-            }
-            catch (...)
+            if (!ItsStartTimeParser::ParseUtc(
+                    SimulationContext::itsStartTime,
+                    m_impl->itsStartTime,
+                    parseError))
             {
                 NS_LOG_UNCOND(
-                    "[SECURITY] invalid ITS start time: "
-                    << SimulationContext::itsStartTime);
+                    "[SECURITY] invalid UTC ITS start time: "
+                    << SimulationContext::itsStartTime
+                    << " reason=" << parseError);
                 return false;
             }
         }

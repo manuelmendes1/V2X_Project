@@ -17,6 +17,7 @@
 #include <vanetza/security/sign_service.hpp>
 #include <vanetza/security/v3/sign_service.hpp>
 
+#include "vanetza_integration/context/its_time/its_start_time_parser.h"
 #include "vanetza_integration/context/simulation_context/simulation_context.h"
 #include "vanetza_integration/cpm/emitter/cpm_emitter_endpoint.h"
 #include "vanetza_integration/cpm/service/cpm_service.h"
@@ -62,23 +63,18 @@ CpmRsuRuntime::Initialize()
         return false;
     }
 
-    std::string normalized = SimulationContext::itsStartTime;
-    const auto separator = normalized.find('T');
-    if (separator != std::string::npos)
-    {
-        normalized[separator] = ' ';
-    }
-
     vanetza::Clock::time_point itsStartTime;
-    try
-    {
-        itsStartTime = vanetza::Clock::at(normalized);
-    }
-    catch (...)
+    std::string parseError;
+
+    if (!ItsStartTimeParser::ParseUtc(
+            SimulationContext::itsStartTime,
+            itsStartTime,
+            parseError))
     {
         NS_LOG_UNCOND(
-            "[CPM_RSU_RUNTIME] ERROR invalid ITS start time: "
-            << SimulationContext::itsStartTime);
+            "[CPM_RSU_RUNTIME] ERROR invalid UTC ITS start time: "
+            << SimulationContext::itsStartTime
+            << " reason=" << parseError);
         return false;
     }
 

@@ -1,5 +1,7 @@
 #include "sumo_traffic_light_timing_mapper.h"
 
+#include "vanetza_integration/context/its_time/its_start_time_parser.h"
+
 #include <vanetza/common/clock.hpp>
 #include <chrono>
 
@@ -11,12 +13,7 @@ namespace
 {
 
 constexpr uint32_t kMaxMinuteOfYear = 527040U;
-constexpr uint16_t kMaxValidDSecond = 59999U;
-
-constexpr int64_t kMillisecondsPerSecond = 1000LL;
-constexpr int64_t kMillisecondsPerMinute = 60000LL;
-constexpr int64_t kMillisecondsPerHour = 3600000LL;
-constexpr int64_t kMillisecondsPerTimeMark = 100LL;
+constexpr uint16_t kMaxValidDSecond = 60999U;
 
 bool
 IsFiniteNonNegative(double value)
@@ -48,70 +45,57 @@ SumoTrafficLightTimingMapper::BuildReference(
         return false;
     }
 
-    std::string normalized = itsStartTime;
-    const auto separator = normalized.find('T');
-    if (separator != std::string::npos)
+    vanetza::Clock::time_point start;
+    std::string parseError;
+
+    if (!ItsStartTimeParser::ParseUtc(
+            itsStartTime,
+            start,
+            parseError))
     {
-        normalized[separator] = ' ';
-    }
-
-    try
-    {
-        const auto start = vanetza::Clock::at(normalized);
-        const auto startUs =
-            start.time_since_epoch().count();
-
-        if (startUs >
-            std::numeric_limits<vanetza::Clock::rep>::max()
-                - elapsedMicroseconds)
-        {
-            error = "Absolute ITS time overflows the Vanetza clock";
-            return false;
-        }
-
-        const auto current =
-            start + std::chrono::microseconds(elapsedMicroseconds);
-
-        const auto timestamp = vanetza::Clock::at(current);
-
-        if (timestamp.is_not_a_date_time())
-        {
-            error = "Absolute ITS time is not a valid date-time";
-            return false;
-        }
-
-        const auto date = timestamp.date();
-        const auto timeOfDay = timestamp.time_of_day();
-
-        const uint64_t minuteOfYear =
-            static_cast<uint64_t>(date.day_of_year() - 1) * 1440ULL
-            + static_cast<uint64_t>(timeOfDay.hours()) * 60ULL
-            + static_cast<uint64_t>(timeOfDay.minutes());
-
-        const int64_t dSecond =
-            timeOfDay.total_milliseconds() % 60000LL;
-
-        if (minuteOfYear >= 527040ULL ||
-            dSecond < 0 ||
-            dSecond > 59999LL)
-        {
-            error = "Absolute ITS time is outside SPATEM reference range";
-            return false;
-        }
-
-        output.minuteOfYear =
-            static_cast<uint32_t>(minuteOfYear);
-        output.dSecond =
-            static_cast<uint16_t>(dSecond);
-
-        error.clear();
-        return true;
-    }
-    catch (...)
-    {
-        error = "Unable to parse ITS start time: " + itsStartTime;
+        error = "Unable to parse UTC ITS start time: " + parseError;
         return false;
     }
+
+    const std::int64_t startUs =
+        start.time_since_epoch().count();
+
+    const std::int64_t maxClock =
+        std::numeric_limits<std::int64_t>::max();
+
+    if (startUs < 0 ||
+        elapsedMicroseconds > maxClock - startUs)
+    {
+        error = "Absolute ITS time overflows the Vanetza clock";
+        return false;
+    }
+
+    const std::int64_t absoluteItsTimestampUs =
+        startUs + elapsedMicroseconds;
+
+    const vanetza::Clock::time_point current{
+        std::chrono::microseconds(absoluteItsTimestampUs)
+    };
+
+    ItsUtcTimeReference utc;
+    if (!ItsStartTimeParser::ConvertToUtc(
+            current,
+            utc,
+            error))
+    {
+        error = "Unable to convert SPATEM reference to UTC: " + error;
+        return false;
+    }
+
+    SumoSpatemTimeReference candidate;
+    candidate.minuteOfYear = utc.minuteOfYear;
+    candidate.dSecond = utc.dSecond;
+    candidate.absoluteItsTimestampUs = absoluteItsTimestampUs;
+
+    // Commit output only after parsing and conversion succeed.
+    output = candidate;
+    error.clear();
+    return true;
 }
 
 bool
@@ -133,7 +117,7 @@ SumoTrafficLightTimingMapper::Map(
         return false;
     }
 
-    if (reference.minuteOfYear > kMaxMinuteOfYear)
+    if (reference.minuteOfYear >= kMaxMinuteOfYear)
     {
         error = "SPATEM minuteOfYear is out of range";
         return false;
@@ -142,6 +126,12 @@ SumoTrafficLightTimingMapper::Map(
     if (reference.dSecond > kMaxValidDSecond)
     {
         error = "SPATEM dSecond is unavailable or out of range";
+        return false;
+    }
+
+    if (reference.absoluteItsTimestampUs < 0)
+    {
+        error = "SPATEM absolute ITS timestamp is missing";
         return false;
     }
 
@@ -154,52 +144,69 @@ SumoTrafficLightTimingMapper::Map(
     const double deltaSeconds =
         std::max(0.0, input.nextSwitch - input.simulationTime);
 
-    const long double deltaMillisecondsExact =
-        static_cast<long double>(deltaSeconds) *
-        static_cast<long double>(kMillisecondsPerSecond);
+    const long double deltaMicrosecondsExact =
+        static_cast<long double>(deltaSeconds) * 1000000.0L;
 
     const long double maxInt64 =
         static_cast<long double>(
             std::numeric_limits<int64_t>::max());
 
-    if (!std::isfinite(
-            static_cast<double>(deltaMillisecondsExact)) ||
-        deltaMillisecondsExact > maxInt64)
+    if (!std::isfinite(deltaMicrosecondsExact) ||
+        deltaMicrosecondsExact > maxInt64)
     {
         error = "SUMO timing delta cannot be represented safely";
         return false;
     }
 
-    const int64_t deltaMilliseconds =
+    const int64_t deltaMicroseconds =
         static_cast<int64_t>(
-            std::llround(deltaMillisecondsExact));
+            std::llround(deltaMicrosecondsExact));
 
-    const int64_t referenceMilliseconds =
-        static_cast<int64_t>(reference.minuteOfYear) *
-            kMillisecondsPerMinute +
-        static_cast<int64_t>(reference.dSecond);
+    // DSRC TimeMark 36000 represents a predicted change more than
+    // one hour in the future. Do not wrap it into the current hour.
+    constexpr int64_t maxTimeMarkHorizonUs =
+        3600LL * 1000000LL;
 
-    if (deltaMilliseconds >
-        std::numeric_limits<int64_t>::max() -
-            referenceMilliseconds)
+    if (deltaMicroseconds >= maxTimeMarkHorizonUs)
     {
-        error = "absolute SPATEM timing overflows int64";
+        SpatemTiming candidate{};
+        candidate.minEndTime = 36000U;
+        output = candidate;
+        error.clear();
+        return true;
+    }
+
+    const int64_t maxClock =
+        std::numeric_limits<int64_t>::max();
+
+    if (deltaMicroseconds >
+        maxClock - reference.absoluteItsTimestampUs)
+    {
+        error = "absolute SPATEM event time overflows int64";
         return false;
     }
 
-    const int64_t absoluteMilliseconds =
-        referenceMilliseconds + deltaMilliseconds;
+    const int64_t eventItsTimestampUs =
+        reference.absoluteItsTimestampUs + deltaMicroseconds;
 
-    const int64_t withinHourMilliseconds =
-        absoluteMilliseconds % kMillisecondsPerHour;
+    const vanetza::Clock::time_point eventItsTime{
+        std::chrono::microseconds(eventItsTimestampUs)
+    };
 
-    output = SpatemTiming{};
-    output.minEndTime =
-        static_cast<uint32_t>(
-            withinHourMilliseconds / kMillisecondsPerTimeMark);
+    ItsUtcTimeReference eventUtc;
+    if (!ItsStartTimeParser::ConvertToUtc(
+            eventItsTime,
+            eventUtc,
+            error))
+    {
+        error = "Unable to convert SPATEM event time to UTC: " + error;
+        return false;
+    }
 
-    // No uncertainty information is available from this SUMO contract.
-    // Therefore maxEndTime, likelyTime and confidence remain unset.
+    SpatemTiming candidate{};
+    candidate.minEndTime = eventUtc.timeMark;
+
+    output = candidate;
     error.clear();
     return true;
 }
