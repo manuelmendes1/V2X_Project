@@ -218,9 +218,26 @@ Git de `sumo/` permaneceu inalterado e `git diff --check` passou.
 
 ## 6. Configuração e evidências reproduzíveis
 
-Fixture PKI usada:
+Fixture PKI usada na auditoria original (2026-10-26):
 
 `test-results/cpm_security_pki_20261026T122926Z.K0l7UX`
+
+**Nota de reprodução (2026-11-06):**
+
+A fixture acima é uma referência histórica. Na execução E2E de
+2026-11-06, o validador rejeitou o certificado como expirado.
+
+A reprodução E2E bem-sucedida de 2026-11-06 utilizou explicitamente:
+
+`test-results/cpm_security_pki_20261103.uSHJw9`
+
+através da variável `CPM_SYNTHETIC_E2E_PKI`. As duas diretorias
+contêm os quatro ficheiros esperados, mas essa verificação estrutural
+não garante a validade temporal ou criptográfica dos certificados.
+
+O teste não escolhe automaticamente entre várias fixtures candidatas:
+quando existe mais de uma, exige que `CPM_SYNTHETIC_E2E_PKI` seja
+definida explicitamente.
 
 Configuração SUMO utilizada:
 

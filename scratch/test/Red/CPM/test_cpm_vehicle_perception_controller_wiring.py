@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import re
+import unittest
+
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[4]
@@ -39,7 +41,7 @@ def main():
 
         "EXPLICIT_ITS_CLOCK_CONFIGURATION":
             "SimulationContext::itsStartTime" in controller
-            and "vanetza::Clock::at(" in controller,
+            and "ItsStartTimeParser::ParseUtc(" in controller,
 
         "VEHICLE_STATE_DISPATCH":
             "VehicleDispatcher::ForEachReadyVehicle(" in controller
@@ -101,5 +103,10 @@ def main():
     return 0
 
 
+class TestCpmVehiclePerceptionControllerWiring(unittest.TestCase):
+    def test_controller_wiring_contract(self):
+        self.assertEqual(main(), 0)
+
+
 if __name__ == "__main__":
-    raise SystemExit(main())
+    unittest.main(verbosity=2)

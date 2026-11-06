@@ -13,6 +13,10 @@ struct SumoSpatemTimeReference
 {
     uint32_t minuteOfYear = 0;
     uint16_t dSecond = 0;
+
+    // Absolute ITS timestamp corresponding to this SUMO simulation instant.
+    // Negative means that no absolute reference was constructed.
+    std::int64_t absoluteItsTimestampUs = -1;
 };
 
 class SumoTrafficLightTimingMapper

@@ -90,7 +90,20 @@ def main():
 
         combined = unittest.TestSuite()
         for index, path in enumerate(paths):
-            combined.addTests(load_test_file(path, index))
+            loaded_suite = load_test_file(path, index)
+            test_count = loaded_suite.countTestCases()
+
+            if test_count == 0:
+                raise RuntimeError(
+                    "Ficheiro descoberto sem testes unittest: "
+                    f"{path.relative_to(TEST_ROOT)}"
+                )
+
+            print(
+                f"TEST_FILE_CASES="
+                f"{path.relative_to(TEST_ROOT)}:{test_count}"
+            )
+            combined.addTests(loaded_suite)
 
         result = unittest.TextTestRunner(verbosity=2).run(combined)
         print(

@@ -3,6 +3,7 @@
 import shutil
 import subprocess
 import tempfile
+import unittest
 from pathlib import Path
 
 
@@ -85,5 +86,10 @@ def main():
         return result.returncode
 
 
+class TestSumoVehicleDatagramContract(unittest.TestCase):
+    def test_vehicle_datagram_contract(self):
+        self.assertEqual(main(), 0)
+
+
 if __name__ == "__main__":
-    raise SystemExit(main())
+    unittest.main(verbosity=2)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import re
-import sys
+import unittest
 from pathlib import Path
 
 
@@ -98,5 +98,10 @@ def main():
     return 0 if passed else 1
 
 
+class TestSumoGeodeticStateWiring(unittest.TestCase):
+    def test_geodetic_state_wiring_contract(self):
+        self.assertEqual(main(), 0)
+
+
 if __name__ == "__main__":
-    sys.exit(main())
+    unittest.main(verbosity=2)

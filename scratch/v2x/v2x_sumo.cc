@@ -88,8 +88,9 @@ int main(int argc, char* argv[]) {
 
     cmd.AddValue(
         "itsStartTime",
-        "Tempo absoluto inicial do dominio temporal ITS "
-        "(ISO-8601, por exemplo 2026-09-24T10:01:32)",
+        "Tempo absoluto inicial do dominio temporal ITS em UTC "
+        "(formatos aceites: YYYY-MM-DDTHH:MM:SS ou "
+        "YYYY-MM-DD HH:MM:SS; sem sufixo Z ou offset)",
         itsStartTime);
 
     cmd.AddValue("enableCpm",
