@@ -118,7 +118,7 @@ Os headers CDD auditados identificam o módulo `ETSI-ITS-CDD`, versão 2.4.1.
 
 A presença dos headers gerados e das respetivas estruturas não demonstra, isoladamente, que a edição do módulo VAM corresponda a uma determinada edição normativa da TS 103 300-3.
 
-A associação normativa exata entre o módulo VAM, a edição ETSI e o CDD deve permanecer documentada como decisão de compatibilidade, não como inferência baseada apenas no nome do diretório `r2`.
+Na auditoria original, a associação normativa ainda não estava confirmada. Foi fechada em 2026-11-09 através da identificação do módulo normativo no Annex A da TS 103 300-3 V2.3.1 e da compilação isolada com CDD V2.1.1. A evidência detalhada está no aditamento de fecho 11.1-B1.
 
 ### 4.3 Origem e linkage
 
@@ -335,10 +335,12 @@ Não existe ainda pipeline RX VAM que demonstre a sequência completa:
 |---|---|---|
 | Headers ASN.1 VAM | Headers R2 encontrados | PASS |
 | Wrapper C++ VAM | `vanetza/asn1/vam.hpp` | PASS |
-| CDD | Headers CDD 2.4.1 | PASS local |
-| Codec UPER | Implementação UPER confirmada | PASS |
-| Round-trip VAM | Probe pedestrian executado | PASS |
-| Edição normativa VAM/ASN.1 | Associação exata por fechar | OPEN |
+| CDD | Prefixo instalado: V2.4.1/OID 4.3; par normativo isolado: V2.1.1/OID 3.1 | PASS isolado; prefixo instalado incompatível |
+| Codec UPER | Wrapper UPER instalado; runtime do par normativo isolado ainda por exercitar | PASS local / OPEN normativo |
+| Round-trip VAM | Probe pedestrian na instalação local; não exercita o par normativo isolado | PASS local |
+| Edição normativa VAM/ASN.1 | TS 103 300-3 V2.3.1 + módulo Annex A SHA 5631c6d2... + CDD V2.1.1/OID 3.1/SHA 13d68934... | RESOLVED (11.1-B1) |
+| Compilação ASN.1 normativa | 469 fontes; GCC 11; manifesto sem diferenças; descriptors VAM exportados | PASS isolado |
+| Prefixo Vanetza de produção | CDD V2.4.1/OID 4.3 não corresponde ao import normativo OID 3.1 | INCOMPATÍVEL |
 | BTP Type B | API e header disponíveis | PASS |
 | BTP port 2018 | Header local confirma porta | PASS |
 | GeoNetworking SHB | Adaptador comum disponível | PASS infraestrutura |
@@ -366,23 +368,23 @@ Não existe ainda pipeline RX VAM que demonstre a sequência completa:
 
 ### 10.2 Bloqueios a resolver
 
-| ID | Bloqueio | Resultado necessário |
-|---|---|---|
-| 11.1-B1 | Edição normativa VAM/ASN.1 | Combinação TS, módulo VAM e CDD documentada |
-| 11.1-B2 | Encaminhamento AID 638 | Política explícita, sem fallback dummy |
-| 11.1-B3 | Signer VAM | Assinatura real com AID 638 e SSP correto |
-| 11.1-B4 | Verifier VAM | Verificação real de certificado e assinatura |
-| 11.1-B5 | SSP | Contrato neutro com proveniência preservada |
-| 11.1-B6 | Autorização | Decisão VAM-SSP demonstrável |
-| 11.1-B7 | RX VAM | Handler port 2018 integrado no pipeline comum |
-| 11.1-B8 | Regressões | Plano de regressão CAM/DENM/SPATEM/CPM aprovado |
+| ID | Bloqueio | Resultado necessário | Estado |
+|---|---|---|---|
+| 11.1-B1 | Edição normativa VAM/ASN.1 | TS 103 300-3 V2.3.1, módulo Annex A e CDD V2.1.1 identificados e compilados isoladamente | RESOLVED |
+| 11.1-B2 | Encaminhamento AID 638 | Política explícita, sem fallback dummy | BLOCKED |
+| 11.1-B3 | Signer VAM | Assinatura real com AID 638 e SSP correto | BLOCKED |
+| 11.1-B4 | Verifier VAM | Verificação real de certificado e assinatura | BLOCKED |
+| 11.1-B5 | SSP | Contrato neutro com proveniência preservada | BLOCKED |
+| 11.1-B6 | Autorização | Decisão VAM-SSP demonstrável | BLOCKED |
+| 11.1-B7 | RX VAM | Handler port 2018 integrado no pipeline comum | BLOCKED |
+| 11.1-B8 | Regressões | Plano de regressão CAM/DENM/SPATEM/CPM aprovado | OPEN |
 
 ## 11. Sequência de continuação
 
 A continuação deverá respeitar esta ordem:
 
-1. **11.1-B — decisão normativa:** fechar a edição ETSI e a compatibilidade VAM ASN.1/CDD.
-2. **11.1-C — contrato de segurança:** definir encaminhamento AID 638, signer, verifier e semântica SSP.
+1. **11.1-B — decisão normativa:** `COMPLETED` em 2026-11-09. O bloqueio 11.1-B1 está `RESOLVED` para o par publicado VAM V2.3.1 + CDD V2.1.1, com compilação ASN.1 isolada demonstrada.
+2. **11.1-C — contrato de segurança:** próximo passo; definir encaminhamento AID 638, signer, verifier e semântica SSP.
 3. **11.1-D — regressões:** especificar testes negativos e positivos para os serviços partilhados.
 4. **11.1-E — gate de saída:** rever evidências e decidir formalmente se a Etapa 11.1 pode ser encerrada.
 5. **11.2 — perfil e papel VRU:** só iniciar após aceitação do gate anterior.
@@ -393,14 +395,14 @@ As alterações aos serviços de segurança partilhados não deverão ser mistur
 
 A Etapa 11.1 só poderá passar a `CLOSED / VALIDATED` quando:
 
-- a edição VAM e o CDD compatível estiverem identificados;
-- o codec selecionado estiver demonstrado;
+- a edição VAM e o CDD compatível estiverem identificados — SATISFEITO (11.1-B1);
+- o codec UPER do par normativo estiver ligado e exercitado com round-trip — PENDENTE;
 - o perfil BTP/GeoNetworking estiver definido;
 - o AID 638 tiver encaminhamento de segurança explícito;
 - o signer e verifier reais estiverem identificados e ligados;
 - a política SSP estiver definida e os dados necessários forem preservados;
 - o percurso não utilizar fallback dummy para VAM;
-- existir um probe de compilação/linkagem coerente com a configuração selecionada;
+- existir um probe de compilação/linkagem coerente com a configuração selecionada — compilação C ASN.1 isolada PASS; linkage e round-trip do codec normativo ainda pendentes;
 - o plano de regressão dos serviços existentes estiver aprovado.
 
 O round-trip UPER isolado não satisfaz estes critérios.
@@ -549,3 +551,117 @@ Os restantes bloqueios de segurança, dispatch RX e SSP também permanecem inalt
 **Etapa 11.1: EXIT BLOCKED.**
 
 A integração no codec VAM deverá reutilizar este validador na fronteira ASN.1, após resolução da combinação normativa. Não se justifica criar neste momento um serviço VAM, um pipeline específico ou alterações ao `PacketContext` para acomodar apenas esta unidade.
+
+---
+
+## Aditamento — Fecho normativo do bloqueio 11.1-B1
+
+**Data:** 2026-11-09
+
+**Branch de validação:** `feature/vam-etapa11-1b-header-validation`
+
+**Commit de partida:** `431ab18713eaedb50cd8bcb77b891cb53e2a6135`
+
+### A. Seleção normativa
+
+Foi confirmada a combinação publicada:
+
+| Elemento | Identificação | OID | SHA-256 |
+|---|---|---|---|
+| ETSI TS 103 300-3 | V2.3.1, Annex A normativo | VAM `3.1` | Documento ETSI |
+| Designação ETSI do módulo VAM | `ETSI-ITS-VAM-PDU-Descriptions` (identificador declarado no ficheiro ASN.1: `VAM-PDU-Descriptions`) | `3.1` | `5631c6d2534a7883fe329f9fe40f45b039e3c9d0611560ea7ef20d3a9ba3d11f` |
+| ETSI TS 102 894-2 / CDD | V2.1.1 | CDD `3.1` | Documento ETSI |
+| Módulo ASN.1 CDD | `ETSI-ITS-CDD` | `3.1` | `13d6893406459a7b99bc322c3bae8e63f95114bad2ffc6e258b53ab35f02c5a0` |
+
+Fontes oficiais:
+
+- ETSI TS 103 300-3 V2.3.1: https://www.etsi.org/deliver/etsi_ts/103300_103399/10330003/02.03.01_60/ts_10330003v020301p.pdf
+- Módulo VAM indicado na Tabela A.1 do Annex A: https://forge.etsi.org/rep/ITS/asn1/vam-ts103300_3/-/tree/v2.3.1
+- ETSI TS 102 894-2 V2.1.1: https://www.etsi.org/deliver/etsi_ts/102800_102899/10289402/02.01.01_60/ts_10289402v020101p.pdf
+- Módulo CDD: https://forge.etsi.org/rep/ITS/asn1/cdd_ts102894_2/-/tree/v2.1.1
+
+O Annex A, Tabela A.1 da TS 103 300-3 V2.3.1, identifica expressamente o nome do módulo VAM, o OID `3.1`, o URL de origem e o SHA-256 acima. O hash do ficheiro obtido para a compilação coincide exatamente com o hash publicado pela ETSI.
+
+O módulo VAM contém um comentário inicial antigo que referencia um draft e uma versão anterior. Para a identificação normativa prevalecem o OID e o SHA-256 publicados na Tabela A.1 do Annex A, que coincidem com o ficheiro utilizado.
+
+### B. Compatibilidade do import CDD
+
+O módulo VAM oficial importa `ETSI-ITS-CDD` com OID:
+
+`{ itu-t(0) identified-organization(4) etsi(0) itsDomain(5) wg1(1) 102894 cdd(2) major-version-3(3) minor-version-1(1) }`
+
+A importação utiliza `WITH SUCCESSORS`. Segundo a regra de versionamento ASN.1 documentada pela ETSI, todos os arcos anteriores ao último têm de coincidir; o último arco pode ser igual ou superior ao indicado no import.
+
+O CDD oficial V2.1.1 declara exatamente OID `3.1`, pelo que satisfaz o import sem qualquer adaptação.
+
+O prefixo de produção atualmente selecionado pelo CMake contém CDD V2.4.1, OID `4.3`. Este OID não satisfaz o import `3.1`, porque o arco major é diferente.
+
+O ficheiro VAM local em `~/vanetza/asn1/release2/TS103300-3v231/VAM-PDU-Descriptions.asn`, SHA-256 `7a6f83c2927a1ac37beba903acd3b3ba15c4616bb7dee98b75ee25df5dcbb0d7`, altera o import do módulo VAM de OID `3.1` para `4.3`. É uma adaptação local, não o ficheiro normativo publicado, e não foi utilizado na compilação normativa aqui registada.
+
+### C. Compilação ASN.1 isolada
+
+Diretório de compilação:
+
+`/tmp/vam-11-1b-r2-final-compile.KIQxSC`
+
+Fontes usadas:
+
+- VAM oficial, SHA-256 `5631c6d2534a7883fe329f9fe40f45b039e3c9d0611560ea7ef20d3a9ba3d11f`;
+- CDD oficial V2.1.1, SHA-256 `13d6893406459a7b99bc322c3bae8e63f95114bad2ffc6e258b53ab35f02c5a0`.
+
+Os dois ficheiros na diretoria de schema usada pelo probe foram comparados byte a byte com as cópias oficiais; ambos coincidiram.
+
+Proveniência do compilador:
+
+- ASN.1 compiler image: `vanetza-asn1c:audit-eefc4cf-fix5966fef-v2`;
+- image ID: `sha256:43c8a0d0adf37e6b65dcd344c57ebf295da6328eb5fcb555a77f4c96d7076b68`;
+- base asn1c commit: `eefc4cfca40e5ee6e0b6506d6d8c93c24d423cec`;
+- isolated fix commit: `5966fef39d05ccd41d679484eb1b3f29c3143b20`;
+- ficheiro alterado no compilador isolado: `libasn1fix/asn1fix_constr.c`;
+- C compiler: `/usr/bin/gcc-11`.
+
+Resultados:
+
+| Verificação | Resultado |
+|---|---|
+| Fontes VAM e CDD iguais às cópias oficiais | PASS |
+| Import closure dos 34 tipos CDD | PASS |
+| Fontes C geradas | 469 |
+| Manifesto esperado | 469 |
+| Diferença entre manifestos | 0 |
+| Target `asn1_its_r2` | BUILT |
+| `asn_DEF_Vanetza_ITS2_ItsPduHeaderVam` exportado | PASS |
+| `asn_DEF_Vanetza_ITS2_VAM` exportado | PASS |
+
+Hashes dos artefactos isolados:
+
+| Biblioteca | SHA-256 |
+|---|---|
+| `libasn1_its_r2.a` | `5e440938958cae0cf816445f65fa237ad0e835ef5b8ef46e54f656831364336e` |
+| `libasn1_support.a` | `5bde5502c6b7b08f24bdff4825aad60e4825e0713018c832e165ffbfba0905ee` |
+
+### D. Limites da conclusão
+
+Esta compilação demonstra que o par oficial VAM V2.3.1 + CDD V2.1.1 pode ser processado pelo compilador isolado e que os tipos e descriptors VAM são gerados e exportados pela biblioteca ASN.1 resultante.
+
+Não demonstra ainda:
+
+- ligação do wrapper C++ Vanetza contra estas bibliotecas normativas isoladas;
+- round-trip UPER de um VAM completo com este par específico;
+- substituição ou compatibilidade do prefixo Vanetza de produção;
+- assinatura, verificação, SSP ou autorização ITS-AID 638;
+- TX/RX VAM integrado ou interoperabilidade independente.
+
+O prefixo de produção não foi alterado. Nenhuma biblioteca foi instalada ou substituída.
+
+### E. Decisão
+
+**Bloqueio 11.1-B1: RESOLVED.**
+
+A edição publicada VAM, o módulo ASN.1 e a versão CDD importada estão identificados, os hashes coincidem com as fontes oficiais e a compilação ASN.1 isolada passou.
+
+A integração desta combinação no wrapper/codec do projeto permanece um trabalho separado. O validador semântico de header do commit `431ab18` continua a ser uma unidade isolada; a sua integração no futuro codec deve usar os tipos gerados a partir deste par normativo.
+
+**Etapa 11.1: AUDIT_COMPLETED / EXIT_BLOCKED.**
+
+Os bloqueios 11.1-B2 a 11.1-B8 permanecem abertos ou bloqueados conforme a matriz atualizada.
