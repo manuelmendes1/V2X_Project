@@ -116,7 +116,8 @@ ParseSumoPersonDatagram(const std::string& message)
         return parsed;
     }
 
-    if (fields[1] != "UPSERT" || fields.size() != 8)
+    if (fields[1] != "UPSERT" ||
+        (fields.size() != 8 && fields.size() != 9))
     {
         return std::nullopt;
     }
@@ -140,6 +141,21 @@ ParseSumoPersonDatagram(const std::string& message)
         sample.speed < 0.0)
     {
         return std::nullopt;
+    }
+
+    // The ninth field is source metadata. Keep it opaque here: profile
+    // interpretation belongs to SumoVruProfileMapper.
+    if (fields.size() == 9)
+    {
+        const auto sumoVClass = fields[8];
+        if (sumoVClass.empty() ||
+            sumoVClass.find('\r') != std::string_view::npos ||
+            sumoVClass.find('\n') != std::string_view::npos ||
+            sumoVClass.find('\0') != std::string_view::npos)
+        {
+            return std::nullopt;
+        }
+        parsed.sumoVClass = std::string(sumoVClass);
     }
 
     parsed.eventType = SumoPersonEventType::Upsert;

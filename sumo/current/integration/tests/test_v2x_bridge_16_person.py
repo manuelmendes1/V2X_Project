@@ -91,13 +91,16 @@ class TestV2XBridge16Person(unittest.TestCase):
                         "ped0", 1.0, 2.0, 1.0, 90.0, timestamp
                     )
 
+    @patch.object(
+        bridge.traci.vehicletype, "getVehicleClass", return_value="pedestrian"
+    )
     @patch.object(bridge.traci.person, "getAngle", return_value=90.0)
     @patch.object(bridge.traci.person, "getSpeed", return_value=1.4)
     @patch.object(
         bridge.traci.person, "getPosition", return_value=(10.125, 20.250)
     )
     def test_reads_person_domain_and_sends_upsert(
-        self, get_position, get_speed, get_angle
+        self, get_position, get_speed, get_angle, get_vehicle_class
     ):
         self.require_callable("send_person_to_ns3")
         sock = Mock()
@@ -106,8 +109,9 @@ class TestV2XBridge16Person(unittest.TestCase):
         get_position.assert_called_once_with("ped0")
         get_speed.assert_called_once_with("ped0")
         get_angle.assert_called_once_with("ped0")
+        get_vehicle_class.assert_called_once_with("ped0")
         sock.sendto.assert_called_once_with(
-            b"SUMO_PERSON,UPSERT,ped0,10.125,20.250,1.400,90.000,1234567",
+            b"SUMO_PERSON,UPSERT,ped0,10.125,20.250,1.400,90.000,1234567,pedestrian",
             ("127.0.0.1", 7400),
         )
 

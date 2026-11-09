@@ -219,7 +219,7 @@ def _validate_person_number(name, value):
 
 
 def serialize_person_upsert(
-    person_id, x, y, speed, angle_deg, simulation_time_us
+    person_id, x, y, speed, angle_deg, simulation_time_us, sumo_vclass=None
 ):
     """Serialize one validated TraCI Person mobility sample."""
     person_id = _validate_person_id(person_id)
@@ -232,11 +232,19 @@ def serialize_person_upsert(
     if speed < 0.0:
         raise ValueError("SUMO person speed must be non-negative")
 
-    return (
+    if sumo_vclass is not None and (
+        not isinstance(sumo_vclass, str)
+        or not sumo_vclass
+        or any(character in sumo_vclass for character in (",", "\r", "\n", "\x00"))
+    ):
+        raise ValueError("SUMO person vClass must be a non-empty CSV-safe string")
+
+    message = (
         "SUMO_PERSON,UPSERT,"
         f"{person_id},{x:.3f},{y:.3f},{speed:.3f},{angle_deg:.3f},"
         f"{timestamp_us}"
     )
+    return message if sumo_vclass is None else f"{message},{sumo_vclass}"
 
 
 def serialize_person_remove(person_id, simulation_time_us):
@@ -254,6 +262,7 @@ def send_person_to_ns3(sock, person_id, simulation_time_us):
 
     speed = traci.person.getSpeed(person_id)
     angle_deg = traci.person.getAngle(person_id)
+    sumo_vclass = traci.vehicletype.getVehicleClass(person_id)
     message = serialize_person_upsert(
         person_id,
         position[0],
@@ -261,6 +270,7 @@ def send_person_to_ns3(sock, person_id, simulation_time_us):
         speed,
         angle_deg,
         simulation_time_us,
+        sumo_vclass=sumo_vclass,
     )
     sock.sendto(
         message.encode("utf-8"),

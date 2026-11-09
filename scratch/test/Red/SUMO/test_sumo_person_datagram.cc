@@ -71,8 +71,8 @@ int main()
 
     passed = Check(
         !ns3::ParseSumoPersonDatagram(
-            "SUMO_PERSON,UPSERT,ped0,1,2,3,4,5,extra"),
-        "UPSERT_EXTRA_FIELD_REJECTED") && passed;
+            "SUMO_PERSON,UPSERT,ped0,1,2,3,4,5,extra,overflow"),
+        "UPSERT_TENTH_FIELD_REJECTED") && passed;
 
     passed = Check(
         !ns3::ParseSumoPersonDatagram(

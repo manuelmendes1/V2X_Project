@@ -29,6 +29,7 @@ struct SumoPersonDatagram
     std::string personId;
     std::optional<SumoPersonSample> sample;
     std::uint64_t simulationTimeUs{};
+    std::optional<std::string> sumoVClass;
 };
 
 std::optional<SumoPersonDatagram>
