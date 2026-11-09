@@ -19,6 +19,7 @@
 
 #include "vanetza_integration/context/its_time/its_start_time_parser.h"
 #include "vanetza_integration/context/simulation_context/simulation_context.h"
+#include "vanetza_integration/context/its_station/address/its_station_address_builder.h"
 #include "vanetza_integration/cpm/emitter/cpm_emitter_endpoint.h"
 #include "vanetza_integration/cpm/service/cpm_service.h"
 #include "vanetza_integration/wrappers/vanetza/access/ns3_access_adapter.h"
@@ -121,18 +122,14 @@ CpmRsuRuntime::Initialize()
     m_mib->vanetzaDisableBeaconing = false;
     m_mib->itsGnSecurity = true;
 
-    auto localMac = vanetza::create_mac_address(
-        station.identity.stationId);
-    localMac.octets[0] = 0x02;
-    localMac.octets[1] = 0x00;
-
     vanetza::geonet::Address localAddress;
-    localAddress.mid(localMac);
-    localAddress.station_type(
-        vanetza::geonet::StationType::RSU);
-    localAddress.is_manually_configured(true);
-    localAddress.country_code(
-        vanetza::BitNumber<unsigned, 10>(0));
+    if (!ItsStationAddressBuilder::Build(station.identity, localAddress))
+    {
+        NS_LOG_UNCOND(
+            "[CPM_RSU_RUNTIME] ERROR failed to construct RSU GN_ADDR");
+        Shutdown();
+        return false;
+    }
 
     m_mib->itsGnLocalGnAddr = localAddress;
 

@@ -255,8 +255,6 @@ add_library(vanetza_spatem_obj OBJECT
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/spatem/emitter/spatem_emitter_endpoint.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/spatem/emitter/spatem_rsu_runtime.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/spatem/emitter/spatem_rsu_position_provider.cc
-    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/spatem/emitter/its_station_network_builder.cc
-    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/spatem/emitter/its_station_address_builder.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/spatem/rx/spatem_rx_pipeline.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/spatem/replay/spatem_replay_protection.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/spatem/uper/spatem_uper_encoder.cc
@@ -273,6 +271,28 @@ target_include_directories(vanetza_spatem_obj PUBLIC
 )
 
 target_link_libraries(vanetza_spatem_obj
+    ${VANETZA_LIBS}
+)
+
+# =========================================================
+# NEUTRAL ITS STATION FOUNDATION OBJECT LIBRARY
+# =========================================================
+
+add_library(vanetza_its_station_obj OBJECT
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/its_station/address/its_station_address_builder.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/its_station/network/its_station_network_builder.cc
+)
+
+target_include_directories(vanetza_its_station_obj PUBLIC
+    ${CMAKE_SOURCE_DIR}/scratch
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration
+    ${V2X_VANETZA_ROOT}/include
+    ${V2X_VANETZA_ROOT}/include/vanetza
+    ${V2X_VANETZA_ROOT}/include/vanetza/asn1
+    ${V2X_VANETZA_ROOT}/include/vanetza/asn1/support
+)
+
+target_link_libraries(vanetza_its_station_obj
     ${VANETZA_LIBS}
 )
 
@@ -359,6 +379,7 @@ function(create_scratch source_files)
             $<TARGET_OBJECTS:vanetza_denm_obj>
             $<TARGET_OBJECTS:vanetza_spatem_obj>
             $<TARGET_OBJECTS:vanetza_cpm_perception_obj>
+            $<TARGET_OBJECTS:vanetza_its_station_obj>
         EXECUTABLE_DIRECTORY_PATH ${CMAKE_OUTPUT_DIRECTORY}/scratch
         IGNORE_PCH
     )

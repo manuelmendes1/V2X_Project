@@ -8,8 +8,8 @@
 
 #include <vanetza/geonet/station_type.hpp>
 
-#include "its_station_network_builder.h"
-#include "its_station_state.h"
+#include "vanetza_integration/context/its_station/network/its_station_network_builder.h"
+#include "vanetza_integration/context/its_station/state/its_station_state.h"
 
 namespace ns3
 {

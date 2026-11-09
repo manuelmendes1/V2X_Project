@@ -20,7 +20,7 @@
 
 #include "vanetza_integration/context/its_time/its_start_time_parser.h"
 #include "vanetza_integration/context/simulation_context/simulation_context.h"
-#include "vanetza_integration/spatem/emitter/its_station_address_builder.h"
+#include "vanetza_integration/context/its_station/address/its_station_address_builder.h"
 #include "vanetza_integration/spatem/emitter/spatem_emitter_endpoint.h"
 #include "vanetza_integration/spatem/emitter/spatem_rsu_position_provider.h"
 #include "vanetza_integration/spatem/service/spatem_service.h"
@@ -109,7 +109,7 @@ SpatemRsuRuntime::Initialize()
 
     vanetza::geonet::Address localAddress;
 
-    if (!ItsStationAddressBuilder::Build(station, localAddress))
+    if (!ItsStationAddressBuilder::Build(station.identity, localAddress))
     {
         NS_LOG_UNCOND(
             "[SPATEM_RSU_RUNTIME] ERROR: failed to construct RSU GN_ADDR");

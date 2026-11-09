@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <cstdlib>
+#include "ns3/mobility-module.h"
 #include "vanetza_integration/context/station_registry/station_endpoint_registry.h"
 
 namespace ns3
@@ -189,13 +190,22 @@ SpatemEmitterEndpoint::InitializeNetwork(
     {
         return true;
     }
+    ItsStationNetworkConfig networkConfig;
+    networkConfig.initialPosition = Vector(m_config.ns3X, m_config.ns3Y, 0.0);
+    networkConfig.phyAuditRole = PhyAuditRole::Rsu;
+    networkConfig.mobilityInstaller = [](Ptr<Node> node)
+    {
+        MobilityHelper mobility;
+        mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+        mobility.Install(node);
+    };
 
     const ItsStationNetworkResources resources =
         ItsStationNetworkBuilder::Build(
             channel,
             ipv4,
             rxCallback,
-            Vector(m_config.ns3X, m_config.ns3Y, 0.0));
+            networkConfig);
 
     if (resources.node == nullptr ||
         resources.socket == nullptr ||

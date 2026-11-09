@@ -4,7 +4,7 @@
 #include <memory>
 #include <string>
 
-#include "vanetza_integration/spatem/emitter/its_station_state.h"
+#include "vanetza_integration/context/its_station/state/its_station_state.h"
 
 #include "ns3/callback.h"
 #include "ns3/ipv4-address-helper.h"
