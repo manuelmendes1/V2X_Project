@@ -81,6 +81,22 @@ def should_continue_simulation(
     return min_expected_number > 0
 
 
+def should_continue_simulation_us(
+    min_expected_number,
+    tls_enabled,
+    sim_time_us,
+    sim_time_limit_us,
+):
+    """Use integer microseconds for the TLS time boundary.
+
+    Without TLS, retain the existing vehicle-driven termination semantics.
+    """
+    if tls_enabled:
+        return sim_time_us < sim_time_limit_us
+
+    return min_expected_number > 0
+
+
 def resolve_traffic_light_id(traffic_light_ids, configured_tls_id):
     """Resolve a configured TLS ID without guessing among multiple signals."""
     available = list(traffic_light_ids)
@@ -165,6 +181,153 @@ def publish_traffic_light_updates(sock, tls_id, controlled_links):
     return records_sent
 
 _WGS84_CONVERSION_WARNING_EMITTED = False
+
+
+def _validate_person_id(person_id):
+    if (
+        not isinstance(person_id, str)
+        or not person_id
+        or "," in person_id
+        or "\r" in person_id
+        or "\n" in person_id
+    ):
+        raise ValueError("SUMO person ID must be non-empty and CSV-safe")
+    return person_id
+
+
+def _validate_simulation_time_us(simulation_time_us):
+    if (
+        isinstance(simulation_time_us, bool)
+        or not isinstance(simulation_time_us, int)
+        or not 0 <= simulation_time_us <= (1 << 64) - 1
+    ):
+        raise ValueError("SUMO simulation timestamp must be uint64 microseconds")
+    return simulation_time_us
+
+
+def _validate_person_number(name, value):
+    if isinstance(value, bool):
+        raise ValueError(f"SUMO person {name} must be numeric")
+    try:
+        result = float(value)
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise ValueError(f"SUMO person {name} must be numeric") from exc
+
+    if not math.isfinite(result) or result == -1073741824.0:
+        raise ValueError(f"SUMO person {name} is unavailable or non-finite")
+    return result
+
+
+def serialize_person_upsert(
+    person_id, x, y, speed, angle_deg, simulation_time_us, sumo_vclass=None
+):
+    """Serialize one validated TraCI Person mobility sample."""
+    person_id = _validate_person_id(person_id)
+    x = _validate_person_number("x", x)
+    y = _validate_person_number("y", y)
+    speed = _validate_person_number("speed", speed)
+    angle_deg = _validate_person_number("angle", angle_deg)
+    timestamp_us = _validate_simulation_time_us(simulation_time_us)
+
+    if speed < 0.0:
+        raise ValueError("SUMO person speed must be non-negative")
+
+    if sumo_vclass is not None and (
+        not isinstance(sumo_vclass, str)
+        or not sumo_vclass
+        or any(character in sumo_vclass for character in (",", "\r", "\n", "\x00"))
+    ):
+        raise ValueError("SUMO person vClass must be a non-empty CSV-safe string")
+
+    message = (
+        "SUMO_PERSON,UPSERT,"
+        f"{person_id},{x:.3f},{y:.3f},{speed:.3f},{angle_deg:.3f},"
+        f"{timestamp_us}"
+    )
+    return message if sumo_vclass is None else f"{message},{sumo_vclass}"
+
+
+def serialize_person_remove(person_id, simulation_time_us):
+    """Serialize an explicit person removal event."""
+    person_id = _validate_person_id(person_id)
+    timestamp_us = _validate_simulation_time_us(simulation_time_us)
+    return f"SUMO_PERSON,REMOVE,{person_id},{timestamp_us}"
+
+
+def send_person_to_ns3(sock, person_id, simulation_time_us):
+    """Read the TraCI Person domain and publish one UPSERT datagram."""
+    position = traci.person.getPosition(person_id)
+    if not isinstance(position, (tuple, list)) or len(position) != 2:
+        raise ValueError("TraCI Person position must be an x/y pair")
+
+    speed = traci.person.getSpeed(person_id)
+    angle_deg = traci.person.getAngle(person_id)
+    sumo_vclass = traci.vehicletype.getVehicleClass(person_id)
+    message = serialize_person_upsert(
+        person_id,
+        position[0],
+        position[1],
+        speed,
+        angle_deg,
+        simulation_time_us,
+        sumo_vclass=sumo_vclass,
+    )
+    sock.sendto(
+        message.encode("utf-8"),
+        (NS3_UDP_IP, NS3_UDP_PORT),
+    )
+    return True
+
+
+def send_person_removal_to_ns3(sock, person_id, simulation_time_us):
+    """Publish an explicit REMOVE event for a departed SUMO person."""
+    message = serialize_person_remove(person_id, simulation_time_us)
+    sock.sendto(
+        message.encode("utf-8"),
+        (NS3_UDP_IP, NS3_UDP_PORT),
+    )
+    return True
+
+
+def publish_person_updates(
+    sock, current_person_ids, previous_person_ids, simulation_time_us
+):
+    """Publish a full active-person snapshot and explicit departures.
+
+    A person with a temporarily unavailable TraCI sample remains in the
+    returned membership set, so missing mobility data cannot masquerade as
+    a departure. A later simulation step retries the UPSERT.
+    """
+    timestamp_us = _validate_simulation_time_us(simulation_time_us)
+    previous_ids = set(previous_person_ids)
+    current_ids = set()
+
+    for person_id in sorted(set(current_person_ids)):
+        try:
+            _validate_person_id(person_id)
+        except ValueError as exc:
+            log(
+                f"[SUMO_PERSON] invalid identity skipped person_id={person_id!r} "
+                f"reason={exc}"
+            )
+            continue
+
+        # Keep valid IDs in the membership snapshot even when the mobility
+        # sample is temporarily unavailable. The next step retries the sample
+        # instead of interpreting it as a departure.
+        current_ids.add(person_id)
+        try:
+            send_person_to_ns3(sock, person_id, timestamp_us)
+        except ValueError as exc:
+            log(
+                f"[SUMO_PERSON] sample skipped person_id={person_id!r} "
+                f"reason={exc}"
+            )
+
+    for person_id in sorted(previous_ids - current_ids):
+        send_person_removal_to_ns3(sock, person_id, timestamp_us)
+
+    return current_ids
 
 
 def send_vehicle_to_ns3(sock, vid):
@@ -472,11 +635,16 @@ def main():
     )
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sim_time = 0.0
+    step_length_us = int(round(STEP_LENGTH * 1_000_000))
+    if step_length_us <= 0:
+        raise ValueError("V2X_SUMO_STEP_LENGTH must be at least one microsecond")
+    sim_time_limit_us = int(round(SIM_TIME * 1_000_000))
+    sim_time_us = 0
     detector = DenmHazardDetector()
     selected_tls = None
     controlled_links = ()
     tls_records_sent = 0
+    previous_person_ids = set()
 
     try:
         tls_ids = traci.trafficlight.getIDList()
@@ -501,18 +669,18 @@ def main():
                 "configured SUMO scenario exposes no traffic lights"
             )
 
-        while should_continue_simulation(
+        while should_continue_simulation_us(
             min_expected_number=traci.simulation.getMinExpectedNumber(),
             tls_enabled=selected_tls is not None,
-            sim_time=sim_time,
-            sim_time_limit=SIM_TIME,
+            sim_time_us=sim_time_us,
+            sim_time_limit_us=sim_time_limit_us,
         ):
             step_started = time.monotonic()
             veh_ids = traci.vehicle.getIDList()
 
             timestamp_us = max(
                 1,
-                int(round(sim_time * 1_000_000)),
+                sim_time_us,
             )
 
             # Preserve the existing vehicle and DENM behavior.
@@ -523,6 +691,11 @@ def main():
                     vid,
                     timestamp_us,
                 )
+
+            person_ids = traci.person.getIDList()
+            previous_person_ids = publish_person_updates(
+                sock, person_ids, previous_person_ids, timestamp_us
+            )
 
             # Publish actual TraCI traffic-light state, if this scenario
             # contains the explicitly selected (or sole) TLS.
@@ -543,12 +716,29 @@ def main():
 
             receive_from_ns3(sock)
             traci.simulationStep()
-            sim_time += STEP_LENGTH
+            sim_time_us += step_length_us
 
             # Pace SUMO against wall-clock time for ns-3 realtime.
             remaining = STEP_LENGTH - (time.monotonic() - step_started)
             if remaining > 0:
                 time.sleep(remaining)
+
+        # Reconcile and close the person lifecycle when the SUMO loop ends.
+        # The simulation is shutting down, so every still-tracked SUMO person
+        # is explicitly removed before the final step boundary is published.
+        final_timestamp_us = max(
+            1,
+            sim_time_us,
+        )
+        previous_person_ids = publish_person_updates(
+            sock, (), previous_person_ids, final_timestamp_us
+        )
+        step_end_message = f"SUMO_STEP_END,{final_timestamp_us}"
+        sock.sendto(
+            step_end_message.encode("ascii"),
+            (NS3_UDP_IP, NS3_UDP_PORT),
+        )
+        log(f"SUMO -> NS3 | {step_end_message}")
 
     except KeyboardInterrupt:
         log("Simulation interrupted by user")

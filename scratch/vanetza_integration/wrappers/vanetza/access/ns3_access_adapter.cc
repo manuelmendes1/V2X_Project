@@ -1763,14 +1763,23 @@ Ns3AccessAdapter::ValidateShbExtendedHeaderTx(
 
 
 Ns3AccessAdapter::Ns3AccessAdapter(
-    VehicleState& vehicle,
+    Ptr<Node> node,
+    Ptr<Socket> socket,
     const vanetza::geonet::MIB& mib,
     vanetza::geonet::Router& router)
     :
-    m_node(vehicle.node),
-    m_socket(vehicle.socket),
+    m_node(node),
+    m_socket(socket),
     m_mib(mib),
     m_router(router)
+{
+}
+
+Ns3AccessAdapter::Ns3AccessAdapter(
+    VehicleState& vehicle,
+    const vanetza::geonet::MIB& mib,
+    vanetza::geonet::Router& router)
+    : Ns3AccessAdapter(vehicle.node, vehicle.socket, mib, router)
 {
 }
 
@@ -1778,11 +1787,7 @@ Ns3AccessAdapter::Ns3AccessAdapter(
     ItsStationState& station,
     const vanetza::geonet::MIB& mib,
     vanetza::geonet::Router& router)
-    :
-    m_node(station.node),
-    m_socket(station.socket),
-    m_mib(mib),
-    m_router(router)
+    : Ns3AccessAdapter(station.node, station.socket, mib, router)
 {
 }
 

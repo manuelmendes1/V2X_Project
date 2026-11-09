@@ -4,7 +4,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[5]
 
 HEADER = ROOT / "scratch/vanetza_integration/core/phy_audit/phy_audit.h"
-RSU_BUILDER = ROOT / "scratch/vanetza_integration/spatem/emitter/its_station_network_builder.cc"
+RSU_BUILDER = ROOT / "scratch/vanetza_integration/context/its_station/network/its_station_network_builder.cc"
+RSU_ENDPOINT = ROOT / "scratch/vanetza_integration/spatem/emitter/spatem_emitter_endpoint.cc"
 VEHICLE_BUILDER = ROOT / "scratch/vanetza_integration/context/vehicle_network/vehicle_network_builder.cc"
 
 
@@ -32,10 +33,13 @@ class SpatemPhyAuditTest(unittest.TestCase):
 
         self.assertIn("PacketIdTag", source)
         self.assertIn("GetPacketId()", source)
+        self.assertIn("PhyAuditRole::Vru", source)
 
-    def test_rsu_network_connects_transmit_traces(self):
+    def test_rsu_network_connects_role_aware_transmit_traces(self):
         source = RSU_BUILDER.read_text()
-        self.assertIn("PhyAudit::ConnectRsu(node, devices)", source)
+        endpoint = RSU_ENDPOINT.read_text()
+        self.assertIn("PhyAudit::Connect(node, devices, config.phyAuditRole)", source)
+        self.assertIn("networkConfig.phyAuditRole = PhyAuditRole::Rsu", endpoint)
 
     def test_vehicle_network_connects_receive_traces(self):
         source = VEHICLE_BUILDER.read_text()

@@ -9,6 +9,7 @@
 
 #include "vanetza_integration/context/vehicle_state.h"
 #include "vanetza_integration/denm/scenario/denm_scenario_event_source.h"
+#include "vanetza_integration/context/sumo_person_registry/sumo_person_registry.h"
 
 class CpmVehiclePerceptionSource;
 
@@ -28,6 +29,8 @@ class SimulationController
 public:
 
     static void Start(Time stepLength);
+
+    static const SumoPersonRegistry& GetSumoPersonRegistry();
 
     static void SetCamEnabled(bool enabled);
 
@@ -97,8 +100,10 @@ private:
     static bool EnsureCpmRuntime();
     static void RunCpmPerception(std::uint64_t referenceTimeUs);
     static void HandleSumoStepComplete(std::uint64_t referenceTimeUs);
+    static void HandlePersonUpdateFromSumo(const SumoPersonDatagram& datagram);
 
     static Time m_stepLength;
+    static SumoPersonRegistry m_sumoPersonRegistry;
 
     static bool m_camEnabled;
     static bool m_denmEnabled;

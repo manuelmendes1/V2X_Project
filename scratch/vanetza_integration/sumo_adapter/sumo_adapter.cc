@@ -30,6 +30,9 @@ sockaddr_in SumoAdapter::m_sumoAddr{};
 SumoAdapter::VehicleUpdateCallback
 SumoAdapter::m_vehicleCallback = nullptr;
 
+SumoAdapter::PersonUpdateCallback
+SumoAdapter::m_personCallback = nullptr;
+
 SumoAdapter::DenmEventCallback
 SumoAdapter::m_denmEventCallback = nullptr;
 
@@ -161,6 +164,24 @@ SumoAdapter::Poll()
             continue;
         }
 
+        if (message.rfind("SUMO_PERSON,", 0) == 0)
+        {
+            const auto person =
+                ns3::ParseSumoPersonDatagram(message);
+
+            if (!person)
+            {
+                continue;
+            }
+
+            if (m_personCallback)
+            {
+                m_personCallback(*person);
+            }
+
+            continue;
+        }
+
         auto vehicle =
             ns3::SumoParser::Parse(buffer);
 
@@ -262,6 +283,12 @@ SumoAdapter::SetVehicleUpdateCallback(
 {
     m_vehicleCallback =
         std::move(callback);
+}
+
+void
+SumoAdapter::SetPersonUpdateCallback(PersonUpdateCallback callback)
+{
+    m_personCallback = std::move(callback);
 }
 
 void

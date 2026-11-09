@@ -8,27 +8,57 @@
 #include "ns3/wifi-module.h"
 
 #include <cstdlib>
+#include <cstdint>
 #include <string>
 
 namespace ns3
 {
+
+enum class PhyAuditRole : uint8_t
+{
+    Rsu,
+    Vehicle,
+    Vru
+};
 
 // Optional diagnostic hooks. Normal behavior is unchanged unless
 // V2X_PHY_AUDIT=1 is present in the process environment.
 class PhyAudit final
 {
 public:
+    static void Connect(
+        Ptr<Node> node,
+        const NetDeviceContainer& devices,
+        PhyAuditRole role)
+    {
+        Connect(node, devices, RoleName(role));
+    }
+
     static void ConnectRsu(Ptr<Node> node, const NetDeviceContainer& devices)
     {
-        Connect(node, devices, "RSU");
+        Connect(node, devices, PhyAuditRole::Rsu);
     }
 
     static void ConnectVehicle(Ptr<Node> node, const NetDeviceContainer& devices)
     {
-        Connect(node, devices, "VEHICLE");
+        Connect(node, devices, PhyAuditRole::Vehicle);
     }
 
 private:
+    static const char* RoleName(PhyAuditRole role)
+    {
+        switch (role)
+        {
+        case PhyAuditRole::Rsu:
+            return "RSU";
+        case PhyAuditRole::Vehicle:
+            return "VEHICLE";
+        case PhyAuditRole::Vru:
+            return "VRU";
+        }
+        return "UNKNOWN";
+    }
+
     static bool Enabled()
     {
         const char* value = std::getenv("V2X_PHY_AUDIT");

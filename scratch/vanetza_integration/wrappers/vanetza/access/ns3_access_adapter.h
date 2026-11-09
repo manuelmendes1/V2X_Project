@@ -9,7 +9,7 @@
 #include "ns3/node.h"
 #include "ns3/socket.h"
 
-#include "vanetza_integration/spatem/emitter/its_station_state.h"
+#include "vanetza_integration/context/its_station/state/its_station_state.h"
 
 namespace vanetza {
 
@@ -34,6 +34,10 @@ namespace ns3 {
 
     class Ns3AccessAdapter final : public vanetza::access::Interface {
         public:
+
+            Ns3AccessAdapter(Ptr<Node> node, Ptr<Socket> socket,
+                             const vanetza::geonet::MIB& mib,
+                             vanetza::geonet::Router& router);
 
             Ns3AccessAdapter(VehicleState& vehicle, const vanetza::geonet::MIB& mib, vanetza::geonet::Router& router);
 

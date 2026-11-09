@@ -3,9 +3,10 @@
 #include <cmath>
 
 #include "vanetza_integration/context/station_registry/station_endpoint_registry.h"
-#include "vanetza_integration/spatem/emitter/its_station_network_builder.h"
+#include "vanetza_integration/context/its_station/network/its_station_network_builder.h"
 
 #include "ns3/log.h"
+#include "ns3/mobility-module.h"
 #include "ns3/vector.h"
 
 #include <vanetza/geonet/station_type.hpp>
@@ -77,12 +78,21 @@ CpmEmitterEndpoint::InitializeNetwork(
         NS_LOG_UNCOND("[CPM_RSU] ERROR Wi-Fi channel is null");
         return false;
     }
+    ItsStationNetworkConfig networkConfig;
+    networkConfig.initialPosition = Vector(m_config.ns3X, m_config.ns3Y, 0.0);
+    networkConfig.phyAuditRole = PhyAuditRole::Rsu;
+    networkConfig.mobilityInstaller = [](Ptr<Node> node)
+    {
+        MobilityHelper mobility;
+        mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+        mobility.Install(node);
+    };
 
     const auto resources = ItsStationNetworkBuilder::Build(
         channel,
         ipv4,
         rxCallback,
-        Vector(m_config.ns3X, m_config.ns3Y, 0.0));
+        networkConfig);
 
     if (resources.node == nullptr ||
         resources.socket == nullptr ||
