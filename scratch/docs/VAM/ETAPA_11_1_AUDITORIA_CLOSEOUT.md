@@ -435,3 +435,117 @@ Mensagem de commit proposta:
 `docs(vam): record etapa 11.1 audit and exit blockers`
 
 O commit só deverá ser criado após revisão do conteúdo e autorização explícita.
+
+---
+
+## Aditamento — Validação semântica do header VAM
+
+**Data:** 2026-11-09
+
+**Branch de validação:** `feature/vam-etapa11-1b-header-validation`
+
+**Baseline desta validação:** `6da8aa1a5f3152183053a736c68982bfd6096908`
+
+Este aditamento complementa a auditoria original. Não altera a baseline histórica, não modifica a seleção normativa e não altera o estado `AUDIT_COMPLETED / EXIT_BLOCKED`.
+
+### A. Descriptor ASN.1 instalado
+
+A inspeção do prefixo selecionado pelo CMake (`$HOME/opt/vanetza-cpm-gcc11`) confirmou:
+
+- `Vanetza_ITS2_ItsPduHeaderVam_t` é um alias de `Vanetza_ITS2_ItsPduHeader_t`.
+- O header contém `protocolVersion`, `messageId` e `stationId`.
+- `Vanetza_ITS2_MessageId_vam` corresponde ao valor 16.
+- O descriptor `asn_DEF_Vanetza_ITS2_ItsPduHeaderVam` está exportado por `libvanetza_asn1_its_r2.a`.
+- Os quatro headers comparados entre o prefixo selecionado e `/usr/local` apresentam hashes coincidentes.
+
+### B. Limitação de WITH COMPONENTS
+
+Foi compilado e ligado um probe independente contra as bibliotecas instaladas no prefixo selecionado pelo CMake.
+
+Resultado de `asn_check_constraints()`:
+
+| protocolVersion | messageId | Resultado observado |
+|---:|---:|---|
+| 3 | 16 | ACCEPT |
+| 2 | 16 | ACCEPT |
+| 3 | 2 | ACCEPT |
+| 2 | 2 | ACCEPT |
+
+O descriptor instalado não aplica a restrição VAM `WITH COMPONENTS` que exige `protocolVersion = 3` e `messageId = vam(16)`.
+
+Consequentemente, `asn_check_constraints()` não é suficiente para validar estes dois requisitos semânticos. Não foi alterado o código ASN.1 gerado nem o compilador.
+
+### C. Validador semântico isolado
+
+Foi criada a unidade:
+
+- `scratch/vanetza_integration/vam/codec/vam_header_validator.h`
+- `scratch/vanetza_integration/vam/codec/vam_header_validator.cc`
+
+A API recebe diretamente `Vanetza_ITS2_ItsPduHeaderVam_t`, sem introduzir uma estrutura paralela para o header.
+
+As regras implementadas são:
+
+- `protocolVersion == 3`;
+- `messageId == Vanetza_ITS2_MessageId_vam`.
+
+A validação da versão precede a validação do message ID. `stationId` permanece fora do âmbito desta unidade.
+
+### D. Evidência de testes
+
+Harnesses:
+
+- `scratch/test/Red/VAM/test_vam_header_validator.cc`
+- `scratch/test/Red/VAM/test_vam_header_validator.py`
+
+Resultados observados:
+
+~~~~text
+[PASS] VALID_VAM_HEADER success=1 error=""
+[PASS] WRONG_PROTOCOL_VERSION success=0 error="unsupported VAM protocolVersion"
+[PASS] WRONG_MESSAGE_ID success=0 error="invalid VAM messageID"
+[PASS] BOTH_FIELDS_INVALID success=0 error="unsupported VAM protocolVersion"
+VAM_HEADER_VALIDATION_CASES=4
+VAM_HEADER_VALIDATION_PASSED=4
+VAM_HEADER_VALIDATION_FAILED=0
+VAM_HEADER_VALIDATION_TESTS=PASS
+~~~~
+
+Verificação adicional:
+
+| Gate | Resultado |
+|---|---|
+| Python syntax | PASS |
+| GCC 11 / C++23 | PASS |
+| `-Wall -Wextra -Werror` | PASS |
+| AddressSanitizer | PASS |
+| UndefinedBehaviorSanitizer | PASS |
+| Exit code de compilação | 0 |
+| Exit code de execução | 0 |
+
+Os headers Vanetza foram tratados como system includes (`-isystem`) para não transformar warnings internos da dependência em erros do código do projeto.
+
+### E. Limites e bloqueios preservados
+
+Esta evidência demonstra apenas o contrato semântico isolado do header VAM.
+
+Não demonstra:
+
+- integração do validador num encoder ou decoder VAM de produção;
+- round-trip UPER através de um codec pertencente ao projeto nesta branch;
+- integração TX/RX, BTP ou GeoNetworking VAM;
+- assinatura ou verificação criptográfica VAM;
+- autorização ITS-AID 638 / SSP;
+- interoperabilidade independente.
+
+A correspondência normativa entre a edição publicada VAM, o módulo ASN.1 e o CDD instalado permanece aberta. O bloqueio 11.1-B1 não é considerado resolvido por esta validação.
+
+Os restantes bloqueios de segurança, dispatch RX e SSP também permanecem inalterados.
+
+### F. Decisão
+
+**Header semantic validator: ISOLATED UNIT VALIDATED.**
+
+**Etapa 11.1: EXIT BLOCKED.**
+
+A integração no codec VAM deverá reutilizar este validador na fronteira ASN.1, após resolução da combinação normativa. Não se justifica criar neste momento um serviço VAM, um pipeline específico ou alterações ao `PacketContext` para acomodar apenas esta unidade.
