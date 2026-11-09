@@ -44,6 +44,7 @@ namespace ns3
 {
 
 Time SimulationController::m_stepLength = MilliSeconds(100);
+SumoPersonRegistry SimulationController::m_sumoPersonRegistry{};
 
 bool SimulationController::m_camEnabled = true;
 bool SimulationController::m_denmEnabled = false;
@@ -90,6 +91,7 @@ void
 SimulationController::Start(Time stepLength)
 {
     m_stepLength = stepLength;
+    m_sumoPersonRegistry.Clear();
 
     // Polling SUMO mantém a sua cadência original.
     Simulator::ScheduleNow(
@@ -790,6 +792,9 @@ SimulationController::ConfigureSumoAdapterCallbacks()
     SumoAdapter::SetVehicleUpdateCallback(
         &SimulationController::HandleVehicleUpdateFromSumo);
 
+    SumoAdapter::SetPersonUpdateCallback(
+        &SimulationController::HandlePersonUpdateFromSumo);
+
     SumoAdapter::SetDenmEventCallback(
         &SimulationController::HandleDenmEventFromSumo);
 
@@ -1003,6 +1008,47 @@ SimulationController::HandleVehicleUpdateFromSumo(
     const VehicleState& parsedVs)
 {
     SimulationSync::ProcessVehicle(parsedVs);
+}
+
+void
+SimulationController::HandlePersonUpdateFromSumo(
+    const SumoPersonDatagram& datagram)
+{
+    if (!m_sumoPersonRegistry.Apply(datagram))
+    {
+        NS_LOG_UNCOND(
+            "[SUMO_PERSON] EVENT_REJECTED"
+            << " person_id=" << datagram.personId
+            << " event_type="
+            << (datagram.eventType == SumoPersonEventType::Upsert
+                    ? "UPSERT"
+                    : "REMOVE_OR_UNKNOWN")
+            << " simulation_time_us=" << datagram.simulationTimeUs);
+        return;
+    }
+
+    // Runtime audit is opt-in to avoid changing normal simulation logging.
+    const char* auditEnv = std::getenv("V2X_SUMO_PERSON_AUDIT");
+    if (auditEnv == nullptr || auditEnv[0] != '1' || auditEnv[1] != '\0')
+    {
+        return;
+    }
+
+    const char* eventType =
+        datagram.eventType == SumoPersonEventType::Upsert ? "UPSERT" : "REMOVE";
+
+    NS_LOG_UNCOND(
+        "[SUMO_PERSON_AUDIT] ACCEPTED"
+        << " event=" << eventType
+        << " person_id=" << datagram.personId
+        << " simulation_time_us=" << datagram.simulationTimeUs
+        << " active_count=" << m_sumoPersonRegistry.Size());
+}
+
+const SumoPersonRegistry&
+SimulationController::GetSumoPersonRegistry()
+{
+    return m_sumoPersonRegistry;
 }
 
 void
