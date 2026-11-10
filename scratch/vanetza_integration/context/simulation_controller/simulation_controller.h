@@ -10,6 +10,7 @@
 #include "vanetza_integration/context/vehicle_state.h"
 #include "vanetza_integration/denm/scenario/denm_scenario_event_source.h"
 #include "vanetza_integration/context/sumo_person_registry/sumo_person_registry.h"
+#include "vanetza_integration/context/sumo_vru_subject_registry/sumo_vru_subject_registry.h"
 
 class CpmVehiclePerceptionSource;
 
@@ -31,6 +32,24 @@ public:
     static void Start(Time stepLength);
 
     static const SumoPersonRegistry& GetSumoPersonRegistry();
+
+    static const SumoVruSubjectRegistry& GetSumoVruSubjectRegistry();
+
+    // Explicit C++ management API. These operations are never inferred from
+    // SUMO class, position, speed, or person ID.
+    static std::optional<
+        vanetza_integration::vru::role::VruTransitionResult>
+    ActivateVruSubject(const std::string& personId);
+
+    static std::optional<
+        vanetza_integration::vru::role::VruTransitionResult>
+    DeactivateVruSubject(const std::string& personId);
+
+    static std::optional<
+        vanetza_integration::vru::role::VruTransitionResult>
+    SetVruSubjectVbsState(
+        const std::string& personId,
+        vanetza_integration::vru::role::VbsState state);
 
     static void SetCamEnabled(bool enabled);
 
@@ -104,6 +123,7 @@ private:
 
     static Time m_stepLength;
     static SumoPersonRegistry m_sumoPersonRegistry;
+    static SumoVruSubjectRegistry m_sumoVruSubjectRegistry;
 
     static bool m_camEnabled;
     static bool m_denmEnabled;

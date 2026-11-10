@@ -1,5 +1,7 @@
 #include <cmath>
 #include "vanetza_integration/context/vehicle_registry/vehicle_registry.h"
+#include "vanetza_integration/context/sumo_person_vru_subject_synchronizer/sumo_person_vru_subject_synchronizer.h"
+#include "vanetza_integration/vru/role/types/vru_role_types.h"
 #include "vanetza_integration/cpm/types/cpm_message.h"
 #include "simulation_controller.h"
 #include "vanetza_integration/cpm/perception/cpm_vehicle_perception_source.h"
@@ -43,8 +45,37 @@
 namespace ns3
 {
 
+namespace
+{
+
+const char*
+VruProfileName(
+    vanetza_integration::vru::role::VruProfile profile) noexcept
+{
+    using vanetza_integration::vru::role::VruProfile;
+
+    switch (profile)
+    {
+    case VruProfile::Unknown:
+        return "Unknown";
+    case VruProfile::Pedestrian:
+        return "Pedestrian";
+    case VruProfile::BicyclistLightVruVehicle:
+        return "BicyclistLightVruVehicle";
+    case VruProfile::Motorcyclist:
+        return "Motorcyclist";
+    case VruProfile::Animal:
+        return "Animal";
+    }
+
+    return "Invalid";
+}
+
+} // namespace
+
 Time SimulationController::m_stepLength = MilliSeconds(100);
 SumoPersonRegistry SimulationController::m_sumoPersonRegistry{};
+SumoVruSubjectRegistry SimulationController::m_sumoVruSubjectRegistry{};
 
 bool SimulationController::m_camEnabled = true;
 bool SimulationController::m_denmEnabled = false;
@@ -92,6 +123,7 @@ SimulationController::Start(Time stepLength)
 {
     m_stepLength = stepLength;
     m_sumoPersonRegistry.Clear();
+    m_sumoVruSubjectRegistry.Clear();
 
     // Polling SUMO mantém a sua cadência original.
     Simulator::ScheduleNow(
@@ -1027,6 +1059,18 @@ SimulationController::HandlePersonUpdateFromSumo(
         return;
     }
 
+    // PersonRegistry remains authoritative. Only accepted events reach the
+    // derived VRU subject synchronizer, independently of optional audit logs.
+    if (!SumoVruSubjectSynchronizer::SynchronizeAccepted(
+            datagram, m_sumoVruSubjectRegistry))
+    {
+        NS_LOG_UNCOND(
+            "[SUMO_VRU_SUBJECT] SYNCHRONIZATION_REJECTED"
+            << " person_id=" << datagram.personId
+            << " simulation_time_us=" << datagram.simulationTimeUs);
+        return;
+    }
+
     // Runtime audit is opt-in to avoid changing normal simulation logging.
     const char* auditEnv = std::getenv("V2X_SUMO_PERSON_AUDIT");
     if (auditEnv == nullptr || auditEnv[0] != '1' || auditEnv[1] != '\0')
@@ -1034,21 +1078,64 @@ SimulationController::HandlePersonUpdateFromSumo(
         return;
     }
 
+    const auto subjectSnapshot =
+        m_sumoVruSubjectRegistry.Find(datagram.personId);
+
+    const char* profileName =
+        subjectSnapshot.has_value()
+            ? VruProfileName(subjectSnapshot->profile)
+            : "NotPresent";
+
+    const std::string sumoVClass =
+        datagram.sumoVClass.value_or("none");
+
     const char* eventType =
         datagram.eventType == SumoPersonEventType::Upsert ? "UPSERT" : "REMOVE";
 
-    NS_LOG_UNCOND(
-        "[SUMO_PERSON_AUDIT] ACCEPTED"
+    std::cout
+        << "[SUMO_PERSON_AUDIT] ACCEPTED"
         << " event=" << eventType
         << " person_id=" << datagram.personId
         << " simulation_time_us=" << datagram.simulationTimeUs
-        << " active_count=" << m_sumoPersonRegistry.Size());
+        << " active_count=" << m_sumoPersonRegistry.Size()
+        << " sumo_vclass=" << sumoVClass
+        << " vru_profile=" << profileName
+        << '\n';
 }
 
 const SumoPersonRegistry&
 SimulationController::GetSumoPersonRegistry()
 {
     return m_sumoPersonRegistry;
+}
+
+const SumoVruSubjectRegistry&
+SimulationController::GetSumoVruSubjectRegistry()
+{
+    return m_sumoVruSubjectRegistry;
+}
+
+std::optional<
+    vanetza_integration::vru::role::VruTransitionResult>
+SimulationController::ActivateVruSubject(const std::string& personId)
+{
+    return m_sumoVruSubjectRegistry.Activate(personId);
+}
+
+std::optional<
+    vanetza_integration::vru::role::VruTransitionResult>
+SimulationController::DeactivateVruSubject(const std::string& personId)
+{
+    return m_sumoVruSubjectRegistry.Deactivate(personId);
+}
+
+std::optional<
+    vanetza_integration::vru::role::VruTransitionResult>
+SimulationController::SetVruSubjectVbsState(
+    const std::string& personId,
+    vanetza_integration::vru::role::VbsState state)
+{
+    return m_sumoVruSubjectRegistry.SetVbsState(personId, state);
 }
 
 void
