@@ -262,7 +262,7 @@ def send_person_to_ns3(sock, person_id, simulation_time_us):
 
     speed = traci.person.getSpeed(person_id)
     angle_deg = traci.person.getAngle(person_id)
-    sumo_vclass = traci.vehicletype.getVehicleClass(person_id)
+    sumo_vclass = traci.person.getVehicleClass(person_id)
     message = serialize_person_upsert(
         person_id,
         position[0],

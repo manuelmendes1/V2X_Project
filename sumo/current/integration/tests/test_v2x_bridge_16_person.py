@@ -92,7 +92,7 @@ class TestV2XBridge16Person(unittest.TestCase):
                     )
 
     @patch.object(
-        bridge.traci.vehicletype, "getVehicleClass", return_value="pedestrian"
+        bridge.traci.person, "getVehicleClass", return_value="pedestrian"
     )
     @patch.object(bridge.traci.person, "getAngle", return_value=90.0)
     @patch.object(bridge.traci.person, "getSpeed", return_value=1.4)
