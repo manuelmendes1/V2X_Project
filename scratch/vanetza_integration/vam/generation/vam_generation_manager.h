@@ -47,8 +47,8 @@ struct VamRedundancyContext
     // Sinais alternativos de mitigação. Cada um é suficiente isoladamente.
     bool inProtectedOrNonDrivableArea{false};
     bool inPedestrianOnlyLowRiskArea{false};
-    // Condição alternativa de supressão prevista na cláusula 6.4.3 da
-    // ETSI TS 103 300-3 V2.3.1; o sinal é fornecido pela política/LDM.
+    // Heurística explícita fornecida pela política/LDM do projeto. Não é uma
+    // condição independente nomeada na cláusula 6.4.3 da TS 103 300-3.
     bool egoReportedByAnotherItsSWithinTGenVam{false};
 };
 

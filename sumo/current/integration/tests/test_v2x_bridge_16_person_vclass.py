@@ -45,7 +45,7 @@ class TestV2XBridge16PersonVClass(unittest.TestCase):
     def test_reads_person_vehicle_class_and_publishes_it(self):
         sock = Mock()
         with (
-            patch.object(bridge.traci.vehicletype, "getVehicleClass", return_value="pedestrian") as get_class,
+            patch.object(bridge.traci.person, "getVehicleClass", return_value="pedestrian") as get_class,
             patch.object(bridge.traci.person, "getPosition", return_value=(10.125, 20.250)),
             patch.object(bridge.traci.person, "getSpeed", return_value=1.4),
             patch.object(bridge.traci.person, "getAngle", return_value=90.0),
