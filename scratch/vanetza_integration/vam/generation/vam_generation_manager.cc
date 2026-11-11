@@ -96,8 +96,31 @@ bool IsValidConfig(const VamGenerationConfig& config)
            config.trajectoryInterceptionProbabilityChangeThresholdPercentagePoints <= 100.0;
 }
 
-bool IsValidContext(const VamGenerationContext& context)
+bool IsValidContext(
+    const VamGenerationContext& context,
+    std::int64_t nowMs)
 {
+    for (const auto& observation : context.safeProximityObservations)
+    {
+        if (observation.firstObservedAtMs < 0 ||
+            observation.firstObservedAtMs > nowMs ||
+            !std::isfinite(observation.lateralDistanceMeters) ||
+            !std::isfinite(observation.longitudinalDistanceMeters) ||
+            !std::isfinite(observation.verticalDistanceMeters) ||
+            !std::isfinite(observation.minimumSafeLateralDistanceMeters) ||
+            !std::isfinite(observation.minimumSafeLongitudinalDistanceMeters) ||
+            !std::isfinite(observation.minimumSafeVerticalDistanceMeters) ||
+            observation.lateralDistanceMeters < 0.0 ||
+            observation.longitudinalDistanceMeters < 0.0 ||
+            observation.verticalDistanceMeters < 0.0 ||
+            observation.minimumSafeLateralDistanceMeters < 0.0 ||
+            observation.minimumSafeLongitudinalDistanceMeters < 0.0 ||
+            observation.minimumSafeVerticalDistanceMeters < 0.0)
+        {
+            return false;
+        }
+    }
+
     if (context.trajectoryInterceptionProbabilityPercent.has_value())
     {
         const double probability =
@@ -207,6 +230,23 @@ std::optional<VamGenerationReason> DetermineTrigger(
             nowMs, lastGenerationAtMs, config.tGenVamMaxMs))
     {
         return VamGenerationReason::MaximumGenerationInterval;
+    }
+
+    // A participant is new only if its first observation happened
+    // strictly after the last successfully confirmed VAM transmission.
+    // All three safe-distance conditions must hold simultaneously.
+    for (const auto& observation : context.safeProximityObservations)
+    {
+        if (observation.firstObservedAtMs > lastGenerationAtMs &&
+            observation.lateralDistanceMeters <
+                observation.minimumSafeLateralDistanceMeters &&
+            observation.longitudinalDistanceMeters <
+                observation.minimumSafeLongitudinalDistanceMeters &&
+            observation.verticalDistanceMeters <
+                observation.minimumSafeVerticalDistanceMeters)
+        {
+            return VamGenerationReason::NewParticipantWithinSafeDistance;
+        }
     }
 
     // A newly-present cluster operation must be announced in an individual VAM.
@@ -358,7 +398,7 @@ bool VamGenerationManager::Evaluate(
     {
         return Reject(error, "Invalid VAM input position or kinematics");
     }
-    if (!IsValidContext(context))
+    if (!IsValidContext(context, nowMs))
     {
         return Reject(error, "Invalid VAM generation context");
     }
@@ -482,6 +522,7 @@ bool VamGenerationManager::Evaluate(
 
 bool VamGenerationManager::ConfirmGeneration(
     std::uint64_t transactionId,
+    std::int64_t confirmedAtMs,
     std::string& error)
 {
     if (!m_pendingGeneration.has_value())
@@ -494,7 +535,14 @@ bool VamGenerationManager::ConfirmGeneration(
         return Reject(error, "VAM generation transaction ID mismatch");
     }
 
-    const auto committedAtMs = m_pendingGeneration->evaluatedAtMs;
+    if (confirmedAtMs < m_pendingGeneration->evaluatedAtMs)
+    {
+        return Reject(
+            error,
+            "VAM confirmation time precedes evaluation time");
+    }
+
+    const auto committedAtMs = confirmedAtMs;
     const bool includedLf =
         m_pendingGeneration->includeLowFrequencyContainer;
     m_lastConfirmedSnapshot = m_pendingGeneration->snapshot;

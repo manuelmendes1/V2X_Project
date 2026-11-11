@@ -610,7 +610,10 @@ Para ITS-G5, `T_GenVam` deverá respeitar a indicação de DCC e ficar limitado 
 - mudança de velocidade acima do threshold;
 - mudança de orientação da velocidade acima do threshold;
 - alteração relevante da probabilidade de interceção de trajetória quando exista um modelo de trajetória válido;
+- aproximação de novos veículos ou outras VRUs detetados depois do último VAM transmitido, apenas quando `LaD < MSLaD`, `LoD < MSLoD` e `VD < MSVD` forem verdadeiros simultaneamente (ETSI TS 103 300-3 V2.3.1, cláusula 6.4.1, condição 7);
 - outros triggers previstos pela edição selecionada.
+
+A condição MSLaD/MSLoD/MSVD foi acrescentada ao `VamGenerationManager` isolado na sub-etapa 11.5.2. As distâncias e os limiares são entradas externas; a integração com a fonte de perceção/LDM permanece pendente.
 
 ### Valores de referência de triggers
 
