@@ -6,6 +6,7 @@ struct CamInput
 {
     uint32_t stationId;
 
+    // WGS84 geographic coordinates in decimal degrees.
     double latitude;
     double longitude;
 

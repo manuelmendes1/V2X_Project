@@ -7,10 +7,7 @@ from pathlib import Path
 
 def find_repository_root(start):
     for candidate in (start.resolve(), *start.resolve().parents):
-        if (
-            (candidate / "ns3").is_file()
-            and (candidate / "scratch" / "CMakeLists.txt").is_file()
-        ):
+        if (candidate / "scratch" / "CMakeLists.txt").is_file():
             return candidate
     raise RuntimeError("Não foi possível localizar a raiz do ns-3.")
 

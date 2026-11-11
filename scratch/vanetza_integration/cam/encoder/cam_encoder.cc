@@ -35,7 +35,7 @@ std::vector<uint8_t> CamEncoder::Encode(const ns3::PacketContext& ctx, const Cam
         logCtx.MarkFailure();
         logCtx.reason = "invalid_position";
 
-        V2XWriteLog(logCtx, V2XLogLevel::DEBUG, "CAM", "ENCODE_FAIL", "Coordinates are too close to origin");
+        V2XWriteLog(logCtx, V2XLogLevel::DEBUG, "CAM", "ENCODE_FAIL", "Invalid WGS84 position: latitude must be within [-90, 90] and longitude within [-180, 180] degrees; both must be finite");
 
         return {};
     }
