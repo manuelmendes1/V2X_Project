@@ -14,6 +14,12 @@ namespace ns3
 struct SumoPersonState
 {
     SumoPersonSample sample;
+
+    // Timestamp of the first accepted sample in the current active
+    // observation period. Preserved across subsequent UPSERT events.
+    std::uint64_t firstObservedAtUs{};
+
+    // Timestamp of the latest accepted source event/sample.
     std::uint64_t simulationTimeUs{};
 };
 
