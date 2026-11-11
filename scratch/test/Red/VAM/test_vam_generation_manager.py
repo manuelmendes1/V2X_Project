@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -42,7 +43,20 @@ class TestVamGenerationManager(unittest.TestCase):
             )
 
         cache = root / "cmake-cache/CMakeCache.txt"
-        compiler = Path(cmake_cache_value(cache, "CMAKE_CXX_COMPILER"))
+
+        if cache.is_file():
+            compiler = Path(cmake_cache_value(cache, "CMAKE_CXX_COMPILER"))
+        else:
+            discovered_compiler = (
+                shutil.which("g++-11") or shutil.which("g++")
+            )
+            if discovered_compiler is None:
+                self.fail(
+                    "CMakeCache.txt inexistente e nenhum g++-11/g++ "
+                    "foi encontrado no PATH."
+                )
+            compiler = Path(discovered_compiler)
+
         if not compiler.is_file():
             self.fail(f"Compilador configurado nao encontrado: {compiler}")
 
