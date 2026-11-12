@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include "ns3/mobility-module.h"
 #include "vanetza_integration/context/station_registry/station_endpoint_registry.h"
+#include "vanetza_integration/context/its_station_identity/its_station_identity_authority.h"
 
 namespace ns3
 {
@@ -27,6 +28,23 @@ SpatemEmitterEndpoint::Create(
 {
     if (!Validate(config))
     {
+        return nullptr;
+    }
+
+    const ItsStationIdentityOwner stationOwner{
+        ItsStationIdentityOwnerKind::ItsStation,
+        config.logicalId
+    };
+
+    auto& identityAuthority =
+        ItsStationIdentityAuthority::Instance();
+
+    if (!identityAuthority.Reserve(stationOwner, config.stationId))
+    {
+        NS_LOG_UNCOND(
+            "[SPATEM_RSU] ERROR global stationId reservation failed"
+            << " logical_id=" << config.logicalId
+            << " station_id=" << config.stationId);
         return nullptr;
     }
 

@@ -13,6 +13,7 @@
 #include "vanetza_integration/context/simulation_context/simulation_context.h"
 #include "vanetza_integration/context/vehicle_factory/vehicle_factory.h"
 #include "vanetza_integration/sumo_adapter/sumo_adapter.h"
+#include "vanetza_integration/context/its_station_identity/its_station_identity_authority.h"
 
 using namespace ns3;
 
@@ -221,6 +222,9 @@ int main(int argc, char* argv[]) {
     Simulator::Destroy();
 
     SumoAdapter::Close();
+
+    // Release simulation-scoped ITS station identities after shutdown.
+    ItsStationIdentityAuthority::Instance().Clear();
 
     return 0;
 }

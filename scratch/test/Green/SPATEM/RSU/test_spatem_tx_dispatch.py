@@ -8,7 +8,7 @@ from pathlib import Path
 def find_repository_root(start):
     for candidate in (start.resolve(), *start.resolve().parents):
         if (
-            (candidate / "ns3").is_file()
+            (candidate / ".git").exists()
             and (candidate / "scratch" / "CMakeLists.txt").is_file()
         ):
             return candidate
