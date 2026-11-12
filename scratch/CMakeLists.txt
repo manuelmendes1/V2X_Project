@@ -337,6 +337,19 @@ target_include_directories(vanetza_cpm_perception_obj PUBLIC
 )
 
 # =========================================================
+# VAM OBJECT LIBRARY
+# =========================================================
+
+add_library(vanetza_vam_obj OBJECT
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/vam/perception/vam_proximity_provider.cc
+)
+
+target_include_directories(vanetza_vam_obj PUBLIC
+    ${CMAKE_SOURCE_DIR}/scratch
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration
+)
+
+# =========================================================
 # SCRATCH EXEC BUILDER
 # =========================================================
 function(create_scratch source_files)
@@ -389,6 +402,7 @@ function(create_scratch source_files)
             $<TARGET_OBJECTS:vanetza_spatem_obj>
             $<TARGET_OBJECTS:vanetza_cpm_perception_obj>
             $<TARGET_OBJECTS:vanetza_its_station_obj>
+            $<TARGET_OBJECTS:vanetza_vam_obj>
         EXECUTABLE_DIRECTORY_PATH ${CMAKE_OUTPUT_DIRECTORY}/scratch
         IGNORE_PCH
     )
