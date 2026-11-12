@@ -1,5 +1,6 @@
 #include <cmath>
 #include "vanetza_integration/context/vehicle_registry/vehicle_registry.h"
+#include "vanetza_integration/context/sumo_vehicle_lifecycle_registry/sumo_vehicle_lifecycle_registry.h"
 #include "vanetza_integration/context/sumo_person_vru_subject_synchronizer/sumo_person_vru_subject_synchronizer.h"
 #include "vanetza_integration/vru/role/types/vru_role_types.h"
 #include "vanetza_integration/cpm/types/cpm_message.h"
@@ -125,6 +126,7 @@ SimulationController::Start(Time stepLength)
     m_stepLength = stepLength;
     m_sumoPersonRegistry.Clear();
     m_sumoVruSubjectRegistry.Clear();
+    SumoVehicleLifecycleRegistry::Instance().Clear();
 
     // Polling SUMO mantém a sua cadência original.
     Simulator::ScheduleNow(
@@ -859,6 +861,9 @@ SimulationController::ConfigureSumoAdapterCallbacks()
     SumoAdapter::SetVehicleUpdateCallback(
         &SimulationController::HandleVehicleUpdateFromSumo);
 
+    SumoAdapter::SetVehicleRemoveCallback(
+        &SimulationController::HandleVehicleRemoveFromSumo);
+
     SumoAdapter::SetPersonUpdateCallback(
         &SimulationController::HandlePersonUpdateFromSumo);
 
@@ -1074,7 +1079,50 @@ void
 SimulationController::HandleVehicleUpdateFromSumo(
     const VehicleState& parsedVs)
 {
+    auto& lifecycle = SumoVehicleLifecycleRegistry::Instance();
+
+    if (!lifecycle.ApplyUpsert(
+            parsedVs.identity.vehId,
+            parsedVs.sumoSimulationTimeUs))
+    {
+        NS_LOG_UNCOND(
+            "[SUMO_VEHICLE] UPSERT_REJECTED"
+            << " vehicle_id=" << parsedVs.identity.vehId
+            << " simulation_time_us="
+            << (parsedVs.sumoSimulationTimeUs.has_value()
+                    ? std::to_string(*parsedVs.sumoSimulationTimeUs)
+                    : std::string("UNAVAILABLE")));
+        return;
+    }
+
+    // Only an accepted SUMO lifecycle event may update persistent mobility.
+    // VehicleState and its ns-3 resources remain owned by VehicleRegistry.
     SimulationSync::ProcessVehicle(parsedVs);
+}
+
+void
+SimulationController::HandleVehicleRemoveFromSumo(
+    const SumoVehicleRemoveDatagram& datagram)
+{
+    auto& lifecycle = SumoVehicleLifecycleRegistry::Instance();
+
+    if (!lifecycle.ApplyRemove(
+            datagram.vehId,
+            datagram.simulationTimeUs))
+    {
+        NS_LOG_UNCOND(
+            "[SUMO_VEHICLE] REMOVE_REJECTED"
+            << " vehicle_id=" << datagram.vehId
+            << " simulation_time_us=" << datagram.simulationTimeUs);
+        return;
+    }
+
+    // This closes SUMO presence only. Do not erase VehicleState, Node,
+    // Socket, runtime, identity indexes, or in-flight receive queues.
+    NS_LOG_UNCOND(
+        "[SUMO_VEHICLE] REMOVE_ACCEPTED"
+        << " vehicle_id=" << datagram.vehId
+        << " simulation_time_us=" << datagram.simulationTimeUs);
 }
 
 void

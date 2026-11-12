@@ -31,6 +31,11 @@ public:
 
     std::optional<SumoPersonState> Find(const std::string& personId) const;
 
+    // Read-only view of the currently active SUMO persons.
+    // Event tombstones and registry ownership remain encapsulated.
+    const std::map<std::string, SumoPersonState>&
+    GetActivePersons() const noexcept;
+
     std::size_t Size() const noexcept;
 
     bool Empty() const noexcept;

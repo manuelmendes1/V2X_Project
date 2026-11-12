@@ -25,6 +25,8 @@ class SpatemEmitterEndpoint;
 class SpatemRsuRuntime;
 class SumoTrafficLightSpatemIntersectionBuilder;
 
+struct SumoVehicleRemoveDatagram;
+
 class SimulationController
 {
 public:
@@ -71,6 +73,7 @@ public:
         double perceptionRangeMeters);
 
     static void HandleVehicleUpdateFromSumo(const VehicleState& parsedVs);
+    static void HandleVehicleRemoveFromSumo(const SumoVehicleRemoveDatagram& datagram);
 
     static void ConfigureSumoAdapterCallbacks();
 

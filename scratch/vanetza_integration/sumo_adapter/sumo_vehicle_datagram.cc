@@ -143,4 +143,46 @@ ParseSumoVehicleDatagram(const std::string& message)
     return parsed;
 }
 
+std::optional<SumoVehicleRemoveDatagram>
+ParseSumoVehicleRemoveDatagram(const std::string& message)
+{
+    std::vector<std::string_view> fields;
+    const std::string_view input(message);
+    std::size_t start = 0;
+
+    while (true)
+    {
+        const std::size_t delimiter = input.find(',', start);
+        if (delimiter == std::string_view::npos)
+        {
+            fields.emplace_back(input.substr(start));
+            break;
+        }
+
+        fields.emplace_back(input.substr(start, delimiter - start));
+        start = delimiter + 1;
+    }
+
+    if (fields.size() != 4 ||
+        fields[0] != "SUMO_VEHICLE" ||
+        fields[1] != "REMOVE" ||
+        fields[2].empty() ||
+        fields[2].find('\r') != std::string_view::npos ||
+        fields[2].find('\n') != std::string_view::npos ||
+        fields[2].find('\0') != std::string_view::npos)
+    {
+        return std::nullopt;
+    }
+
+    std::uint64_t timestampUs{};
+    if (!ParseTimestampUs(fields[3], timestampUs))
+    {
+        return std::nullopt;
+    }
+
+    return SumoVehicleRemoveDatagram{
+        std::string(fields[2]),
+        timestampUs};
+}
+
 } // namespace ns3

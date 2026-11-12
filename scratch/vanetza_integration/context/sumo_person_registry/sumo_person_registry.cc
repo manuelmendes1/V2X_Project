@@ -111,6 +111,12 @@ SumoPersonRegistry::Find(const std::string& personId) const
     return found->second;
 }
 
+const std::map<std::string, SumoPersonState>&
+SumoPersonRegistry::GetActivePersons() const noexcept
+{
+    return m_persons;
+}
+
 std::size_t
 SumoPersonRegistry::Size() const noexcept
 {

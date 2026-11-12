@@ -178,6 +178,7 @@ add_library(vanetza_cam_encoder_obj OBJECT
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/sumo_vru_subject_registry/sumo_vru_subject_registry.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/sumo_person_vru_subject_synchronizer/sumo_person_vru_subject_synchronizer.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/sumo_person_registry/sumo_person_registry.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/sumo_vehicle_lifecycle_registry/sumo_vehicle_lifecycle_registry.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/sumo_adapter/sumo_serializer.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/sumo_adapter/sumo_socket.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/btp/vanetza_btp_adapter.cc
