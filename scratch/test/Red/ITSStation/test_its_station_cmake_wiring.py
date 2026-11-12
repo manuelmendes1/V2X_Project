@@ -5,7 +5,7 @@ from pathlib import Path
 def repository_root(start: Path) -> Path:
     for candidate in (start.resolve(), *start.resolve().parents):
         if (
-            (candidate / "ns3").is_file()
+            (candidate / ".git").exists()
             and (candidate / "scratch" / "CMakeLists.txt").is_file()
         ):
             return candidate
