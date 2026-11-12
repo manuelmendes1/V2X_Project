@@ -4,6 +4,7 @@
 #include "vanetza_integration/cam/sender/cam_sender.h"
 #include "vanetza_integration/cam/service/cam_service.h"
 #include "vanetza_integration/cam/transmission/cam_transmission.h"
+#include "vanetza_integration/cam/validation/cam_validator.h"
 
 #include "vanetza_integration/context/vehicle_dispatcher/vehicle_dispatcher.h"
 
@@ -17,13 +18,32 @@ namespace ns3 {
 
         VehicleDispatcher::ForEachReadyVehicle([now](VehicleState& vehicle){
 
+            if (!vehicle.mobility.geodeticPosition.has_value()) {
+                return;
+            }
+
+            const auto& geodetic =
+                *vehicle.mobility.geodeticPosition;
+
+            if (!CamValidator::ValidateWgs84(
+                    geodetic.latitudeDeg,
+                    geodetic.longitudeDeg)) {
+                return;
+            }
+
             CamTransmissionRequest request = CamTransmission::PrepareTransmission(vehicle, now);
 
             if (!request.shouldSend){
                 return;
             }
 
-            CamGenerationContext context = CamBuilder::Build(*request.vehicle);
+            auto builtContext = CamBuilder::Build(*request.vehicle);
+
+            if (!builtContext.has_value()) {
+                return;
+            }
+
+            CamGenerationContext& context = *builtContext;
 
             std::vector<uint8_t> rawPayload = CamService::GenerateRawPayload(context, request.reason);
 

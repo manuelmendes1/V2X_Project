@@ -90,9 +90,9 @@ bool CheckRoundTrip(const PositionCase& testCase)
 int main()
 {
     const std::array<PositionCase, 3> cases{{
-        {"interior_position", 500.0, 500.0},
-        {"veh2_observed_position", 995.05, 522.507},
-        {"scenario_upper_boundary", 1000.0, 1000.0},
+        {"lisbon_wgs84", 38.7223, -9.1393},
+        {"porto_wgs84", 41.1579, -8.6291},
+        {"north_east_wgs84_boundary", 90.0, 180.0},
     }};
 
     unsigned passed = 0;

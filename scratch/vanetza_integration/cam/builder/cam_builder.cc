@@ -1,6 +1,7 @@
 #include "cam_builder.h"
 
 #include "vanetza_integration/context/simulation_context/simulation_context.h"
+#include "vanetza_integration/cam/validation/cam_validator.h"
 
 #include "ns3/simulator.h"
 
@@ -8,7 +9,21 @@
 
 namespace ns3 {
 
-    CamGenerationContext CamBuilder::Build(const VehicleState& vehicle) {
+    std::optional<CamGenerationContext>
+    CamBuilder::Build(const VehicleState& vehicle) {
+
+        if (!vehicle.mobility.geodeticPosition.has_value()) {
+            return std::nullopt;
+        }
+
+        const auto& geodetic =
+            *vehicle.mobility.geodeticPosition;
+
+        if (!CamValidator::ValidateWgs84(
+                geodetic.latitudeDeg,
+                geodetic.longitudeDeg)) {
+            return std::nullopt;
+        }
 
         CamGenerationContext ctx{};
 
@@ -74,8 +89,8 @@ namespace ns3 {
         //=========================================================================
 
         ctx.camInput.stationId = vehicle.identity.stationId;
-        ctx.camInput.latitude = vehicle.mobility.position.x;
-        ctx.camInput.longitude = vehicle.mobility.position.y;
+        ctx.camInput.latitude = geodetic.latitudeDeg;
+        ctx.camInput.longitude = geodetic.longitudeDeg;
         ctx.camInput.speed = vehicle.mobility.speed;
         ctx.camInput.heading = vehicle.mobility.heading;
         ctx.camInput.acceleration = vehicle.mobility.accel;
