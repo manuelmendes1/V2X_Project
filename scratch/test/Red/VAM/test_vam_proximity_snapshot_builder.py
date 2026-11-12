@@ -1,0 +1,223 @@
+#!/usr/bin/env python3
+
+from pathlib import Path
+import os
+import re
+import subprocess
+import tempfile
+import unittest
+
+
+def repository_root(start: Path) -> Path:
+    for candidate in (start.resolve(), *start.resolve().parents):
+        if (
+            (candidate / ".git").exists()
+            and (candidate / "scratch" / "CMakeLists.txt").is_file()
+        ):
+            return candidate
+    raise RuntimeError("NS3_REPOSITORY_ROOT_NOT_FOUND")
+
+
+class TestVamProximitySnapshotBuilder(unittest.TestCase):
+    def test_snapshots_are_built_from_authoritative_sumo_registries(self):
+        root = repository_root(Path(__file__))
+
+        test_source = (
+            root / "scratch/test/Red/VAM/"
+            "test_vam_proximity_snapshot_builder.cc"
+        )
+        main_source = root / "scratch/v2x/v2x_sumo.cc"
+        main_executable = (
+            root / "build/scratch/ns3.47-v2x_sumo-default"
+        )
+        main_object = (
+            "scratch/CMakeFiles/scratch_v2x_sumo.dir/"
+            "v2x/v2x_sumo.cc.o"
+        )
+        target = "ns3.47-v2x_sumo-default"
+
+        self.assertTrue(test_source.is_file(), "VAM_SNAPSHOT_CPP_HARNESS_MISSING")
+        self.assertTrue(
+            main_executable.is_file(),
+            "VAM_PRODUCTION_EXECUTABLE_MISSING",
+        )
+
+        configure = subprocess.run(
+            ["cmake", "-S", ".", "-B", "cmake-cache"],
+            cwd=root,
+            text=True,
+            capture_output=True,
+            timeout=120,
+        )
+        self.assertEqual(
+            configure.returncode,
+            0,
+            "VAM_SNAPSHOT_CMAKE_CONFIGURE_FAILED\n"
+            f"STDOUT:\n{configure.stdout}\n"
+            f"STDERR:\n{configure.stderr}",
+        )
+
+        production_build = subprocess.run(
+            ["ninja", "-C", "cmake-cache", "-j2", target],
+            cwd=root,
+            text=True,
+            capture_output=True,
+            timeout=240,
+        )
+        self.assertEqual(
+            production_build.returncode,
+            0,
+            "VAM_SNAPSHOT_PRODUCTION_BUILD_FAILED\\n"
+            f"STDOUT:\\n{production_build.stdout}\\n"
+            f"STDERR:\\n{production_build.stderr}",
+        )
+
+        command_result = subprocess.run(
+            ["ninja", "-C", "cmake-cache", "-t", "commands", target],
+            cwd=root,
+            text=True,
+            capture_output=True,
+            timeout=30,
+        )
+        self.assertEqual(
+            command_result.returncode,
+            0,
+            "VAM_SNAPSHOT_NINJA_COMMAND_QUERY_FAILED\n"
+            f"STDOUT:\n{command_result.stdout}\n"
+            f"STDERR:\n{command_result.stderr}",
+        )
+
+        commands = command_result.stdout.splitlines()
+        compile_commands = [
+            line for line in commands
+            if str(main_source) in line and re.search(r"\s-c\s", line)
+        ]
+        link_commands = [
+            line for line in commands
+            if str(main_executable) in line
+            and main_object in line
+            and " -o " in line
+        ]
+
+        self.assertEqual(
+            len(compile_commands),
+            1,
+            "VAM_SNAPSHOT_PRODUCTION_COMPILE_RECIPE_NOT_UNIQUE",
+        )
+        self.assertEqual(
+            len(link_commands),
+            1,
+            "VAM_SNAPSHOT_PRODUCTION_LINK_RECIPE_NOT_UNIQUE",
+        )
+
+        with tempfile.TemporaryDirectory(
+            prefix="vam-proximity-snapshot-"
+        ) as temporary:
+            temp = Path(temporary)
+            test_object = temp / "test_vam_proximity_snapshot_builder.cc.o"
+            test_binary = temp / "test_vam_proximity_snapshot_builder"
+
+            compile_command = compile_commands[0]
+            compile_command = compile_command.replace(
+                str(main_source), str(test_source)
+            )
+            compile_command = compile_command.replace(
+                main_object + ".d",
+                str(test_object) + ".d",
+            )
+            compile_command = compile_command.replace(
+                main_object,
+                str(test_object),
+            )
+
+            compile_result = subprocess.run(
+                compile_command,
+                shell=True,
+                executable="/bin/bash",
+                cwd=root / "cmake-cache",
+                text=True,
+                capture_output=True,
+                timeout=180,
+            )
+            if compile_result.returncode != 0:
+                self.fail(
+                    "VAM_SNAPSHOT_HARNESS_COMPILE=FAIL\n"
+                    f"STDOUT:\n{compile_result.stdout[-5000:]}\n"
+                    f"STDERR:\n{compile_result.stderr[-16000:]}"
+                )
+
+            link_command = link_commands[0]
+            link_command = link_command.replace(
+                str(main_executable), str(test_binary)
+            )
+            link_command = link_command.replace(
+                main_object, str(test_object)
+            )
+
+            link_result = subprocess.run(
+                link_command,
+                shell=True,
+                executable="/bin/bash",
+                cwd=root / "cmake-cache",
+                text=True,
+                capture_output=True,
+                timeout=180,
+            )
+            if link_result.returncode != 0:
+                self.fail(
+                    "VAM_SNAPSHOT_HARNESS_LINK=FAIL\n"
+                    f"STDOUT:\n{link_result.stdout[-5000:]}\n"
+                    f"STDERR:\n{link_result.stderr[-16000:]}"
+                )
+
+            env = os.environ.copy()
+            runtime_paths = [
+                str(root / "build/lib"),
+                str(Path.home() / "opt/vanetza-cpm-gcc11/lib"),
+                str(Path.home() / "opt/geographiclib-gcc11/lib"),
+                "/usr/local/lib",
+            ]
+            existing = env.get("LD_LIBRARY_PATH", "")
+            if existing:
+                runtime_paths.append(existing)
+            env["LD_LIBRARY_PATH"] = ":".join(runtime_paths)
+
+            run = subprocess.run(
+                [str(test_binary)],
+                cwd=temp,
+                env=env,
+                text=True,
+                capture_output=True,
+                timeout=35,
+            )
+
+            output = run.stdout + run.stderr
+            print(f"VAM_SNAPSHOT_RUNTIME_RC={run.returncode}")
+            print(output, end="")
+
+            self.assertEqual(
+                run.returncode,
+                0,
+                "VAM snapshot harness failed:\n"
+                + "\n".join(output.splitlines()[-100:]),
+            )
+
+            for marker in (
+                "[PASS] EGO_SNAPSHOT_USES_PERSON_REGISTRY_HISTORY",
+                "[PASS] ACTIVE_VEHICLE_USES_LIFECYCLE_PRESENCE_EPOCH",
+                "[PASS] ACTIVE_PERSON_IS_A_VRU_TARGET_WITHOUT_PROFILE_INFERENCE",
+                "[PASS] REMOVED_VEHICLE_IS_EXCLUDED",
+                "[PASS] REMOVED_PERSON_IS_EXCLUDED",
+                "[PASS] VEHICLE_WITH_UNKNOWN_PRESENCE_EPOCH_IS_EXCLUDED",
+                "[PASS] UNTRACKED_VEHICLE_IS_NOT_ASSUMED_SUMO_PRESENT",
+                "[PASS] UNINITIALIZED_VEHICLE_IS_EXCLUDED",
+                "[PASS] EGO_PERSON_IS_NOT_INCLUDED_AS_TARGET",
+                "[PASS] THRESHOLDS_ARE_SELECTED_BY_TARGET_KIND",
+                "[PASS] FAILED_BUILD_PRESERVES_OUTPUT",
+                "VAM_PROXIMITY_SNAPSHOT_BUILDER=PASS",
+            ):
+                self.assertIn(marker, output, f"Missing evidence: {marker}")
+
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)
