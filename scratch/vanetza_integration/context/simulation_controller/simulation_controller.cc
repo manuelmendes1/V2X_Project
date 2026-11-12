@@ -26,6 +26,7 @@
 #include "vanetza_integration/context/vehicle_security/vehicle_security_initializer/vehicle_security_initializer.h"
 #include "vanetza_integration/denm/scheduler/denm_scheduler.h"
 #include "vanetza_integration/context/its_time/its_start_time_parser.h"
+#include "vanetza_integration/context/its_station_identity/its_station_identity_authority.h"
 #include "vanetza_integration/context/simulation_context/simulation_context.h"
 #include "vanetza_integration/context/simulation_step/simulation_step.h"
 #include "vanetza_integration/context/simulation_sync/simulation_sync.h"
@@ -658,6 +659,23 @@ SimulationController::ConfigureCpmPerception(
 
     startClockUs = static_cast<int64_t>(value);
 
+    const ItsStationIdentityOwner stationOwner{
+        ItsStationIdentityOwnerKind::ItsStation,
+        "cpm-rsu-" + std::to_string(stationId)
+    };
+
+    auto& identityAuthority =
+        ItsStationIdentityAuthority::Instance();
+
+    if (!identityAuthority.Reserve(stationOwner, stationId))
+    {
+        NS_LOG_UNCOND(
+            "[CPM_PERCEPTION] ERROR global stationId reservation failed"
+            << " logical_id=" << stationOwner.logicalId
+            << " station_id=" << stationId);
+        return false;
+    }
+
     m_cpmLastEncodedReferenceTimeUs.reset();
     m_cpmStationId = stationId;
     m_cpmLatitudeDeg = latitudeDeg;
@@ -788,6 +806,23 @@ SimulationController::ConfigureSpatemEmitter(
              !std::isfinite(ns3Y)),
         "[SPATEM_RSU] Enabled SPATEM requires station/intersection IDs, "
         "trafficLightId and finite geographic/ns-3 physical coordinates");
+
+    if (enabled)
+    {
+        const ItsStationIdentityOwner stationOwner{
+            ItsStationIdentityOwnerKind::ItsStation,
+            "spatem-rsu-" + trafficLightId
+        };
+
+        auto& identityAuthority =
+            ItsStationIdentityAuthority::Instance();
+
+        NS_ABORT_MSG_IF(
+            !identityAuthority.Reserve(stationOwner, stationId),
+            "[SPATEM_RSU] Global stationId reservation failed"
+                << " logical_id=" << stationOwner.logicalId
+                << " station_id=" << stationId);
+    }
 
     m_spatemEnabled = enabled;
     m_spatemStationId = stationId;

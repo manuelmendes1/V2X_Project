@@ -9,6 +9,7 @@
 
 #include "ns3/ipv4-address.h"
 #include "ns3/mac48-address.h"
+#include "vanetza_integration/context/its_station_identity/its_station_identity_authority.h"
 
 namespace ns3
 {
@@ -94,6 +95,17 @@ public:
             return false;
         }
 
+        const ItsStationIdentityOwner owner{
+            ItsStationIdentityOwnerKind::Vehicle,
+            vehicleId
+        };
+
+        if (!ItsStationIdentityAuthority::Instance().IsReservedBy(
+                stationId, owner))
+        {
+            return false;
+        }
+
         StationEndpointIdentity identity;
         identity.kind = StationEndpointKind::Vehicle;
         identity.logicalId = vehicleId;
@@ -121,6 +133,17 @@ public:
             stationId == 0 ||
             stationType == vanetza::geonet::StationType::Unknown ||
             ipv4Address == Ipv4Address::GetAny())
+        {
+            return false;
+        }
+
+        const ItsStationIdentityOwner owner{
+            ItsStationIdentityOwnerKind::ItsStation,
+            logicalId
+        };
+
+        if (!ItsStationIdentityAuthority::Instance().IsReservedBy(
+                stationId, owner))
         {
             return false;
         }

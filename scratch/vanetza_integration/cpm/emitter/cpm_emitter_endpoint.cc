@@ -3,6 +3,7 @@
 #include <cmath>
 
 #include "vanetza_integration/context/station_registry/station_endpoint_registry.h"
+#include "vanetza_integration/context/its_station_identity/its_station_identity_authority.h"
 #include "vanetza_integration/context/its_station/network/its_station_network_builder.h"
 
 #include "ns3/log.h"
@@ -19,6 +20,23 @@ CpmEmitterEndpoint::Create(const CpmEmitterConfig& config)
 {
     if (!Validate(config))
     {
+        return nullptr;
+    }
+
+    const ItsStationIdentityOwner stationOwner{
+        ItsStationIdentityOwnerKind::ItsStation,
+        config.logicalId
+    };
+
+    auto& identityAuthority =
+        ItsStationIdentityAuthority::Instance();
+
+    if (!identityAuthority.Reserve(stationOwner, config.stationId))
+    {
+        NS_LOG_UNCOND(
+            "[CPM_RSU] ERROR global stationId reservation failed"
+            << " logical_id=" << config.logicalId
+            << " station_id=" << config.stationId);
         return nullptr;
     }
 

@@ -23,6 +23,7 @@
 #include "vanetza_integration/context/its_station/address/its_station_address_builder.h"
 #include "vanetza_integration/context/its_station/network/its_station_network_builder.h"
 #include "vanetza_integration/context/station_registry/station_endpoint_registry.h"
+#include "vanetza_integration/context/its_station_identity/its_station_identity_authority.h"
 #include "vanetza_integration/wrappers/vanetza/access/ns3_access_adapter.h"
 
 namespace
@@ -122,12 +123,34 @@ void TestItsStationAddressBuilder()
 void TestStationEndpointRegistry()
 {
     auto& registry = StationEndpointRegistry::Instance();
+    auto& identityAuthority = ItsStationIdentityAuthority::Instance();
     registry.Clear();
+    identityAuthority.Clear();
 
     const Ipv4Address stationIp("10.42.0.1");
     const Ipv4Address vehicleIp("10.42.0.2");
     const Mac48Address stationMac("02:00:00:00:00:01");
     const Mac48Address vehicleMac("02:00:00:00:00:02");
+
+    const ItsStationIdentityOwner pedestrianOwner{
+        ItsStationIdentityOwnerKind::ItsStation,
+        "registry-pedestrian"
+    };
+    const ItsStationIdentityOwner ipv4CollisionOwner{
+        ItsStationIdentityOwnerKind::ItsStation,
+        "registry-collision"
+    };
+
+    Require(identityAuthority.Reserve(pedestrianOwner, 701),
+            "Pedestrian station identity reservation failed");
+    Require(identityAuthority.Reserve(ipv4CollisionOwner, 702),
+            "IPv4 collision endpoint identity reservation failed");
+
+    Require(!registry.RegisterItsStation(
+                "unreserved-station", 16, 700,
+                vanetza::geonet::StationType::Pedestrian,
+                Ipv4Address("10.42.0.9"), stationMac),
+            "ITS station registration must reject an unreserved stationId");
 
     Require(registry.RegisterItsStation(
                 "registry-pedestrian", 17, 701,
@@ -165,6 +188,40 @@ void TestStationEndpointRegistry()
     registry.UnregisterItsStation(stationIp, "registry-pedestrian", 701);
     Require(registry.GetByIpv4(stationIp) == nullptr,
             "Matching ITS station unregister did not remove the endpoint");
+    Require(identityAuthority.IsReservedBy(701, pedestrianOwner),
+            "IPv4 unregister must not release the logical ITS identity");
+
+    const ItsStationIdentityOwner vehicleOwner{
+        ItsStationIdentityOwnerKind::Vehicle,
+        "registry-vehicle"
+    };
+    const ItsStationIdentityOwner invalidMacVehicleOwner{
+        ItsStationIdentityOwnerKind::Vehicle,
+        "invalid-vehicle"
+    };
+    const ItsStationIdentityOwner otherItsStationOwner{
+        ItsStationIdentityOwnerKind::ItsStation,
+        "other-station-owner"
+    };
+    const ItsStationIdentityOwner invalidAnyIpOwner{
+        ItsStationIdentityOwnerKind::ItsStation,
+        "invalid-any-ip"
+    };
+
+    Require(identityAuthority.Reserve(vehicleOwner, 703),
+            "Vehicle identity reservation failed");
+    Require(identityAuthority.Reserve(invalidMacVehicleOwner, 704),
+            "Invalid-MAC vehicle identity reservation failed");
+    Require(identityAuthority.Reserve(otherItsStationOwner, 708),
+            "Cross-owner station identity reservation failed");
+    Require(identityAuthority.Reserve(invalidAnyIpOwner, 706),
+            "Invalid-ANY-IP station identity reservation failed");
+
+    Require(!registry.RegisterItsStation(
+                "vehicle-id-owner-mismatch", 24, 703,
+                vanetza::geonet::StationType::Cyclist,
+                Ipv4Address("10.42.0.6"), stationMac),
+            "ITS station must not claim a stationId reserved by a vehicle");
 
     Require(registry.RegisterVehicle(
                 "registry-vehicle", 19, 703,
@@ -177,6 +234,18 @@ void TestStationEndpointRegistry()
     Require(vehicle->vehicleId == "registry-vehicle" &&
                 vehicle->stationId == 703 && vehicle->linkMac == vehicleMac,
             "Vehicle endpoint identity mismatch");
+
+    Require(!registry.RegisterVehicle(
+                "unreserved-vehicle", 24, 707,
+                vanetza::geonet::StationType::Passenger_Car,
+                Ipv4Address("10.42.0.7"), vehicleMac, true),
+            "Vehicle registration must reject an unreserved stationId");
+
+    Require(!registry.RegisterVehicle(
+                "its-station-id-owner-mismatch", 25, 708,
+                vanetza::geonet::StationType::Passenger_Car,
+                Ipv4Address("10.42.0.8"), vehicleMac, true),
+            "Vehicle must not claim a stationId reserved by an ITS station");
 
     Require(!registry.RegisterVehicle(
                 "invalid-vehicle", 20, 704,
@@ -201,6 +270,12 @@ void TestStationEndpointRegistry()
     registry.Clear();
     Require(registry.GetByIpv4(vehicleIp) == nullptr,
             "Registry Clear did not remove all endpoint entries");
+    Require(identityAuthority.IsReservedBy(703, vehicleOwner),
+            "Registry Clear must not release logical station identities");
+
+    identityAuthority.Clear();
+    Require(!identityAuthority.FindStationId(vehicleOwner).has_value(),
+            "Identity authority Clear did not remove vehicle reservation");
 
     std::cout << "STATION_ENDPOINT_REGISTRY=PASS\n";
 }

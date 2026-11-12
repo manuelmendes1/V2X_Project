@@ -117,5 +117,31 @@ class TestItsStationCmakeWiring(unittest.TestCase):
                 )
 
 
+    def test_station_identity_authority_is_compiled_by_neutral_object_library(self):
+        start = self.cmake.find(
+            "add_library(vanetza_its_station_obj OBJECT"
+        )
+        end = self.cmake.find(
+            "target_include_directories(vanetza_its_station_obj", start
+        )
+        self.assertGreaterEqual(
+            start, 0, "ITS_STATION_OBJECT_LIBRARY_MISSING"
+        )
+        self.assertGreater(
+            end, start, "ITS_STATION_OBJECT_LIBRARY_BLOCK_INVALID"
+        )
+
+        library_block = self.cmake[start:end]
+        expected_source = (
+            "context/its_station_identity/"
+            "its_station_identity_authority.cc"
+        )
+        self.assertIn(
+            expected_source,
+            library_block,
+            "ITS_STATION_ID_AUTHORITY_SOURCE_NOT_IN_NEUTRAL_LIBRARY",
+        )
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

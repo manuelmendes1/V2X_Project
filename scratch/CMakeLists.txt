@@ -288,6 +288,7 @@ target_link_libraries(vanetza_spatem_obj
 add_library(vanetza_its_station_obj OBJECT
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/its_station/address/its_station_address_builder.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/its_station/network/its_station_network_builder.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/its_station_identity/its_station_identity_authority.cc
 )
 
 target_include_directories(vanetza_its_station_obj PUBLIC

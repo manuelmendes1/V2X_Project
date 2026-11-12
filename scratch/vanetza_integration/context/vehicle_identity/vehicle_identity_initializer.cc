@@ -2,6 +2,7 @@
 
 #include "vanetza_integration/context/simulation_context/simulation_context.h"
 #include "vanetza_integration/context/vehicle_registry/vehicle_registry.h"
+#include "vanetza_integration/context/its_station_identity/its_station_identity_authority.h"
 
 #include "ns3/log.h"
 
@@ -58,11 +59,38 @@ VehicleIdentityInitializer::Initialize(VehicleState& state)
     // stationId by VanetzaGeoNetAdapter.
     //---------------------------------------------------------------------
 
-    const uint32_t stationId =
-        state.identity.nodeId + 1u;
+    const ItsStationIdentityOwner stationOwner{
+        ItsStationIdentityOwnerKind::Vehicle,
+        state.identity.vehId
+    };
 
-    state.identity.stationId =
-        stationId;
+    auto& identityAuthority =
+        ItsStationIdentityAuthority::Instance();
+
+    uint32_t stationId = 0;
+
+    // Preserve the logical vehicle identity across SUMO re-entry.
+    // The first accepted presence derives its ID from nodeId + 1.
+    const auto existingStationId =
+        identityAuthority.FindStationId(stationOwner);
+
+    if (existingStationId.has_value())
+    {
+        stationId = *existingStationId;
+    }
+    else
+    {
+        NS_ABORT_MSG_IF(
+            !identityAuthority.ReserveNodeDerived(
+                stationOwner,
+                state.identity.nodeId,
+                stationId),
+            "[VEHICLE_IDENTITY] global stationId reservation failed"
+                << " vehicle=" << state.identity.vehId
+                << " node_id=" << state.identity.nodeId);
+    }
+
+    state.identity.stationId = stationId;
 
     NS_ABORT_MSG_IF(
         state.identity.stationId == 0,
