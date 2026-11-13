@@ -5,10 +5,12 @@
 #include "vanetza_integration/core/v2x_log.h"
 
 #include <cmath>
+#include <cstdlib>
+#include <string>
 
 namespace {
 
-    constexpr bool CAM_HIGH_RATE_TEST = false;
+    constexpr unsigned CAM_TEST_MAX_PACKETS_PER_VEHICLE = 40;
 
     /*
      * Requests CAM every 1 ms in experimental mode.
@@ -33,7 +35,8 @@ namespace {
 namespace ns3 {
 
     bool CamTransmission::HighRateTestEnabled() {
-        return CAM_HIGH_RATE_TEST;
+        const char* enabled = std::getenv("V2X_CAM_HIGH_RATE_TEST");
+        return enabled != nullptr && std::string(enabled) == "1";
     }
 
     double CamTransmission::TestSchedulerInterval() {
@@ -85,8 +88,14 @@ namespace ns3 {
          * StateMachineBudget naturally maintains the corresponding
          * approximately 100 ms transmission period.
          */
-        if (CAM_HIGH_RATE_TEST)
+        if (HighRateTestEnabled())
         {
+            // Bound the probe independently for every vehicle.
+            if (vehicle.camSequenceCounter >=
+                CAM_TEST_MAX_PACKETS_PER_VEHICLE)
+            {
+                return req;
+            }
             /*
              * First CAM:
              *

@@ -65,10 +65,25 @@ SumoPersonRegistry::Apply(const SumoPersonDatagram& datagram)
     switch (datagram.eventType)
     {
     case SumoPersonEventType::Upsert:
+    {
+        // Preserve the first-observation timestamp while the person remains
+        // active. After an accepted REMOVE, the active entry is absent and
+        // the next accepted UPSERT starts a new observation period.
+        const auto existingPerson = m_persons.find(datagram.personId);
+
+        const std::uint64_t firstObservedAtUs =
+            existingPerson == m_persons.end()
+                ? datagram.simulationTimeUs
+                : existingPerson->second.firstObservedAtUs;
+
         m_persons.insert_or_assign(
             datagram.personId,
-            SumoPersonState{*datagram.sample, datagram.simulationTimeUs});
+            SumoPersonState{
+                *datagram.sample,
+                firstObservedAtUs,
+                datagram.simulationTimeUs});
         break;
+    }
 
     case SumoPersonEventType::Remove:
         m_persons.erase(datagram.personId);
@@ -94,6 +109,12 @@ SumoPersonRegistry::Find(const std::string& personId) const
     }
 
     return found->second;
+}
+
+const std::map<std::string, SumoPersonState>&
+SumoPersonRegistry::GetActivePersons() const noexcept
+{
+    return m_persons;
 }
 
 std::size_t

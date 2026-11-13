@@ -610,7 +610,14 @@ Para ITS-G5, `T_GenVam` deverá respeitar a indicação de DCC e ficar limitado 
 - mudança de velocidade acima do threshold;
 - mudança de orientação da velocidade acima do threshold;
 - alteração relevante da probabilidade de interceção de trajetória quando exista um modelo de trajetória válido;
+- aproximação de novos veículos ou outras VRUs detetados depois do último VAM transmitido, apenas quando `LaD < MSLaD`, `LoD < MSLoD` e `VD < MSVD` forem verdadeiros simultaneamente (ETSI TS 103 300-3 V2.3.1, cláusula 6.4.1, condição 7);
 - outros triggers previstos pela edição selecionada.
+
+A condição MSLaD/MSLoD/MSVD foi acrescentada ao `VamGenerationManager` isolado na sub-etapa 11.5.2. As distâncias e os limiares são entradas externas; a integração com a fonte de perceção/LDM permanece pendente.
+
+Na sub-etapa 11.5.3 foi acrescentado `firstObservedAtUs` a `SumoPersonState`. O primeiro UPSERT aceite inicia o histórico do período ativo; UPSERTs posteriores preservam o instante inicial; um REMOVE aceite termina esse período; uma reentrada aceite inicia um novo histórico. A alteração foi validada por 16 checks C++, pela suite `scratch/test/Red/VAM` (13/13 ficheiros de teste Python PASS) e pelo build de produção. `sumo_person_registry.cc` tem uma entrada em `cmake-cache/compile_commands.json`.
+
+Esta entrega valida apenas o histórico temporal na camada de registo SUMO. O valor ainda não é propagado para `VamSafeProximityObservation`, e não demonstra a integração do manager, a avaliação real das três distâncias ou a transmissão VAM.
 
 ### Valores de referência de triggers
 

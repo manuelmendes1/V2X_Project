@@ -136,6 +136,9 @@ add_library(vanetza_cam_encoder_obj OBJECT
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/simulation_step/simulation_step.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/simulation_sync/simulation_sync.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/tx_bridge/tx_bridge_context.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/tx_bridge/tx_completion.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/tx_bridge/tx_binding_outcome.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/tx_bridge/tx_packet_binding_registry.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/vehicle_builder/vehicle_builder.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/vehicle_dispatcher/vehicle_dispatcher.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/vehicle_identity/vehicle_identity_initializer.cc
@@ -178,6 +181,7 @@ add_library(vanetza_cam_encoder_obj OBJECT
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/sumo_vru_subject_registry/sumo_vru_subject_registry.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/sumo_person_vru_subject_synchronizer/sumo_person_vru_subject_synchronizer.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/sumo_person_registry/sumo_person_registry.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/sumo_vehicle_lifecycle_registry/sumo_vehicle_lifecycle_registry.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/sumo_adapter/sumo_serializer.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/sumo_adapter/sumo_socket.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/btp/vanetza_btp_adapter.cc
@@ -336,6 +340,24 @@ target_include_directories(vanetza_cpm_perception_obj PUBLIC
 )
 
 # =========================================================
+# VAM OBJECT LIBRARY
+# =========================================================
+
+add_library(vanetza_vam_obj OBJECT
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/vam/generation/vam_generation_manager.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/vam/cluster/vam_cluster_operation_validation.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/vam/cluster/vam_cluster_lifecycle_state_machine.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/vam/perception/vam_proximity_provider.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/vam/perception/vam_proximity_snapshot_builder.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/vam/perception/vam_generation_evaluation_adapter.cc
+)
+
+target_include_directories(vanetza_vam_obj PUBLIC
+    ${CMAKE_SOURCE_DIR}/scratch
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration
+)
+
+# =========================================================
 # SCRATCH EXEC BUILDER
 # =========================================================
 function(create_scratch source_files)
@@ -388,6 +410,7 @@ function(create_scratch source_files)
             $<TARGET_OBJECTS:vanetza_spatem_obj>
             $<TARGET_OBJECTS:vanetza_cpm_perception_obj>
             $<TARGET_OBJECTS:vanetza_its_station_obj>
+            $<TARGET_OBJECTS:vanetza_vam_obj>
         EXECUTABLE_DIRECTORY_PATH ${CMAKE_OUTPUT_DIRECTORY}/scratch
         IGNORE_PCH
     )

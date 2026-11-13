@@ -1,6 +1,9 @@
 #include "vanetza_integration/vam/generation/vam_generation_manager.h"
 
 #include <cmath>
+#include <chrono>
+#include <array>
+#include <limits>
 #include <cstdint>
 #include <iostream>
 #include <optional>
@@ -83,10 +86,12 @@ bool Evaluate(
 bool Confirm(
     VamGenerationManager& manager,
     const VamGenerationResult& result,
+    std::int64_t confirmedAtMs,
     std::string& error)
 {
     return result.transactionId.has_value() &&
-           manager.ConfirmGeneration(*result.transactionId, error);
+           manager.ConfirmGeneration(
+               *result.transactionId, confirmedAtMs, error);
 }
 
 bool TestInitialGenerationAndMinimumInterval()
@@ -108,7 +113,7 @@ bool TestInitialGenerationAndMinimumInterval()
         result.transactionId.has_value();
     Check(firstCorrect, "FIRST_VAM_AFTER_VBS_ACTIVATION_IS_IMMEDIATE_AND_HAS_LF");
 
-    const bool confirmed = Confirm(manager, result, error);
+    const bool confirmed = Confirm(manager, result, 0, error);
     Check(confirmed && error.empty(), "INITIAL_GENERATION_CAN_BE_CONFIRMED");
 
     error.clear();
@@ -167,7 +172,7 @@ bool TestPositionThresholdIsStrict()
     std::string error;
 
     bool ok = Evaluate(manager, 0, input, {}, result, error) &&
-              Confirm(manager, result, error);
+              Confirm(manager, result, 0, error);
 
     SetEastOffsetMeters(input, 4.0);
     error.clear();
@@ -194,7 +199,7 @@ bool TestSpeedThresholdIsStrict()
     VamGenerationResult result{};
     std::string error;
     bool ok = Evaluate(manager, 0, input, {}, result, error) &&
-              Confirm(manager, result, error);
+              Confirm(manager, result, 0, error);
 
     input.highFrequencyState.speedMps = 2.5;
     error.clear();
@@ -222,7 +227,7 @@ bool TestOrientationWrapAndStrictThreshold()
     VamGenerationResult result{};
     std::string error;
     bool ok = Evaluate(manager, 0, input, {}, result, error) &&
-              Confirm(manager, result, error);
+              Confirm(manager, result, 0, error);
 
     input.highFrequencyState.headingDeg = 3.0;
     error.clear();
@@ -250,7 +255,7 @@ bool TestMaximumGenerationIntervalIsStrict()
     VamGenerationResult result{};
     std::string error;
     bool ok = Evaluate(manager, 0, input, {}, result, error) &&
-              Confirm(manager, result, error);
+              Confirm(manager, result, 0, error);
 
     error.clear();
     ok = Evaluate(manager, 5000, input, {}, result, error) && ok;
@@ -278,7 +283,7 @@ bool TestTrajectoryProbabilityUsesPercentagePoints()
 
     context.trajectoryInterceptionProbabilityPercent = 20.0;
     bool ok = Evaluate(manager, 0, input, context, result, error) &&
-              Confirm(manager, result, error);
+              Confirm(manager, result, 0, error);
 
     context.trajectoryInterceptionProbabilityPercent = 30.0;
     error.clear();
@@ -307,13 +312,13 @@ bool TestLowFrequencyContainerPeriodicity()
     std::string error;
     bool ok = Evaluate(manager, 0, input, {}, result, error) &&
               result.includeLowFrequencyContainer &&
-              Confirm(manager, result, error);
+              Confirm(manager, result, 0, error);
 
     SetEastOffsetMeters(input, 5.0);
     error.clear();
     ok = Evaluate(manager, 100, input, {}, result, error) && ok;
     const bool noEarlyLf = !result.includeLowFrequencyContainer;
-    ok = Confirm(manager, result, error) && ok;
+    ok = Confirm(manager, result, 100, error) && ok;
 
     SetEastOffsetMeters(input, 10.0);
     error.clear();
@@ -396,7 +401,7 @@ bool TestRedundancyPeerRequiresAllSimilarityConditions()
         VamGenerationResult result{};
         std::string error;
         bool ok = Evaluate(manager, 0, input, {}, result, error) &&
-                  Confirm(manager, result, error);
+                  Confirm(manager, result, 0, error);
 
         SetEastOffsetMeters(input, 5.0);
         input.highFrequencyState.speedMps = 2.0;
@@ -450,7 +455,7 @@ bool TestRedundancyAlternativeSignalsAndSkipLimit()
     VamGenerationResult result{};
     std::string error;
     bool ok = Evaluate(manager, 0, input, {}, result, error) &&
-              Confirm(manager, result, error);
+              Confirm(manager, result, 0, error);
     SetEastOffsetMeters(input, 5.0);
 
     VamGenerationContext context{};
@@ -484,7 +489,7 @@ bool TestOtherRedundancyAlternatives()
         VamGenerationResult result{};
         std::string error;
         bool ok = Evaluate(manager, 0, input, {}, result, error) &&
-                  Confirm(manager, result, error);
+                  Confirm(manager, result, 0, error);
         SetEastOffsetMeters(input, 5.0);
         VamGenerationContext context{};
         context.redundancy = redundancy;
@@ -517,7 +522,7 @@ bool TestRedundancyPeerTimeHorizon()
     VamGenerationResult result{};
     std::string error;
     bool ok = Evaluate(manager, 0, input, {}, result, error) &&
-              Confirm(manager, result, error);
+              Confirm(manager, result, 0, error);
 
     SetEastOffsetMeters(input, 5.0);
     VamGenerationContext context{};
@@ -557,7 +562,7 @@ bool TestRedundancySkipCountConfigRange()
     return belowRangeRejected && aboveRangeRejected;
 }
 
-bool TestClusterOperationRequiresIndividualVamGeneration()
+bool TestClusterOperationChangesAreComparedSemantically()
 {
     VamGenerationManager manager;
     auto input = PedestrianInput();
@@ -565,23 +570,562 @@ bool TestClusterOperationRequiresIndividualVamGeneration()
     std::string error;
 
     bool ok = Evaluate(manager, 0, input, {}, result, error) &&
-              Confirm(manager, result, error);
+              Confirm(manager, result, 0, error);
 
-    // The individual VAM announcing a cluster operation is a generation
-    // trigger even when position, speed, orientation and trajectory are
-    // unchanged. The operation container itself is already part of VamInput.
-    input.clusterOperation = VamClusterOperation{};
+    VamClusterOperation operation{};
+    operation.clusterLeaveInfo = VamClusterLeaveInfo{
+        VamClusterId{42},
+        VamClusterLeaveReason::SafetyCondition
+    };
+    input.clusterOperation = operation;
+
     error.clear();
     ok = Evaluate(manager, 100, input, {}, result, error) && ok;
 
-    const bool operationTriggersVam =
+    const bool firstOperationTriggers =
         result.outcome == VamGenerationOutcome::GenerationCandidate &&
-        result.shouldGenerate;
+        result.shouldGenerate &&
+        result.reason == VamGenerationReason::ClusterOperationChanged;
+
+    const bool firstOperationConfirmed =
+        Confirm(manager, result, 100, error) && ok;
+
+    error.clear();
+    ok = Evaluate(manager, 200, input, {}, result, error) && ok;
+
+    const bool identicalOperationDoesNotTrigger =
+        result.outcome == VamGenerationOutcome::NoTrigger &&
+        !result.shouldGenerate;
+
+    input.clusterOperation->clusterLeaveInfo->clusterLeaveReason =
+        VamClusterLeaveReason::FailedJoin;
+
+    error.clear();
+    ok = Evaluate(manager, 300, input, {}, result, error) && ok;
+
+    const bool changedOperationTriggers =
+        result.outcome == VamGenerationOutcome::GenerationCandidate &&
+        result.shouldGenerate &&
+        result.reason == VamGenerationReason::ClusterOperationChanged;
+
+    const bool changedOperationConfirmed =
+        Confirm(manager, result, 300, error) && ok;
+
+    input.clusterOperation.reset();
+
+    error.clear();
+    ok = Evaluate(manager, 400, input, {}, result, error) && ok;
+
+    const bool removalDoesNotTrigger =
+        result.outcome == VamGenerationOutcome::NoTrigger &&
+        !result.shouldGenerate;
 
     Check(
-        ok && operationTriggersVam,
-        "CLUSTER_OPERATION_CHANGE_TRIGGERS_INDIVIDUAL_VAM");
-    return ok && operationTriggersVam;
+        ok && firstOperationTriggers && firstOperationConfirmed &&
+            identicalOperationDoesNotTrigger && changedOperationTriggers &&
+            changedOperationConfirmed && removalDoesNotTrigger,
+        "CLUSTER_OPERATION_CONTENT_CHANGE_TRIGGERS_BUT_IDENTICAL_OR_REMOVED_OPERATION_DOES_NOT");
+
+    return ok && firstOperationTriggers && firstOperationConfirmed &&
+           identicalOperationDoesNotTrigger && changedOperationTriggers &&
+           changedOperationConfirmed && removalDoesNotTrigger;
+}
+
+VamSafeProximityObservation MakeSafeProximityObservation(
+    std::int64_t firstObservedAtMs,
+    double lateralDistanceMeters,
+    double longitudinalDistanceMeters,
+    double verticalDistanceMeters)
+{
+    VamSafeProximityObservation observation{};
+    observation.firstObservedAtMs = firstObservedAtMs;
+    observation.lateralDistanceMeters = lateralDistanceMeters;
+    observation.longitudinalDistanceMeters = longitudinalDistanceMeters;
+    observation.verticalDistanceMeters = verticalDistanceMeters;
+
+    // Fixture de limiares fornecidos pela camada de percepção.
+    // Não representam constantes universais do Generation Manager.
+    observation.minimumSafeLateralDistanceMeters = 10.0;
+    observation.minimumSafeLongitudinalDistanceMeters = 10.0;
+    observation.minimumSafeVerticalDistanceMeters = 5.0;
+
+    return observation;
+}
+
+bool TestSafeProximityRequiresAllThreeStrictThresholds()
+{
+    const auto runCase = [](double lateral,
+                            double longitudinal,
+                            double vertical) {
+        VamGenerationManager manager;
+        auto input = PedestrianInput();
+        VamGenerationResult result{};
+        std::string error;
+
+        bool ok = Evaluate(manager, 0, input, {}, result, error) &&
+                  Confirm(manager, result, 0, error);
+
+        VamGenerationContext context{};
+        context.safeProximityObservations.push_back(
+            MakeSafeProximityObservation(1, lateral, longitudinal, vertical));
+
+        error.clear();
+        ok = Evaluate(manager, 100, input, context, result, error) && ok;
+
+        return std::make_pair(ok, result);
+    };
+
+    const auto allInside = runCase(9.9, 9.9, 4.9);
+    const auto lateralBoundary = runCase(10.0, 9.9, 4.9);
+    const auto longitudinalBoundary = runCase(9.9, 10.0, 4.9);
+    const auto verticalBoundary = runCase(9.9, 9.9, 5.0);
+
+    const bool allThreeRequired =
+        allInside.first &&
+        allInside.second.outcome ==
+            VamGenerationOutcome::GenerationCandidate &&
+        allInside.second.reason ==
+            VamGenerationReason::NewParticipantWithinSafeDistance;
+
+    const bool lateralMustBeStrict =
+        lateralBoundary.first &&
+        lateralBoundary.second.outcome == VamGenerationOutcome::NoTrigger;
+
+    const bool longitudinalMustBeStrict =
+        longitudinalBoundary.first &&
+        longitudinalBoundary.second.outcome == VamGenerationOutcome::NoTrigger;
+
+    const bool verticalMustBeStrict =
+        verticalBoundary.first &&
+        verticalBoundary.second.outcome == VamGenerationOutcome::NoTrigger;
+
+    Check(
+        allThreeRequired && lateralMustBeStrict &&
+            longitudinalMustBeStrict && verticalMustBeStrict,
+        "SAFE_PROXIMITY_TRIGGER_REQUIRES_ALL_THREE_STRICT_DISTANCE_CONDITIONS");
+
+    return allThreeRequired && lateralMustBeStrict &&
+           longitudinalMustBeStrict && verticalMustBeStrict;
+}
+
+bool TestSafeProximityRequiresNewParticipantAfterLastConfirmedVam()
+{
+    VamGenerationManager manager;
+    auto input = PedestrianInput();
+    VamGenerationResult result{};
+    std::string error;
+
+    bool ok = Evaluate(manager, 0, input, {}, result, error) &&
+              Confirm(manager, result, 0, error);
+
+    VamGenerationContext context{};
+    context.safeProximityObservations.push_back(
+        MakeSafeProximityObservation(0, 9.0, 9.0, 4.0));
+
+    error.clear();
+    ok = Evaluate(manager, 100, input, context, result, error) && ok;
+    const bool oldParticipantIgnored =
+        result.outcome == VamGenerationOutcome::NoTrigger;
+
+    context.safeProximityObservations.front().firstObservedAtMs = 1;
+
+    error.clear();
+    ok = Evaluate(manager, 200, input, context, result, error) && ok;
+
+    const bool newParticipantTriggers =
+        result.outcome == VamGenerationOutcome::GenerationCandidate &&
+        result.reason ==
+            VamGenerationReason::NewParticipantWithinSafeDistance;
+
+    const bool confirmed = Confirm(manager, result, 200, error) && ok;
+
+    error.clear();
+    ok = Evaluate(manager, 300, input, context, result, error) && ok;
+
+    const bool confirmedParticipantIsNoLongerNew =
+        result.outcome == VamGenerationOutcome::NoTrigger &&
+        !result.shouldGenerate;
+
+    Check(
+        ok && oldParticipantIgnored && newParticipantTriggers &&
+            confirmed && confirmedParticipantIsNoLongerNew,
+        "SAFE_PROXIMITY_TRIGGER_ONLY_CONSUMES_NEW_PARTICIPANTS");
+
+    return ok && oldParticipantIgnored && newParticipantTriggers &&
+           confirmed && confirmedParticipantIsNoLongerNew;
+}
+
+bool TestSafeProximityHonoursMinimumIntervalAndTransactionLifecycle()
+{
+    VamGenerationManager manager;
+    auto input = PedestrianInput();
+    VamGenerationResult result{};
+    std::string error;
+
+    bool ok = Evaluate(manager, 0, input, {}, result, error) &&
+              Confirm(manager, result, 0, error);
+
+    VamGenerationContext context{};
+    context.safeProximityObservations.push_back(
+        MakeSafeProximityObservation(50, 9.0, 9.0, 4.0));
+
+    error.clear();
+    ok = Evaluate(manager, 99, input, context, result, error) && ok;
+    const bool minimumIntervalRespected =
+        result.outcome == VamGenerationOutcome::NotDue &&
+        !result.shouldGenerate;
+
+    error.clear();
+    ok = Evaluate(manager, 100, input, context, result, error) && ok;
+    const bool candidateReady =
+        result.outcome == VamGenerationOutcome::GenerationCandidate &&
+        result.reason ==
+            VamGenerationReason::NewParticipantWithinSafeDistance;
+
+    const bool aborted =
+        result.transactionId.has_value() &&
+        manager.AbortGeneration(*result.transactionId, error);
+
+    error.clear();
+    ok = Evaluate(manager, 100, input, context, result, error) && ok;
+    const bool retryAfterAbort =
+        result.outcome == VamGenerationOutcome::GenerationCandidate &&
+        result.reason ==
+            VamGenerationReason::NewParticipantWithinSafeDistance;
+
+    const bool confirmed = Confirm(manager, result, 100, error) && ok;
+
+    error.clear();
+    ok = Evaluate(manager, 200, input, context, result, error) && ok;
+    const bool noRepeatedTrigger =
+        result.outcome == VamGenerationOutcome::NoTrigger;
+
+    Check(
+        ok && minimumIntervalRespected && candidateReady && aborted &&
+            retryAfterAbort && confirmed && noRepeatedTrigger,
+        "SAFE_PROXIMITY_TRIGGER_RESPECTS_MIN_INTERVAL_AND_TRANSACTION");
+
+    return ok && minimumIntervalRespected && candidateReady && aborted &&
+           retryAfterAbort && confirmed && noRepeatedTrigger;
+}
+
+
+bool TestSafeProximityUsesConfirmedTransmissionTimestamp()
+{
+    VamGenerationManager manager;
+    auto input = PedestrianInput();
+    VamGenerationResult result{};
+    std::string error;
+
+    bool ok = Evaluate(manager, 0, input, {}, result, error);
+    const auto initialToken = result.transactionId;
+
+    // A decisão é avaliada em 0 ms, mas a transmissão só é confirmada
+    // em 25 ms, depois da montagem/entrega do VAM.
+    error.clear();
+    const bool initialConfirmed =
+        initialToken.has_value() &&
+        manager.ConfirmGeneration(*initialToken, 25, error);
+
+    VamGenerationContext context{};
+    context.safeProximityObservations.push_back(
+        MakeSafeProximityObservation(10, 9.0, 9.0, 4.0));
+
+    // A observação ocorreu depois de Evaluate(0), mas antes da transmissão
+    // confirmada em 25 ms: não deve gerar um novo VAM.
+    error.clear();
+    ok = Evaluate(manager, 125, input, context, result, error) && ok;
+    const bool observationDuringAssemblyIgnored =
+        result.outcome == VamGenerationOutcome::NoTrigger;
+
+    // A igualdade com o instante de transmissão também não satisfaz
+    // a condição estrita "observado depois da última transmissão".
+    context.safeProximityObservations.front().firstObservedAtMs = 25;
+    error.clear();
+    ok = Evaluate(manager, 225, input, context, result, error) && ok;
+    const bool exactTransmissionBoundaryIgnored =
+        result.outcome == VamGenerationOutcome::NoTrigger;
+
+    // Só uma observação posterior à confirmação da transmissão é elegível.
+    context.safeProximityObservations.front().firstObservedAtMs = 26;
+    error.clear();
+    ok = Evaluate(manager, 325, input, context, result, error) && ok;
+    const bool postTransmissionObservationTriggers =
+        result.outcome == VamGenerationOutcome::GenerationCandidate &&
+        result.reason ==
+            VamGenerationReason::NewParticipantWithinSafeDistance;
+
+    // A geração seguinte deve respeitar T_GenVamMin a partir da confirmação
+    // efetiva em 345 ms, não da avaliação em 325 ms.
+    error.clear();
+    const bool candidateConfirmed =
+        Confirm(manager, result, 345, error) && ok;
+
+    context.safeProximityObservations.push_back(
+        MakeSafeProximityObservation(346, 9.0, 9.0, 4.0));
+
+    error.clear();
+    ok = Evaluate(manager, 444, input, context, result, error) && ok;
+    const bool minIntervalUsesTransmissionTime =
+        result.outcome == VamGenerationOutcome::NotDue;
+
+    error.clear();
+    ok = Evaluate(manager, 445, input, context, result, error) && ok;
+    const bool intervalAllowsGeneration =
+        result.outcome == VamGenerationOutcome::GenerationCandidate &&
+        result.reason ==
+            VamGenerationReason::NewParticipantWithinSafeDistance;
+
+    const bool candidateAborted =
+        result.transactionId.has_value() &&
+        manager.AbortGeneration(*result.transactionId, error);
+
+    // Uma confirmação anterior à avaliação da transação deve ser rejeitada,
+    // mas a mesma transação continua confirmável num instante válido.
+    VamGenerationManager invalidConfirmationManager;
+    error.clear();
+    const bool secondEvaluationAccepted =
+        Evaluate(invalidConfirmationManager, 50, input, {},
+                 result, error);
+    const auto secondToken = result.transactionId;
+
+    error.clear();
+    const bool earlierConfirmationRejected =
+        secondToken.has_value() &&
+        !invalidConfirmationManager.ConfirmGeneration(
+            *secondToken, 49, error);
+
+    error.clear();
+    const bool validConfirmationAccepted =
+        secondToken.has_value() &&
+        invalidConfirmationManager.ConfirmGeneration(
+            *secondToken, 50, error);
+
+    const bool passed =
+        ok && initialConfirmed &&
+        observationDuringAssemblyIgnored &&
+        exactTransmissionBoundaryIgnored &&
+        postTransmissionObservationTriggers &&
+        candidateConfirmed && minIntervalUsesTransmissionTime &&
+        intervalAllowsGeneration && candidateAborted &&
+        secondEvaluationAccepted && earlierConfirmationRejected &&
+        validConfirmationAccepted;
+
+    Check(
+        passed,
+        "SAFE_PROXIMITY_AND_MIN_INTERVAL_USE_CONFIRMED_TRANSMISSION_TIME");
+
+    return passed;
+}
+
+
+bool TestInvalidSafeProximityObservationsPreserveManagerState()
+{
+    const auto validObservation =
+        MakeSafeProximityObservation(1, 1.0, 1.0, 1.0);
+
+    std::vector<VamSafeProximityObservation> invalidObservations;
+
+    auto negativeTimestamp = validObservation;
+    negativeTimestamp.firstObservedAtMs = -1;
+    invalidObservations.push_back(negativeTimestamp);
+
+    auto futureTimestamp = validObservation;
+    futureTimestamp.firstObservedAtMs = 101;
+    invalidObservations.push_back(futureTimestamp);
+
+    const std::array<
+        double VamSafeProximityObservation::*, 6> numericFields{{
+        &VamSafeProximityObservation::lateralDistanceMeters,
+        &VamSafeProximityObservation::longitudinalDistanceMeters,
+        &VamSafeProximityObservation::verticalDistanceMeters,
+        &VamSafeProximityObservation::minimumSafeLateralDistanceMeters,
+        &VamSafeProximityObservation::minimumSafeLongitudinalDistanceMeters,
+        &VamSafeProximityObservation::minimumSafeVerticalDistanceMeters
+    }};
+
+    const std::array<double, 3> invalidNumericValues{{
+        -1.0,
+        std::numeric_limits<double>::quiet_NaN(),
+        std::numeric_limits<double>::infinity()
+    }};
+
+    for (const auto field : numericFields)
+    {
+        for (const double invalidValue : invalidNumericValues)
+        {
+            auto observation = validObservation;
+            observation.*field = invalidValue;
+            invalidObservations.push_back(observation);
+        }
+    }
+
+    bool allRejectedWithoutMutation = true;
+    std::size_t testedCases = 0;
+
+    for (const auto& invalidObservation : invalidObservations)
+    {
+        VamGenerationManager manager;
+        auto input = PedestrianInput();
+        VamGenerationResult initial{};
+        std::string error;
+
+        const bool initialEvaluated =
+            Evaluate(manager, 0, input, {}, initial, error);
+        const bool initialConfirmed =
+            initialEvaluated && Confirm(manager, initial, 0, error);
+
+        VamGenerationContext invalidContext{};
+        invalidContext.safeProximityObservations.push_back(
+            invalidObservation);
+
+        VamGenerationResult output{};
+        output.outcome = VamGenerationOutcome::BlockedByPolicy;
+        output.shouldGenerate = true;
+        output.reason =
+            VamGenerationReason::TrajectoryInterceptionProbabilityChanged;
+        output.includeLowFrequencyContainer = true;
+        output.effectiveTGenVamMs = 777;
+        output.transactionId = 999;
+
+        error.clear();
+        const bool invalidInputRejected =
+            !Evaluate(manager, 100, input, invalidContext, output, error) &&
+            !error.empty();
+
+        const bool outputPreserved =
+            output.outcome == VamGenerationOutcome::BlockedByPolicy &&
+            output.shouldGenerate &&
+            output.reason ==
+                VamGenerationReason::TrajectoryInterceptionProbabilityChanged &&
+            output.includeLowFrequencyContainer &&
+            output.effectiveTGenVamMs == 777 &&
+            output.transactionId == 999;
+
+        // A rejeição em 100 ms não pode avançar o relógio interno:
+        // uma avaliação válida em 99 ms ainda deve ser aceite.
+        VamGenerationResult recovery{};
+        error.clear();
+        const bool recoveryAccepted =
+            Evaluate(manager, 99, input, {}, recovery, error);
+
+        const bool managerStatePreserved =
+            recoveryAccepted &&
+            error.empty() &&
+            recovery.outcome == VamGenerationOutcome::NotDue &&
+            !recovery.shouldGenerate;
+
+        allRejectedWithoutMutation =
+            initialConfirmed &&
+            invalidInputRejected &&
+            outputPreserved &&
+            managerStatePreserved &&
+            allRejectedWithoutMutation;
+
+        ++testedCases;
+    }
+
+    const bool passed =
+        allRejectedWithoutMutation && testedCases == 20;
+
+    Check(
+        passed,
+        "INVALID_SAFE_PROXIMITY_OBSERVATIONS_REJECT_WITHOUT_MUTATING_MANAGER");
+
+    return passed;
+}
+
+bool TestInvalidClusterOperationsPreserveManagerState()
+{
+    std::vector<VamClusterOperation> invalidOperations;
+
+    invalidOperations.emplace_back();
+
+    VamClusterOperation invalidLeave{};
+    invalidLeave.clusterLeaveInfo = VamClusterLeaveInfo{
+        VamClusterId{42},
+        static_cast<VamClusterLeaveReason>(9)
+    };
+    invalidOperations.push_back(invalidLeave);
+
+    VamClusterOperation invalidBreakup{};
+    invalidBreakup.clusterBreakupInfo = VamClusterBreakupInfo{
+        static_cast<VamClusterBreakupReason>(6),
+        VamClusterOperationTime{std::chrono::milliseconds{250}}
+    };
+    invalidOperations.push_back(invalidBreakup);
+
+    VamClusterOperation invalidJoinTime{};
+    invalidJoinTime.clusterJoinInfo = VamClusterJoinInfo{
+        VamClusterId{42},
+        VamClusterOperationTime{std::chrono::milliseconds{251}}
+    };
+    invalidOperations.push_back(invalidJoinTime);
+
+    VamClusterOperation invalidIdChangeTime{};
+    invalidIdChangeTime.clusterIdChangeTimeInfo =
+        VamClusterOperationTime{std::chrono::milliseconds{0}};
+    invalidOperations.push_back(invalidIdChangeTime);
+
+    bool allRejectedWithoutMutation = true;
+
+    for (const auto& invalidOperation : invalidOperations)
+    {
+        VamGenerationManager manager;
+        auto validInput = PedestrianInput();
+        VamGenerationResult initial{};
+        std::string error;
+
+        const bool initialConfirmed =
+            Evaluate(manager, 0, validInput, {}, initial, error) &&
+            Confirm(manager, initial, 0, error);
+
+        auto invalidInput = validInput;
+        invalidInput.clusterOperation = invalidOperation;
+
+        VamGenerationResult output{};
+        output.outcome = VamGenerationOutcome::BlockedByPolicy;
+        output.shouldGenerate = true;
+        output.reason =
+            VamGenerationReason::TrajectoryInterceptionProbabilityChanged;
+        output.includeLowFrequencyContainer = true;
+        output.effectiveTGenVamMs = 777;
+        output.transactionId = 999;
+
+        error.clear();
+        const bool invalidOperationRejected =
+            !Evaluate(manager, 100, invalidInput, {}, output, error) &&
+            !error.empty();
+
+        const bool outputPreserved =
+            output.outcome == VamGenerationOutcome::BlockedByPolicy &&
+            output.shouldGenerate &&
+            output.reason ==
+                VamGenerationReason::TrajectoryInterceptionProbabilityChanged &&
+            output.includeLowFrequencyContainer &&
+            output.effectiveTGenVamMs == 777 &&
+            output.transactionId == 999;
+
+        // Uma rejeição em 100 ms não pode avançar o relógio interno.
+        VamGenerationResult recovery{};
+        error.clear();
+        const bool recoveryAccepted =
+            Evaluate(manager, 99, validInput, {}, recovery, error);
+
+        const bool managerStatePreserved =
+            recoveryAccepted && error.empty() &&
+            recovery.outcome == VamGenerationOutcome::NotDue &&
+            !recovery.shouldGenerate;
+
+        allRejectedWithoutMutation =
+            initialConfirmed && invalidOperationRejected && outputPreserved &&
+            managerStatePreserved && allRejectedWithoutMutation;
+    }
+
+    Check(
+        allRejectedWithoutMutation,
+        "INVALID_CLUSTER_OPERATIONS_REJECT_WITHOUT_MUTATING_MANAGER_OR_OUTPUT");
+    return allRejectedWithoutMutation;
 }
 
 bool TestTransactionsAreAtomicAndSingleUse()
@@ -607,18 +1151,18 @@ bool TestTransactionsAreAtomicAndSingleUse()
 
     error.clear();
     const bool staleConfirmRejected = token.has_value() &&
-        !manager.ConfirmGeneration(*token, error);
+        !manager.ConfirmGeneration(*token, 100, error);
 
     error.clear();
     const bool retryAccepted = Evaluate(manager, 100, input, {}, result, error);
     const auto retryToken = result.transactionId;
     error.clear();
     const bool retryConfirmed = retryToken.has_value() &&
-        manager.ConfirmGeneration(*retryToken, error);
+        manager.ConfirmGeneration(*retryToken, 100, error);
 
     error.clear();
     const bool repeatedConfirmRejected = retryToken.has_value() &&
-        !manager.ConfirmGeneration(*retryToken, error);
+        !manager.ConfirmGeneration(*retryToken, 100, error);
 
     Check(
         ok && concurrentEvaluationRejected && outputPreserved && aborted &&
@@ -678,7 +1222,13 @@ int main()
     TestOtherRedundancyAlternatives();
     TestRedundancyPeerTimeHorizon();
     TestRedundancySkipCountConfigRange();
-    TestClusterOperationRequiresIndividualVamGeneration();
+    TestClusterOperationChangesAreComparedSemantically();
+    TestSafeProximityRequiresAllThreeStrictThresholds();
+    TestSafeProximityRequiresNewParticipantAfterLastConfirmedVam();
+    TestSafeProximityHonoursMinimumIntervalAndTransactionLifecycle();
+    TestSafeProximityUsesConfirmedTransmissionTimestamp();
+    TestInvalidSafeProximityObservationsPreserveManagerState();
+    TestInvalidClusterOperationsPreserveManagerState();
     TestTransactionsAreAtomicAndSingleUse();
     TestInvalidTimeAndConfigPreserveOutput();
 

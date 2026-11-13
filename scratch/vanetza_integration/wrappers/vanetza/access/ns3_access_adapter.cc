@@ -1886,10 +1886,25 @@ Ns3AccessAdapter::request(
     const vanetza::access::DataRequest&,
     std::unique_ptr<vanetza::ChunkPacket> packet)
 {
-    std::shared_ptr<PacketContext> ctx = TxBridgeContext::Current();
+    // Consume the complete DCC/application binding. The Access layer
+    // owns both references throughout the asynchronous socket operation.
+    TxBridgeBinding binding = TxBridgeContext::Take();
 
+    std::shared_ptr<PacketContext> ctx = binding.context;
+    std::shared_ptr<TxCompletion> completion = binding.completion;
 
-    TxBridgeContext::Pop();
+    const auto completeFailure =
+        [&completion](const std::string& reason)
+        {
+            if (completion)
+            {
+                completion->Complete({
+                    TxCompletionStatus::Failure,
+                    Simulator::Now().GetMicroSeconds(),
+                    reason
+                });
+            }
+        };
 
     //----------------------------------------------------------------------
     // Validation
@@ -1903,9 +1918,7 @@ Ns3AccessAdapter::request(
                 PipelineStage::ACCESS_TX);
 
             ctx->MarkFailure();
-
-            ctx->reason =
-                "null_packet";
+            ctx->reason = "null_packet";
 
             V2XWriteLog(
                 *ctx,
@@ -1913,10 +1926,9 @@ Ns3AccessAdapter::request(
                 "ACCESS",
                 "ACCESS_TX_FAIL",
                 "Null ChunkPacket");
-
-            TxBridgeContext::Pop();
         }
 
+        completeFailure("null_packet");
         return;
     }
 
@@ -1928,9 +1940,7 @@ Ns3AccessAdapter::request(
                 PipelineStage::ACCESS_TX);
 
             ctx->MarkFailure();
-
-            ctx->reason =
-                "socket_unavailable";
+            ctx->reason = "socket_unavailable";
 
             V2XWriteLog(
                 *ctx,
@@ -1938,10 +1948,9 @@ Ns3AccessAdapter::request(
                 "ACCESS",
                 "ACCESS_TX_FAIL",
                 "Socket unavailable");
-
-            TxBridgeContext::Pop();
         }
 
+        completeFailure("socket_unavailable");
         return;
     }
 
@@ -2183,9 +2192,7 @@ Ns3AccessAdapter::request(
                 PipelineStage::ACCESS_TX);
 
             ctx->MarkFailure();
-
-            ctx->reason =
-                "empty_frame";
+            ctx->reason = "empty_frame";
 
             V2XWriteLog(
                 *ctx,
@@ -2193,10 +2200,9 @@ Ns3AccessAdapter::request(
                 "ACCESS",
                 "ACCESS_TX_FAIL",
                 "Serialized frame is empty");
-
-            TxBridgeContext::Pop();
         }
 
+        completeFailure("empty_frame");
         return;
     }
 
@@ -2434,7 +2440,8 @@ Ns3AccessAdapter::request(
     //----------------------------------------------------------------------
 
     Simulator::ScheduleNow(
-        [ctx, socket, ns3Packet, duplicateDenm, duplicateSpatem, duplicateCpm]()
+        [ctx, completion, socket, ns3Packet,
+         duplicateDenm, duplicateSpatem, duplicateCpm]()
         {
 
             //--------------------------------------------------------------
@@ -2443,13 +2450,23 @@ Ns3AccessAdapter::request(
 
             if (!ctx)
             {
-                socket->SendTo(
+                const int sent = socket->SendTo(
                     ns3Packet,
                     0,
                     InetSocketAddress(
-                        Ipv4Address(
-                            "10.0.0.255"),
+                        Ipv4Address("10.0.0.255"),
                         5000));
+
+                if (completion)
+                {
+                    completion->Complete({
+                        sent < 0
+                            ? TxCompletionStatus::Failure
+                            : TxCompletionStatus::Success,
+                        Simulator::Now().GetMicroSeconds(),
+                        sent < 0 ? "SendTo failed" : "TX_COMPLETE"
+                    });
+                }
 
                 return;
             }
@@ -2612,7 +2629,14 @@ Ns3AccessAdapter::request(
                     + std::to_string(
                           sent));
 
-                TxBridgeContext::Pop();
+                if (completion)
+                {
+                    completion->Complete({
+                        TxCompletionStatus::Failure,
+                        Simulator::Now().GetMicroSeconds(),
+                        "SendTo failed"
+                    });
+                }
 
                 return;
             }
@@ -2647,7 +2671,14 @@ Ns3AccessAdapter::request(
                 "TX_COMPLETE",
                 "Transmission completed");
 
-            TxBridgeContext::Pop();
+            if (completion)
+            {
+                completion->Complete({
+                    TxCompletionStatus::Success,
+                    Simulator::Now().GetMicroSeconds(),
+                    "TX_COMPLETE"
+                });
+            }
         });
 }
 

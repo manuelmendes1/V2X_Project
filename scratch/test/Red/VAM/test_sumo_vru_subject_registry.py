@@ -55,6 +55,12 @@ class TestSumoVruSubjectRegistry(unittest.TestCase):
             / "scratch/vanetza_integration/vru/role/state_machine/"
               "vru_role_state_machine.cc",
             root
+            / "scratch/vanetza_integration/vam/cluster/"
+              "vam_cluster_lifecycle_state_machine.cc",
+            root
+            / "scratch/vanetza_integration/vam/cluster/"
+              "vam_cluster_operation_validation.cc",
+            root
             / "scratch/vanetza_integration/vru/role/policy/"
               "vru_role_policy.cc",
         ]

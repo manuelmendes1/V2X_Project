@@ -29,4 +29,13 @@ struct SumoVehicleDatagram
 std::optional<SumoVehicleDatagram>
 ParseSumoVehicleDatagram(const std::string& message);
 
+struct SumoVehicleRemoveDatagram
+{
+    std::string vehId;
+    std::uint64_t simulationTimeUs{};
+};
+
+std::optional<SumoVehicleRemoveDatagram>
+ParseSumoVehicleRemoveDatagram(const std::string& message);
+
 } // namespace ns3

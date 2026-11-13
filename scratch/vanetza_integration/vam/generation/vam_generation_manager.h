@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <optional>
 #include <string>
+#include <vector>
 
 #include "vanetza_integration/vam/types/vam_input.h"
 #include "vanetza_integration/vru/role/types/vru_role_types.h"
@@ -29,7 +30,8 @@ enum class VamGenerationReason
     GroundVelocityOrientationChanged,
     MaximumGenerationInterval,
     TrajectoryInterceptionProbabilityChanged,
-    ClusterOperationChanged
+    ClusterOperationChanged,
+    NewParticipantWithinSafeDistance
 };
 
 struct VamPeerObservation
@@ -52,12 +54,31 @@ struct VamRedundancyContext
     bool egoReportedByAnotherItsSWithinTGenVam{false};
 };
 
+struct VamSafeProximityObservation
+{
+    // Instante lógico da primeira deteção deste participante pela fonte
+    // externa de perceção/LDM. Não contém identidade persistente do participante.
+    std::int64_t firstObservedAtMs{};
+
+    // Distâncias já calculadas no referencial definido pela camada externa.
+    double lateralDistanceMeters{};
+    double longitudinalDistanceMeters{};
+    double verticalDistanceMeters{};
+
+    // Limiares MSLaD, MSLoD e MSVD fornecidos pela política/perceção.
+    // Não são constantes universais do Generation Manager.
+    double minimumSafeLateralDistanceMeters{};
+    double minimumSafeLongitudinalDistanceMeters{};
+    double minimumSafeVerticalDistanceMeters{};
+};
+
 struct VamGenerationContext
 {
     // Intervalo fornecido pela gestão/DCC. Ausente significa T_GenVamMin.
     std::optional<std::uint32_t> dccTGenVamMs;
     // Probabilidade validada por um modelo de trajetória externo, em [0,100].
     std::optional<double> trajectoryInterceptionProbabilityPercent;
+    std::vector<VamSafeProximityObservation> safeProximityObservations;
     VamRedundancyContext redundancy{};
 };
 
@@ -97,7 +118,8 @@ public:
     // Uma decisão de geração abre uma transação; só ConfirmGeneration confirma
     // os timestamps e o estado semântico que servirão de baseline futura.
     // Na integração, confirmar apenas após o VAM ter sido entregue com sucesso
-    // à camada Networking & Transport; abortar se a construção/entrega falhar.
+    // à camada Networking & Transport; confirmedAtMs é o instante lógico
+    // dessa entrega confirmada. Abortar se a construção/entrega falhar.
     bool Evaluate(
         std::int64_t nowMs,
         const VamInput& input,
@@ -106,7 +128,10 @@ public:
         VamGenerationResult& output,
         std::string& error);
 
-    bool ConfirmGeneration(std::uint64_t transactionId, std::string& error);
+    bool ConfirmGeneration(
+        std::uint64_t transactionId,
+        std::int64_t confirmedAtMs,
+        std::string& error);
     bool AbortGeneration(std::uint64_t transactionId, std::string& error);
 
 private:
@@ -115,7 +140,7 @@ private:
         VamReferencePosition referencePosition{};
         VamHighFrequencyState highFrequencyState{};
         std::optional<double> trajectoryInterceptionProbabilityPercent;
-        bool hasClusterOperation{false};
+        std::optional<VamClusterOperation> clusterOperation;
     };
 
     struct PendingGeneration

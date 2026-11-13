@@ -200,6 +200,41 @@ static_assert(
 static_assert(
     !std::is_convertible_v<LogicalItsStationReference, VamStationId>);
 
+
+template <typename T, typename = void>
+struct HasVamClusterOperationFields : std::false_type {};
+
+template <typename T>
+struct HasVamClusterOperationFields<
+    T,
+    std::void_t<
+        decltype(std::declval<T&>().clusterJoinInfo),
+        decltype(std::declval<T&>().clusterLeaveInfo),
+        decltype(std::declval<T&>().clusterBreakupInfo),
+        decltype(std::declval<T&>().clusterIdChangeTimeInfo)>>
+    : std::true_type {};
+
+template <typename T, typename = void>
+struct IsVamClusterOperationEqualityComparable : std::false_type {};
+
+template <typename T>
+struct IsVamClusterOperationEqualityComparable<
+    T,
+    std::void_t<decltype(
+        std::declval<const T&>() == std::declval<const T&>())>>
+    : std::is_same<
+          decltype(std::declval<const T&>() ==
+                   std::declval<const T&>()),
+          bool> {};
+
+static_assert(
+    HasVamClusterOperationFields<VamClusterOperation>::value,
+    "VamClusterOperation must expose all four normative optional fields");
+
+static_assert(
+    IsVamClusterOperationEqualityComparable<VamClusterOperation>::value,
+    "VamClusterOperation must support semantic equality");
+
 int main()
 {
     VamInput input{};

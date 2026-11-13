@@ -2,6 +2,7 @@
 
 #include "vanetza_integration/wrappers/vanetza/access/ns3_access_adapter.h"
 #include "vanetza_integration/wrappers/vanetza/dcc/ns3_channel_load_probe.h"
+#include "vanetza_integration/context/tx_bridge/tx_packet_binding_registry.h"
 
 #include "ns3/nstime.h"
 
@@ -17,13 +18,9 @@
 #include <cstdint>
 #include <memory>
 #include <string>
-#include <unordered_map>
-#include <vector>
 
 namespace ns3
 {
-
-struct PacketContext;
 
 class Ns3DccAdapter final : public vanetza::dcc::RequestInterface
 {
@@ -51,9 +48,6 @@ public:
     void SynchronizeRuntimeScheduler();
 
 private:
-    using PacketContextPtr =
-        std::shared_ptr<PacketContext>;
-
     void OnPacketTransmit(
         vanetza::access::AccessCategory category,
         const vanetza::ChunkPacket* packet);
@@ -63,12 +57,6 @@ private:
         const vanetza::ChunkPacket* packet);
 
     void ScheduleNextRuntimeEvent();
-
-    PacketContextPtr FindContext(
-        const vanetza::ChunkPacket* packet) const;
-
-    void EraseContext(
-        const vanetza::ChunkPacket* packet);
 
     void UpdateChannelLoad();
 
@@ -91,9 +79,9 @@ private:
 
     vanetza::dcc::FlowControl m_flowControl;
 
-    std::unordered_map<
-        const vanetza::ChunkPacket*,
-        PacketContextPtr> m_packetContexts;
+    // Preserves PacketContext and terminal completion together while DCC
+    // holds a packet in its transmit queue.
+    TxPacketBindingRegistry m_packetBindings;
 
     EventId m_runtimeEvent;
 

@@ -30,6 +30,9 @@ sockaddr_in SumoAdapter::m_sumoAddr{};
 SumoAdapter::VehicleUpdateCallback
 SumoAdapter::m_vehicleCallback = nullptr;
 
+SumoAdapter::VehicleRemoveCallback
+SumoAdapter::m_vehicleRemoveCallback = nullptr;
+
 SumoAdapter::PersonUpdateCallback
 SumoAdapter::m_personCallback = nullptr;
 
@@ -182,6 +185,24 @@ SumoAdapter::Poll()
             continue;
         }
 
+        if (message.rfind("SUMO_VEHICLE,REMOVE,", 0) == 0)
+        {
+            const auto removal =
+                ns3::ParseSumoVehicleRemoveDatagram(message);
+
+            if (!removal)
+            {
+                continue;
+            }
+
+            if (m_vehicleRemoveCallback)
+            {
+                m_vehicleRemoveCallback(*removal);
+            }
+
+            continue;
+        }
+
         auto vehicle =
             ns3::SumoParser::Parse(buffer);
 
@@ -283,6 +304,12 @@ SumoAdapter::SetVehicleUpdateCallback(
 {
     m_vehicleCallback =
         std::move(callback);
+}
+
+void
+SumoAdapter::SetVehicleRemoveCallback(VehicleRemoveCallback callback)
+{
+    m_vehicleRemoveCallback = std::move(callback);
 }
 
 void

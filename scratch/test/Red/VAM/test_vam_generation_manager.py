@@ -30,11 +30,18 @@ class TestVamGenerationManager(unittest.TestCase):
         root = repository_root(Path(__file__))
         manager_dir = root / "scratch/vanetza_integration/vam/generation"
         header = manager_dir / "vam_generation_manager.h"
-        implementation = manager_dir / "vam_generation_manager.cc"
+        implementation_sources = [
+            manager_dir / "vam_generation_manager.cc",
+            root / "scratch/vanetza_integration/vam/cluster/"
+            "vam_cluster_operation_validation.cc",
+        ]
         test_source = Path(__file__).with_name("test_vam_generation_manager.cc")
 
-        missing = [str(path.relative_to(root)) for path in (header, implementation)
-                   if not path.is_file()]
+        missing = [
+            str(path.relative_to(root))
+            for path in (header, *implementation_sources)
+            if not path.is_file()
+        ]
         if missing:
             self.fail(
                 "RED_EXPECTED: gestor de geracao VAM ainda nao implementado; "
@@ -71,7 +78,7 @@ class TestVamGenerationManager(unittest.TestCase):
                 "-Werror",
                 f"-I{root / 'scratch'}",
                 str(test_source),
-                str(implementation),
+                *(str(source) for source in implementation_sources),
                 "-o",
                 str(binary),
             ]

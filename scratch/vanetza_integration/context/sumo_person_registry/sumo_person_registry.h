@@ -14,6 +14,12 @@ namespace ns3
 struct SumoPersonState
 {
     SumoPersonSample sample;
+
+    // Timestamp of the first accepted sample in the current active
+    // observation period. Preserved across subsequent UPSERT events.
+    std::uint64_t firstObservedAtUs{};
+
+    // Timestamp of the latest accepted source event/sample.
     std::uint64_t simulationTimeUs{};
 };
 
@@ -24,6 +30,11 @@ public:
     bool Apply(const SumoPersonDatagram& datagram);
 
     std::optional<SumoPersonState> Find(const std::string& personId) const;
+
+    // Read-only view of the currently active SUMO persons.
+    // Event tombstones and registry ownership remain encapsulated.
+    const std::map<std::string, SumoPersonState>&
+    GetActivePersons() const noexcept;
 
     std::size_t Size() const noexcept;
 

@@ -34,11 +34,11 @@ class TestSpatemRsuPhysicalPosition(unittest.TestCase):
             "spatem_emitter_endpoint.cc"
         )
         cls.builder_h = source(
-            "scratch/vanetza_integration/spatem/emitter/"
+            "scratch/vanetza_integration/context/its_station/network/"
             "its_station_network_builder.h"
         )
         cls.builder_cc = source(
-            "scratch/vanetza_integration/spatem/emitter/"
+            "scratch/vanetza_integration/context/its_station/network/"
             "its_station_network_builder.cc"
         )
 
@@ -72,27 +72,63 @@ class TestSpatemRsuPhysicalPosition(unittest.TestCase):
     def test_endpoint_passes_physical_position_to_network_builder(self):
         self.assertRegex(
             self.endpoint_cc,
+            r'networkConfig\.initialPosition\s*=\s*'
             r'Vector\s*\(\s*m_config\.ns3X\s*,'
             r'\s*m_config\.ns3Y\s*,\s*0(?:\.0)?\s*\)',
         )
-        self.assertRegex(
+        self.assertIn("struct ItsStationNetworkConfig", self.builder_h)
+        self.assertIn("Vector initialPosition;", self.builder_h)
+        self.assertIn(
+            "const ItsStationNetworkConfig& config",
             self.builder_h,
-            r'const\s+Vector\s*&\s*position',
+        )
+        self.assertIn(
+            "std::function<void(Ptr<Node>)> mobilityInstaller;",
+            self.builder_h,
         )
 
     def test_position_is_applied_before_wifi_installation(self):
-        position = self.builder_cc.find("SetPosition(position)")
+        mobility_installer = self.builder_cc.find(
+            "config.mobilityInstaller(node)"
+        )
+        mobility_model_check = self.builder_cc.find(
+            "node->GetObject<MobilityModel>()"
+        )
+        position = self.builder_cc.find(
+            "mobility->SetPosition(config.initialPosition)"
+        )
         wifi_install = self.builder_cc.find("wifi.Install(")
 
         self.assertGreaterEqual(
+            mobility_installer,
+            0,
+            "O builder não instala o modelo de mobilidade.",
+        )
+        self.assertGreaterEqual(
+            mobility_model_check,
+            0,
+            "O builder não confirma a existência de MobilityModel.",
+        )
+        self.assertGreaterEqual(
             position,
             0,
-            "A posição física da RSU ainda não é aplicada.",
+            "A posição inicial não é aplicada ao MobilityModel.",
         )
         self.assertGreaterEqual(
             wifi_install,
             0,
             "Não foi encontrada a instalação Wi-Fi.",
+        )
+
+        self.assertLess(
+            mobility_installer,
+            mobility_model_check,
+            "O modelo de mobilidade deve ser instalado antes da sua validação.",
+        )
+        self.assertLess(
+            mobility_model_check,
+            position,
+            "A posição deve ser aplicada depois da instalação do modelo.",
         )
         self.assertLess(
             position,

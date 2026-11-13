@@ -9,6 +9,7 @@
 #include "vanetza_integration/context/vehicle_state.h"
 #include "vanetza_integration/denm/scenario/denm_scenario_event_source.h"
 #include "vanetza_integration/sumo_adapter/sumo_person_datagram.h"
+#include "vanetza_integration/sumo_adapter/sumo_vehicle_datagram.h"
 #include "vanetza_integration/sumo_adapter/sumo_traffic_light_parser.h"
 
 class SumoAdapter{
@@ -16,6 +17,7 @@ class SumoAdapter{
 public:
 
     using VehicleUpdateCallback = std::function<void(const ns3::VehicleState&)>;
+    using VehicleRemoveCallback = std::function<void(const ns3::SumoVehicleRemoveDatagram&)>;
     using PersonUpdateCallback = std::function<void(const ns3::SumoPersonDatagram&)>;
     using DenmEventCallback = std::function<void(const ns3::DenmScenarioEvent&)>;
     using TrafficLightUpdateCallback =
@@ -39,6 +41,7 @@ public:
     static void SendToSumo(const ns3::VehicleState& vehicle);
 
     static void SetVehicleUpdateCallback(VehicleUpdateCallback callback);
+    static void SetVehicleRemoveCallback(VehicleRemoveCallback callback);
     static void SetPersonUpdateCallback(PersonUpdateCallback callback);
     static void SetDenmEventCallback(DenmEventCallback callback);
     static void SetTrafficLightUpdateCallback(
@@ -58,6 +61,7 @@ private:
     static sockaddr_in m_sumoAddr;
 
     static VehicleUpdateCallback m_vehicleCallback;
+    static VehicleRemoveCallback m_vehicleRemoveCallback;
     static PersonUpdateCallback m_personCallback;
     static DenmEventCallback m_denmEventCallback;
     static TrafficLightUpdateCallback m_trafficLightCallback;

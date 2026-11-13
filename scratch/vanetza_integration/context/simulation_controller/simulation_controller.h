@@ -11,6 +11,7 @@
 #include "vanetza_integration/denm/scenario/denm_scenario_event_source.h"
 #include "vanetza_integration/context/sumo_person_registry/sumo_person_registry.h"
 #include "vanetza_integration/context/sumo_vru_subject_registry/sumo_vru_subject_registry.h"
+#include "vanetza_integration/vam/cluster/vam_cluster_lifecycle_state_machine.h"
 
 class CpmVehiclePerceptionSource;
 
@@ -24,6 +25,8 @@ struct SumoTrafficLightState;
 class SpatemEmitterEndpoint;
 class SpatemRsuRuntime;
 class SumoTrafficLightSpatemIntersectionBuilder;
+
+struct SumoVehicleRemoveDatagram;
 
 class SimulationController
 {
@@ -51,6 +54,12 @@ public:
         const std::string& personId,
         vanetza_integration::vru::role::VbsState state);
 
+    static std::optional<
+        vanetza_integration::vam::VruClusterLifecycleResult>
+    ApplyVruSubjectClusterLifecycle(
+        const std::string& personId,
+        const vanetza_integration::vam::VruClusterLifecycleEvent& event);
+
     static void SetCamEnabled(bool enabled);
 
     static void SetDenmEnabled(bool enabled);
@@ -71,6 +80,7 @@ public:
         double perceptionRangeMeters);
 
     static void HandleVehicleUpdateFromSumo(const VehicleState& parsedVs);
+    static void HandleVehicleRemoveFromSumo(const SumoVehicleRemoveDatagram& datagram);
 
     static void ConfigureSumoAdapterCallbacks();
 

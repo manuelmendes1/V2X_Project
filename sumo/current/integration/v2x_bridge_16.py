@@ -330,22 +330,63 @@ def publish_person_updates(
     return current_ids
 
 
-def send_vehicle_to_ns3(sock, vid):
+def _validate_vehicle_id(vehicle_id):
+    if (
+        not isinstance(vehicle_id, str)
+        or not vehicle_id
+        or any(character in vehicle_id for character in (",", "\r", "\n", "\x00"))
+    ):
+        raise ValueError("SUMO vehicle ID must be non-empty and CSV-safe")
+    return vehicle_id
+
+
+def send_vehicle_to_ns3(sock, vid, simulation_time_us=None):
+    vid = _validate_vehicle_id(vid)
     global _WGS84_CONVERSION_WARNING_EMITTED
 
-    # Todos os valores pertencem ao estado lógico SUMO atual.
-    simulation_time_s = float(traci.simulation.getTime())
-    if not math.isfinite(simulation_time_s) or simulation_time_s < 0:
-        raise ValueError("SUMO simulation time must be finite and non-negative")
+    # Use the caller's batch timestamp when provided. The optional
+    # fallback preserves compatibility with existing two-argument callers.
+    if simulation_time_us is None:
+        try:
+            simulation_time_s = float(traci.simulation.getTime())
+            if not math.isfinite(simulation_time_s) or simulation_time_s < 0:
+                raise ValueError(
+                    "SUMO simulation time must be finite and non-negative"
+                )
 
-    simulation_time_us = int(round(simulation_time_s * 1_000_000))
-    if simulation_time_us > (1 << 64) - 1:
-        raise ValueError("SUMO simulation time exceeds uint64 microseconds")
+            simulation_time_us = int(round(simulation_time_s * 1_000_000))
+            if simulation_time_us > (1 << 64) - 1:
+                raise ValueError(
+                    "SUMO simulation time exceeds uint64 microseconds"
+                )
+        except Exception as exc:
+            raise ValueError(
+                f"SUMO simulation timestamp unavailable for {vid!r}"
+            ) from exc
+    else:
+        simulation_time_us = _validate_simulation_time_us(simulation_time_us)
 
-    pos = traci.vehicle.getPosition(vid)
-    speed = traci.vehicle.getSpeed(vid)
-    angle = traci.vehicle.getAngle(vid)
-    accel = traci.vehicle.getAcceleration(vid)
+    # A failed TraCI read is a missing sample, not evidence of departure.
+    try:
+        pos = traci.vehicle.getPosition(vid)
+        speed = float(traci.vehicle.getSpeed(vid))
+        angle = float(traci.vehicle.getAngle(vid))
+        accel = float(traci.vehicle.getAcceleration(vid))
+
+        if (
+            not isinstance(pos, (tuple, list))
+            or len(pos) != 2
+            or not all(math.isfinite(float(value)) for value in pos)
+            or not all(math.isfinite(value) for value in (speed, angle, accel))
+            or speed < 0.0
+        ):
+            raise ValueError("SUMO vehicle mobility sample is invalid")
+
+        pos = (float(pos[0]), float(pos[1]))
+    except Exception as exc:
+        raise ValueError(
+            f"SUMO vehicle sample unavailable for {vid!r}"
+        ) from exc
 
     # Keep projected network coordinates x/y unchanged.
     # TraCI converts them to WGS84 longitude/latitude when available.
@@ -445,9 +486,14 @@ def emit_denm_event_for_vehicle(
     Evaluate the current SUMO state of one vehicle and emit a DENM
     only when the detector identifies a new hazard.
     """
-    position = traci.vehicle.getPosition(vehicle_id)
-    speed = traci.vehicle.getSpeed(vehicle_id)
-    acceleration = traci.vehicle.getAcceleration(vehicle_id)
+    try:
+        position = traci.vehicle.getPosition(vehicle_id)
+        speed = traci.vehicle.getSpeed(vehicle_id)
+        acceleration = traci.vehicle.getAcceleration(vehicle_id)
+    except Exception as exc:
+        raise ValueError(
+            f"SUMO vehicle hazard sample unavailable for {vehicle_id!r}"
+        ) from exc
 
     event = detector.evaluate(
         vehicle_id=vehicle_id,
@@ -478,7 +524,7 @@ def process_vehicle(
     A DENM datagram is emitted only when the persistent detector
     identifies a new hazard for this vehicle.
     """
-    send_vehicle_to_ns3(sock, vehicle_id)
+    send_vehicle_to_ns3(sock, vehicle_id, timestamp_us)
 
     return emit_denm_event_for_vehicle(
         sock,
@@ -486,6 +532,79 @@ def process_vehicle(
         vehicle_id,
         timestamp_us,
     )
+
+
+def serialize_vehicle_remove(vehicle_id, simulation_time_us):
+    """Serialize an explicit SUMO vehicle departure event."""
+    vehicle_id = _validate_vehicle_id(vehicle_id)
+    timestamp_us = _validate_simulation_time_us(simulation_time_us)
+    return f"SUMO_VEHICLE,REMOVE,{vehicle_id},{timestamp_us}"
+
+
+def send_vehicle_removal_to_ns3(sock, vehicle_id, simulation_time_us):
+    """Publish an explicit REMOVE event for a departed SUMO vehicle."""
+    message = serialize_vehicle_remove(vehicle_id, simulation_time_us)
+    sock.sendto(
+        message.encode("utf-8"),
+        (NS3_UDP_IP, NS3_UDP_PORT),
+    )
+    return True
+
+
+def publish_vehicle_updates(
+    sock,
+    current_vehicle_ids,
+    previous_vehicle_ids,
+    simulation_time_us,
+    detector=None,
+):
+    """Publish active vehicle samples and explicit departures.
+
+    Valid IDs remain in the membership snapshot even when a TraCI sample
+    is temporarily unavailable. Only absence from the complete current
+    TraCI ID list produces a REMOVE event.
+    """
+    timestamp_us = _validate_simulation_time_us(simulation_time_us)
+    previous_ids = set(previous_vehicle_ids)
+    current_ids = set()
+
+    for vehicle_id in sorted(set(current_vehicle_ids)):
+        try:
+            _validate_vehicle_id(vehicle_id)
+        except ValueError as exc:
+            log(
+                f"[SUMO_VEHICLE] invalid identity skipped "
+                f"vehicle_id={vehicle_id!r} reason={exc}"
+            )
+            continue
+
+        current_ids.add(vehicle_id)
+
+        try:
+            if detector is None:
+                send_vehicle_to_ns3(sock, vehicle_id, timestamp_us)
+            else:
+                # Preserve the existing vehicle state and DENM behavior.
+                process_vehicle(
+                    sock,
+                    detector,
+                    vehicle_id,
+                    timestamp_us,
+                )
+        except ValueError as exc:
+            log(
+                f"[SUMO_VEHICLE] sample skipped "
+                f"vehicle_id={vehicle_id!r} reason={exc}"
+            )
+
+    for vehicle_id in sorted(previous_ids - current_ids):
+        send_vehicle_removal_to_ns3(
+            sock,
+            vehicle_id,
+            timestamp_us,
+        )
+
+    return current_ids
 
 
 def serialize_denm_event(event):
@@ -644,6 +763,7 @@ def main():
     selected_tls = None
     controlled_links = ()
     tls_records_sent = 0
+    previous_vehicle_ids = set()
     previous_person_ids = set()
 
     try:
@@ -683,14 +803,15 @@ def main():
                 sim_time_us,
             )
 
-            # Preserve the existing vehicle and DENM behavior.
-            for vid in veh_ids:
-                process_vehicle(
-                    sock,
-                    detector,
-                    vid,
-                    timestamp_us,
-                )
+            # Reconcile the full active-vehicle snapshot. A temporary
+            # TraCI sample failure keeps the vehicle in current membership.
+            previous_vehicle_ids = publish_vehicle_updates(
+                sock,
+                veh_ids,
+                previous_vehicle_ids,
+                timestamp_us,
+                detector=detector,
+            )
 
             person_ids = traci.person.getIDList()
             previous_person_ids = publish_person_updates(
@@ -729,6 +850,9 @@ def main():
         final_timestamp_us = max(
             1,
             sim_time_us,
+        )
+        previous_vehicle_ids = publish_vehicle_updates(
+            sock, (), previous_vehicle_ids, final_timestamp_us
         )
         previous_person_ids = publish_person_updates(
             sock, (), previous_person_ids, final_timestamp_us
