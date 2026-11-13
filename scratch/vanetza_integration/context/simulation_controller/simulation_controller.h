@@ -11,6 +11,7 @@
 #include "vanetza_integration/denm/scenario/denm_scenario_event_source.h"
 #include "vanetza_integration/context/sumo_person_registry/sumo_person_registry.h"
 #include "vanetza_integration/context/sumo_vru_subject_registry/sumo_vru_subject_registry.h"
+#include "vanetza_integration/vam/cluster/vam_cluster_lifecycle_state_machine.h"
 
 class CpmVehiclePerceptionSource;
 
@@ -52,6 +53,12 @@ public:
     SetVruSubjectVbsState(
         const std::string& personId,
         vanetza_integration::vru::role::VbsState state);
+
+    static std::optional<
+        vanetza_integration::vam::VruClusterLifecycleResult>
+    ApplyVruSubjectClusterLifecycle(
+        const std::string& personId,
+        const vanetza_integration::vam::VruClusterLifecycleEvent& event);
 
     static void SetCamEnabled(bool enabled);
 

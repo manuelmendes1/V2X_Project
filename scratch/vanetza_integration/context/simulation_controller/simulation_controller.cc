@@ -1221,6 +1221,15 @@ SimulationController::SetVruSubjectVbsState(
     return m_sumoVruSubjectRegistry.SetVbsState(personId, state);
 }
 
+std::optional<
+    vanetza_integration::vam::VruClusterLifecycleResult>
+SimulationController::ApplyVruSubjectClusterLifecycle(
+    const std::string& personId,
+    const vanetza_integration::vam::VruClusterLifecycleEvent& event)
+{
+    return m_sumoVruSubjectRegistry.ApplyClusterLifecycle(personId, event);
+}
+
 void
 SimulationController::HandleSumoStepComplete(std::uint64_t referenceTimeUs)
 {

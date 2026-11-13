@@ -346,6 +346,7 @@ target_include_directories(vanetza_cpm_perception_obj PUBLIC
 add_library(vanetza_vam_obj OBJECT
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/vam/generation/vam_generation_manager.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/vam/cluster/vam_cluster_operation_validation.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/vam/cluster/vam_cluster_lifecycle_state_machine.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/vam/perception/vam_proximity_provider.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/vam/perception/vam_proximity_snapshot_builder.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/vam/perception/vam_generation_evaluation_adapter.cc

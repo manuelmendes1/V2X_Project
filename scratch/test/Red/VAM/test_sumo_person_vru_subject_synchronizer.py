@@ -36,6 +36,10 @@ class TestSumoPersonVruSubjectSynchronizer(unittest.TestCase):
             source_root / "vru/profile/sumo_vru_profile_mapper.cc",
             source_root / "vru/role/state_machine/"
                          "vru_role_state_machine.cc",
+            source_root / "vam/cluster/"
+                         "vam_cluster_lifecycle_state_machine.cc",
+            source_root / "vam/cluster/"
+                         "vam_cluster_operation_validation.cc",
             source_root / "vru/role/policy/vru_role_policy.cc",
         ]
 

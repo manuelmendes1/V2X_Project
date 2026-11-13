@@ -189,5 +189,55 @@ class TestSumoVruSubjectControllerWiring(unittest.TestCase):
             )
 
 
+    def test_controller_exposes_cluster_lifecycle_operation(self):
+        self.assertIn(
+            '#include "vanetza_integration/vam/cluster/'
+            'vam_cluster_lifecycle_state_machine.h"',
+            self.header,
+        )
+        self.assertIn(
+            "ApplyVruSubjectClusterLifecycle(",
+            self.header,
+        )
+        self.assertIn(
+            "VruClusterLifecycleEvent",
+            self.header,
+        )
+        self.assertIn(
+            "VruClusterLifecycleResult",
+            self.header,
+        )
+
+    def test_controller_delegates_cluster_lifecycle_to_registry(self):
+        method = braced_block_after(
+            self.controller,
+            "SimulationController::ApplyVruSubjectClusterLifecycle(",
+        )
+
+        self.assertTrue(
+            method,
+            "ApplyVruSubjectClusterLifecycle implementation missing",
+        )
+        self.assertIn(
+            "m_sumoVruSubjectRegistry.ApplyClusterLifecycle",
+            method,
+        )
+        self.assertIn("personId", method)
+        self.assertIn("event", method)
+        self.assertNotIn("setVbsState", method)
+        self.assertNotIn("roleStateMachine", method)
+
+    def test_cluster_lifecycle_components_are_in_production_build(self):
+        for source in (
+            "vam/cluster/vam_cluster_lifecycle_state_machine.cc",
+            "vam/cluster/vam_cluster_operation_validation.cc",
+        ):
+            self.assertIn(
+                source,
+                self.cmake,
+                f"Source não integrado no CMake de produção: {source}",
+            )
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
