@@ -140,7 +140,7 @@ private:
         VamReferencePosition referencePosition{};
         VamHighFrequencyState highFrequencyState{};
         std::optional<double> trajectoryInterceptionProbabilityPercent;
-        bool hasClusterOperation{false};
+        std::optional<VamClusterOperation> clusterOperation;
     };
 
     struct PendingGeneration

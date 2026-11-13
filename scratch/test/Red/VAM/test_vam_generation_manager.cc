@@ -1,6 +1,7 @@
 #include "vanetza_integration/vam/generation/vam_generation_manager.h"
 
 #include <cmath>
+#include <chrono>
 #include <array>
 #include <limits>
 #include <cstdint>
@@ -561,7 +562,7 @@ bool TestRedundancySkipCountConfigRange()
     return belowRangeRejected && aboveRangeRejected;
 }
 
-bool TestClusterOperationRequiresIndividualVamGeneration()
+bool TestClusterOperationChangesAreComparedSemantically()
 {
     VamGenerationManager manager;
     auto input = PedestrianInput();
@@ -571,23 +572,64 @@ bool TestClusterOperationRequiresIndividualVamGeneration()
     bool ok = Evaluate(manager, 0, input, {}, result, error) &&
               Confirm(manager, result, 0, error);
 
-    // The individual VAM announcing a cluster operation is a generation
-    // trigger even when position, speed, orientation and trajectory are
-    // unchanged. The operation container itself is already part of VamInput.
-    input.clusterOperation = VamClusterOperation{};
+    VamClusterOperation operation{};
+    operation.clusterLeaveInfo = VamClusterLeaveInfo{
+        VamClusterId{42},
+        VamClusterLeaveReason::SafetyCondition
+    };
+    input.clusterOperation = operation;
+
     error.clear();
     ok = Evaluate(manager, 100, input, {}, result, error) && ok;
 
-    const bool operationTriggersVam =
+    const bool firstOperationTriggers =
         result.outcome == VamGenerationOutcome::GenerationCandidate &&
-        result.shouldGenerate;
+        result.shouldGenerate &&
+        result.reason == VamGenerationReason::ClusterOperationChanged;
+
+    const bool firstOperationConfirmed =
+        Confirm(manager, result, 100, error) && ok;
+
+    error.clear();
+    ok = Evaluate(manager, 200, input, {}, result, error) && ok;
+
+    const bool identicalOperationDoesNotTrigger =
+        result.outcome == VamGenerationOutcome::NoTrigger &&
+        !result.shouldGenerate;
+
+    input.clusterOperation->clusterLeaveInfo->clusterLeaveReason =
+        VamClusterLeaveReason::FailedJoin;
+
+    error.clear();
+    ok = Evaluate(manager, 300, input, {}, result, error) && ok;
+
+    const bool changedOperationTriggers =
+        result.outcome == VamGenerationOutcome::GenerationCandidate &&
+        result.shouldGenerate &&
+        result.reason == VamGenerationReason::ClusterOperationChanged;
+
+    const bool changedOperationConfirmed =
+        Confirm(manager, result, 300, error) && ok;
+
+    input.clusterOperation.reset();
+
+    error.clear();
+    ok = Evaluate(manager, 400, input, {}, result, error) && ok;
+
+    const bool removalDoesNotTrigger =
+        result.outcome == VamGenerationOutcome::NoTrigger &&
+        !result.shouldGenerate;
 
     Check(
-        ok && operationTriggersVam,
-        "CLUSTER_OPERATION_CHANGE_TRIGGERS_INDIVIDUAL_VAM");
-    return ok && operationTriggersVam;
-}
+        ok && firstOperationTriggers && firstOperationConfirmed &&
+            identicalOperationDoesNotTrigger && changedOperationTriggers &&
+            changedOperationConfirmed && removalDoesNotTrigger,
+        "CLUSTER_OPERATION_CONTENT_CHANGE_TRIGGERS_BUT_IDENTICAL_OR_REMOVED_OPERATION_DOES_NOT");
 
+    return ok && firstOperationTriggers && firstOperationConfirmed &&
+           identicalOperationDoesNotTrigger && changedOperationTriggers &&
+           changedOperationConfirmed && removalDoesNotTrigger;
+}
 
 VamSafeProximityObservation MakeSafeProximityObservation(
     std::int64_t firstObservedAtMs,
@@ -993,6 +1035,99 @@ bool TestInvalidSafeProximityObservationsPreserveManagerState()
     return passed;
 }
 
+bool TestInvalidClusterOperationsPreserveManagerState()
+{
+    std::vector<VamClusterOperation> invalidOperations;
+
+    invalidOperations.emplace_back();
+
+    VamClusterOperation invalidLeave{};
+    invalidLeave.clusterLeaveInfo = VamClusterLeaveInfo{
+        VamClusterId{42},
+        static_cast<VamClusterLeaveReason>(9)
+    };
+    invalidOperations.push_back(invalidLeave);
+
+    VamClusterOperation invalidBreakup{};
+    invalidBreakup.clusterBreakupInfo = VamClusterBreakupInfo{
+        static_cast<VamClusterBreakupReason>(6),
+        VamClusterOperationTime{std::chrono::milliseconds{250}}
+    };
+    invalidOperations.push_back(invalidBreakup);
+
+    VamClusterOperation invalidJoinTime{};
+    invalidJoinTime.clusterJoinInfo = VamClusterJoinInfo{
+        VamClusterId{42},
+        VamClusterOperationTime{std::chrono::milliseconds{251}}
+    };
+    invalidOperations.push_back(invalidJoinTime);
+
+    VamClusterOperation invalidIdChangeTime{};
+    invalidIdChangeTime.clusterIdChangeTimeInfo =
+        VamClusterOperationTime{std::chrono::milliseconds{0}};
+    invalidOperations.push_back(invalidIdChangeTime);
+
+    bool allRejectedWithoutMutation = true;
+
+    for (const auto& invalidOperation : invalidOperations)
+    {
+        VamGenerationManager manager;
+        auto validInput = PedestrianInput();
+        VamGenerationResult initial{};
+        std::string error;
+
+        const bool initialConfirmed =
+            Evaluate(manager, 0, validInput, {}, initial, error) &&
+            Confirm(manager, initial, 0, error);
+
+        auto invalidInput = validInput;
+        invalidInput.clusterOperation = invalidOperation;
+
+        VamGenerationResult output{};
+        output.outcome = VamGenerationOutcome::BlockedByPolicy;
+        output.shouldGenerate = true;
+        output.reason =
+            VamGenerationReason::TrajectoryInterceptionProbabilityChanged;
+        output.includeLowFrequencyContainer = true;
+        output.effectiveTGenVamMs = 777;
+        output.transactionId = 999;
+
+        error.clear();
+        const bool invalidOperationRejected =
+            !Evaluate(manager, 100, invalidInput, {}, output, error) &&
+            !error.empty();
+
+        const bool outputPreserved =
+            output.outcome == VamGenerationOutcome::BlockedByPolicy &&
+            output.shouldGenerate &&
+            output.reason ==
+                VamGenerationReason::TrajectoryInterceptionProbabilityChanged &&
+            output.includeLowFrequencyContainer &&
+            output.effectiveTGenVamMs == 777 &&
+            output.transactionId == 999;
+
+        // Uma rejeição em 100 ms não pode avançar o relógio interno.
+        VamGenerationResult recovery{};
+        error.clear();
+        const bool recoveryAccepted =
+            Evaluate(manager, 99, validInput, {}, recovery, error);
+
+        const bool managerStatePreserved =
+            recoveryAccepted && error.empty() &&
+            recovery.outcome == VamGenerationOutcome::NotDue &&
+            !recovery.shouldGenerate;
+
+        allRejectedWithoutMutation =
+            initialConfirmed && invalidOperationRejected && outputPreserved &&
+            managerStatePreserved && allRejectedWithoutMutation;
+    }
+
+    Check(
+        allRejectedWithoutMutation,
+        "INVALID_CLUSTER_OPERATIONS_REJECT_WITHOUT_MUTATING_MANAGER_OR_OUTPUT");
+    return allRejectedWithoutMutation;
+}
+
 bool TestTransactionsAreAtomicAndSingleUse()
 {
     VamGenerationManager manager;
@@ -1087,12 +1222,13 @@ int main()
     TestOtherRedundancyAlternatives();
     TestRedundancyPeerTimeHorizon();
     TestRedundancySkipCountConfigRange();
-    TestClusterOperationRequiresIndividualVamGeneration();
+    TestClusterOperationChangesAreComparedSemantically();
     TestSafeProximityRequiresAllThreeStrictThresholds();
     TestSafeProximityRequiresNewParticipantAfterLastConfirmedVam();
     TestSafeProximityHonoursMinimumIntervalAndTransactionLifecycle();
     TestSafeProximityUsesConfirmedTransmissionTimestamp();
     TestInvalidSafeProximityObservationsPreserveManagerState();
+    TestInvalidClusterOperationsPreserveManagerState();
     TestTransactionsAreAtomicAndSingleUse();
     TestInvalidTimeAndConfigPreserveOutput();
 

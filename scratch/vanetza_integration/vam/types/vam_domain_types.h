@@ -60,8 +60,120 @@ struct VamClusterInformation
 {
 };
 
+// Identificador de cluster CDD Identifier1B: 0..255.
+// O valor zero é válido e não deve ser usado como sentinela de ausência.
+struct VamClusterId
+{
+    std::uint8_t value{};
+
+    friend bool operator==(const VamClusterId& lhs,
+                           const VamClusterId& rhs)
+    {
+        return lhs.value == rhs.value;
+    }
+};
+
+// Motivos definidos no CDD R2 ClusterLeaveReason.
+enum class VamClusterLeaveReason : std::uint8_t
+{
+    NotProvided = 0,
+    ClusterLeaderLost = 1,
+    ClusterDisbandedByLeader = 2,
+    OutOfClusterBoundingBox = 3,
+    OutOfClusterSpeedRange = 4,
+    JoiningAnotherCluster = 5,
+    CancelledJoin = 6,
+    FailedJoin = 7,
+    SafetyCondition = 8
+};
+
+// Motivos definidos no CDD R2 ClusterBreakupReason.
+enum class VamClusterBreakupReason : std::uint8_t
+{
+    NotProvided = 0,
+    ClusteringPurposeCompleted = 1,
+    LeaderMovedOutOfClusterBoundingBox = 2,
+    JoiningAnotherCluster = 3,
+    EnteringLowRiskAreaBasedOnMaps = 4,
+    ReceptionOfCpmContainingCluster = 5
+};
+
+// Representa DeltaTimeQuarterSecond.
+// duration == nullopt representa o valor ASN.1 unavailable (255).
+// Valores disponíveis são múltiplos de 250 ms entre 250 e 63500 ms.
+// A validação destes limites é efetuada na fronteira de validação VAM.
+struct VamClusterOperationTime
+{
+    std::optional<std::chrono::milliseconds> duration;
+
+    friend bool operator==(const VamClusterOperationTime& lhs,
+                           const VamClusterOperationTime& rhs)
+    {
+        return lhs.duration == rhs.duration;
+    }
+};
+
+struct VamClusterJoinInfo
+{
+    VamClusterId clusterId{};
+    VamClusterOperationTime joinTime{};
+
+    friend bool operator==(const VamClusterJoinInfo& lhs,
+                           const VamClusterJoinInfo& rhs)
+    {
+        return lhs.clusterId == rhs.clusterId &&
+               lhs.joinTime == rhs.joinTime;
+    }
+};
+
+struct VamClusterLeaveInfo
+{
+    VamClusterId clusterId{};
+    VamClusterLeaveReason clusterLeaveReason{
+        VamClusterLeaveReason::NotProvided};
+
+    friend bool operator==(const VamClusterLeaveInfo& lhs,
+                           const VamClusterLeaveInfo& rhs)
+    {
+        return lhs.clusterId == rhs.clusterId &&
+               lhs.clusterLeaveReason == rhs.clusterLeaveReason;
+    }
+};
+
+struct VamClusterBreakupInfo
+{
+    VamClusterBreakupReason clusterBreakupReason{
+        VamClusterBreakupReason::NotProvided};
+    VamClusterOperationTime breakupTime{};
+
+    friend bool operator==(const VamClusterBreakupInfo& lhs,
+                           const VamClusterBreakupInfo& rhs)
+    {
+        return lhs.clusterBreakupReason == rhs.clusterBreakupReason &&
+               lhs.breakupTime == rhs.breakupTime;
+    }
+};
+
+// Campos independentes: o contentor pode transportar mais do que
+// uma operação no mesmo VAM. Pelo menos um campo deve estar presente.
 struct VamClusterOperation
 {
+    std::optional<VamClusterJoinInfo> clusterJoinInfo;
+    std::optional<VamClusterLeaveInfo> clusterLeaveInfo;
+    std::optional<VamClusterBreakupInfo> clusterBreakupInfo;
+
+    // Optional exterior: campo ausente.
+    // VamClusterOperationTime::duration ausente: valor unavailable.
+    std::optional<VamClusterOperationTime> clusterIdChangeTimeInfo;
+
+    friend bool operator==(const VamClusterOperation& lhs,
+                           const VamClusterOperation& rhs)
+    {
+        return lhs.clusterJoinInfo == rhs.clusterJoinInfo &&
+               lhs.clusterLeaveInfo == rhs.clusterLeaveInfo &&
+               lhs.clusterBreakupInfo == rhs.clusterBreakupInfo &&
+               lhs.clusterIdChangeTimeInfo == rhs.clusterIdChangeTimeInfo;
+    }
 };
 
 struct VamMotionPrediction

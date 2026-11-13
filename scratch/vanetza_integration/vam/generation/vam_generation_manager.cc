@@ -1,4 +1,5 @@
 #include "vanetza_integration/vam/generation/vam_generation_manager.h"
+#include "vanetza_integration/vam/cluster/vam_cluster_operation_validation.h"
 
 #include <algorithm>
 #include <cmath>
@@ -224,7 +225,7 @@ std::optional<VamGenerationReason> DetermineTrigger(
     const VamReferencePosition& previousPosition,
     const VamHighFrequencyState& previousKinematics,
     const std::optional<double>& previousTrajectoryProbability,
-    bool previousHadClusterOperation)
+    const std::optional<VamClusterOperation>& previousClusterOperation)
 {
     if (ElapsedStrictlyMoreThan(
             nowMs, lastGenerationAtMs, config.tGenVamMaxMs))
@@ -249,10 +250,10 @@ std::optional<VamGenerationReason> DetermineTrigger(
         }
     }
 
-    // A newly-present cluster operation must be announced in an individual VAM.
-    // VamClusterOperation is currently a marker type, so presence transition is
-    // the available semantic change until its operation fields are modelled.
-    if (input.clusterOperation.has_value() && !previousHadClusterOperation)
+    // Announce a new or semantically changed cluster operation.
+    // Removing the optional container does not itself announce an operation.
+    if (input.clusterOperation.has_value() &&
+        input.clusterOperation != previousClusterOperation)
     {
         return VamGenerationReason::ClusterOperationChanged;
     }
@@ -398,6 +399,12 @@ bool VamGenerationManager::Evaluate(
     {
         return Reject(error, "Invalid VAM input position or kinematics");
     }
+    if (input.clusterOperation.has_value() &&
+        !VamClusterOperationValidation::Validate(
+            *input.clusterOperation, error))
+    {
+        return false;
+    }
     if (!IsValidContext(context, nowMs))
     {
         return Reject(error, "Invalid VAM generation context");
@@ -456,7 +463,7 @@ bool VamGenerationManager::Evaluate(
             m_lastConfirmedSnapshot->referencePosition,
             m_lastConfirmedSnapshot->highFrequencyState,
             m_lastConfirmedSnapshot->trajectoryInterceptionProbabilityPercent,
-            m_lastConfirmedSnapshot->hasClusterOperation);
+            m_lastConfirmedSnapshot->clusterOperation);
         triggered = trigger.has_value();
         if (trigger.has_value())
         {
@@ -511,7 +518,7 @@ bool VamGenerationManager::Evaluate(
     pending.snapshot.highFrequencyState = input.highFrequencyState;
     pending.snapshot.trajectoryInterceptionProbabilityPercent =
         context.trajectoryInterceptionProbabilityPercent;
-    pending.snapshot.hasClusterOperation = input.clusterOperation.has_value();
+    pending.snapshot.clusterOperation = input.clusterOperation;
     m_pendingGeneration = std::move(pending);
     ++m_nextTransactionId;
 
