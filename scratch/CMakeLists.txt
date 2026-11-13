@@ -136,6 +136,9 @@ add_library(vanetza_cam_encoder_obj OBJECT
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/simulation_step/simulation_step.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/simulation_sync/simulation_sync.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/tx_bridge/tx_bridge_context.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/tx_bridge/tx_completion.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/tx_bridge/tx_binding_outcome.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/tx_bridge/tx_packet_binding_registry.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/vehicle_builder/vehicle_builder.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/vehicle_dispatcher/vehicle_dispatcher.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/context/vehicle_identity/vehicle_identity_initializer.cc

@@ -1,46 +1,71 @@
 #pragma once
 
 #include <memory>
+#include <utility>
+
 #include "vanetza_integration/context/packet/packet_context.h"
+#include "vanetza_integration/context/tx_bridge/tx_completion.h"
 
-namespace ns3 {
+namespace ns3
+{
 
-//==========================================================================
-// TxBridgeContext
-//
-// CORREÇÃO O1 (use-after-free):
-//   A versão anterior guardava um ponteiro cru (PacketContext*) para um
-//   objeto cujo dono é o CamGenerationContext local da stack em
-//   CamScheduler::Run. Como a transmissão real para o canal é diferida
-//   (Simulator::ScheduleNow na Ns3AccessAdapter), o lambda corria DEPOIS
-//   de o CamGenerationContext — e portanto o PacketContext — já ter sido
-//   destruído, lendo/escrevendo memória libertada.
-//
-//   Agora o bridge guarda um std::shared_ptr<PacketContext>. O lambda da
-//   camada Access captura este shared_ptr por valor, mantendo o objeto
-//   vivo até TX_COMPLETE, independentemente do tempo de vida do
-//   CamGenerationContext que o criou.
-//==========================================================================
-class TxBridgeContext {
+struct TxBridgeBinding
+{
+    std::shared_ptr<PacketContext> context;
+    std::shared_ptr<TxCompletion> completion;
+};
+
+class TxBridgeContext
+{
 public:
+    // Legacy API: publishing a context clears any previous completion.
     static void Push(std::shared_ptr<PacketContext> context);
+
+    // Publish the packet context and its terminal completion together.
+    static void Push(
+        std::shared_ptr<PacketContext> context,
+        std::shared_ptr<TxCompletion> completion);
+
     static std::shared_ptr<PacketContext> Current();
+
+    // Returns a snapshot without consuming the bridge.
+    static TxBridgeBinding CurrentBinding();
+
+    // Transfers both references and clears the bridge.
+    static TxBridgeBinding Take();
+
+    // Takes the binding only when both references match the expected
+    // application transaction. A mismatch leaves the bridge untouched.
+    static TxBridgeBinding TakeIfMatches(
+        const std::shared_ptr<PacketContext>& context,
+        const std::shared_ptr<TxCompletion>& completion);
+
+    // Clears both references.
     static void Pop();
 
 private:
-    static thread_local std::shared_ptr<PacketContext> m_context;
+    static thread_local TxBridgeBinding m_binding;
 };
 
-//==========================================================================
-// RAII helper
-//==========================================================================
-class TxBridgeScope {
+class TxBridgeScope
+{
 public:
-    explicit TxBridgeScope(std::shared_ptr<PacketContext> context) {
+    explicit TxBridgeScope(std::shared_ptr<PacketContext> context)
+    {
         TxBridgeContext::Push(std::move(context));
     }
 
-    ~TxBridgeScope() {
+    TxBridgeScope(
+        std::shared_ptr<PacketContext> context,
+        std::shared_ptr<TxCompletion> completion)
+    {
+        TxBridgeContext::Push(
+            std::move(context),
+            std::move(completion));
+    }
+
+    ~TxBridgeScope()
+    {
         TxBridgeContext::Pop();
     }
 

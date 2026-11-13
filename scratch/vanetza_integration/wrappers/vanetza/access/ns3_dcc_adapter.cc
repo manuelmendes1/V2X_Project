@@ -1,4 +1,5 @@
 #include "ns3_dcc_adapter.h"
+#include "vanetza_integration/context/tx_bridge/tx_binding_outcome.h"
 
 #include "vanetza_integration/context/tx_bridge/tx_bridge_context.h"
 #include "vanetza_integration/core/v2x_log.h"
@@ -72,39 +73,35 @@ Ns3DccAdapter::~Ns3DccAdapter()
         m_channelLoadEventScheduled = false;
     }
 
-    m_packetContexts.clear();
-}
+    // Resolve outstanding completion transactions before the DCC queue
+    // and its dependent adapters are destroyed.
+    auto pendingBindings = m_packetBindings.Drain();
+    const auto shutdownSimUs =
+        Simulator::Now().GetMicroSeconds();
 
-Ns3DccAdapter::PacketContextPtr
-Ns3DccAdapter::FindContext(
-    const vanetza::ChunkPacket* packet) const
-{
-    if (!packet)
+    for (auto& binding : pendingBindings)
     {
-        return nullptr;
+        if (!binding.context && !binding.completion)
+        {
+            continue;
+        }
+
+        ResolveTxBindingDrop(
+            binding,
+            shutdownSimUs,
+            "dcc_adapter_shutdown",
+            "DCC adapter shutdown before transmission");
+
+        if (binding.context)
+        {
+            V2XWriteLog(
+                *binding.context,
+                V2XLogLevel::WARN,
+                "DCC",
+                "DCC_DROP",
+                "reason=dcc_adapter_shutdown");
+        }
     }
-
-    const auto it =
-        m_packetContexts.find(packet);
-
-    if (it == m_packetContexts.end())
-    {
-        return nullptr;
-    }
-
-    return it->second;
-}
-
-void
-Ns3DccAdapter::EraseContext(
-    const vanetza::ChunkPacket* packet)
-{
-    if (!packet)
-    {
-        return;
-    }
-
-    m_packetContexts.erase(packet);
 }
 
 void
@@ -112,38 +109,40 @@ Ns3DccAdapter::OnPacketTransmit(
     vanetza::access::AccessCategory category,
     const vanetza::ChunkPacket* packet)
 {
-    PacketContextPtr ctx =
-        FindContext(packet);
+    TxBridgeBinding binding =
+        m_packetBindings.Take(packet);
 
-    if (!ctx)
+    if (!binding.context && !binding.completion)
     {
         return;
     }
 
     /*
      * FlowControl invokes this hook immediately before forwarding the
-     * packet to the access layer. Publish the same shared PacketContext
-     * so Ns3AccessAdapter::request() can capture it safely.
+     * packet to the access layer. Publish the complete binding so the
+     * Access adapter can retain it through the asynchronous send.
      */
-    TxBridgeContext::Push(ctx);
+    TxBridgeContext::Push(
+        binding.context,
+        binding.completion);
 
-    /*
-     * Record both the original application request time and the actual
-     * ns-3 transmission time. This makes the DCC-induced delay directly
-     * observable without modifying PacketContext::simulationTime.
-     */
+    if (!binding.context)
+    {
+        return;
+    }
+
     const auto txSimUs =
         Simulator::Now().GetMicroSeconds();
 
     const auto requestSimUs =
         static_cast<int64_t>(
-            ctx->simulationTime * 1'000'000.0);
+            binding.context->simulationTime * 1'000'000.0);
 
     const auto dccDelayUs =
         txSimUs - requestSimUs;
 
     V2XWriteLog(
-        *ctx,
+        *binding.context,
         V2XLogLevel::DEBUG,
         "DCC",
         "DCC_TX",
@@ -154,13 +153,6 @@ Ns3DccAdapter::OnPacketTransmit(
             std::to_string(txSimUs) +
         " dcc_delay_us=" +
             std::to_string(dccDelayUs));
-
-    /*
-     * Ns3AccessAdapter::request() captures the shared_ptr immediately
-     * from TxBridgeContext and clears the thread-local bridge. The local
-     * packet-context map can therefore release its reference here.
-     */
-    EraseContext(packet);
 }
 
 void
@@ -168,10 +160,10 @@ Ns3DccAdapter::OnPacketDrop(
     vanetza::access::AccessCategory category,
     const vanetza::ChunkPacket* packet)
 {
-    PacketContextPtr ctx =
-        FindContext(packet);
+    TxBridgeBinding binding =
+        m_packetBindings.Take(packet);
 
-    if (!ctx)
+    if (!binding.context && !binding.completion)
     {
         return;
     }
@@ -179,28 +171,35 @@ Ns3DccAdapter::OnPacketDrop(
     const auto dropSimUs =
         Simulator::Now().GetMicroSeconds();
 
-    const auto requestSimUs =
-        static_cast<int64_t>(
-            ctx->simulationTime * 1'000'000.0);
+    ResolveTxBindingDrop(
+        binding,
+        dropSimUs,
+        "dcc_lifetime_expired",
+        "DCC packet lifetime expired");
 
-    const auto dccAgeUs =
-        dropSimUs - requestSimUs;
+    if (binding.context)
+    {
+        const auto requestSimUs =
+            static_cast<int64_t>(
+                binding.context->simulationTime * 1'000'000.0);
 
-    V2XWriteLog(
-        *ctx,
-        V2XLogLevel::WARN,
-        "DCC",
-        "DCC_DROP",
-        "access_category=" +
-            std::to_string(
-                static_cast<unsigned>(category)) +
-        " drop_sim_us=" +
-            std::to_string(dropSimUs) +
-        " dcc_age_us=" +
-            std::to_string(dccAgeUs) +
-        " reason=lifetime_expired");
+        const auto dccAgeUs =
+            dropSimUs - requestSimUs;
 
-    EraseContext(packet);
+        V2XWriteLog(
+            *binding.context,
+            V2XLogLevel::WARN,
+            "DCC",
+            "DCC_DROP",
+            "access_category=" +
+                std::to_string(
+                    static_cast<unsigned>(category)) +
+            " drop_sim_us=" +
+                std::to_string(dropSimUs) +
+            " dcc_age_us=" +
+                std::to_string(dccAgeUs) +
+            " reason=lifetime_expired");
+    }
 }
 
 void
@@ -360,81 +359,77 @@ Ns3DccAdapter::request(
     const vanetza::dcc::DataRequest& dccRequest,
     std::unique_ptr<vanetza::ChunkPacket> packet)
 {
+    // Consume the complete application binding at the DCC boundary.
+    TxBridgeBinding binding = TxBridgeContext::Take();
+
+    const auto failBinding = [](
+        TxBridgeBinding& failedBinding,
+        int64_t completedAtSimUs,
+        const std::string& reason)
+    {
+        ResolveTxBindingFailure(
+            failedBinding,
+            completedAtSimUs,
+            reason);
+
+        if (failedBinding.context)
+        {
+            V2XWriteLog(
+                *failedBinding.context,
+                V2XLogLevel::ERROR,
+                "DCC",
+                "DCC_REQUEST_FAIL",
+                "reason=" + reason);
+        }
+    };
+
     if (!packet)
     {
+        failBinding(
+            binding,
+            Simulator::Now().GetMicroSeconds(),
+            "dcc_null_chunk_packet");
         return;
     }
 
-    PacketContextPtr ctx =
-        TxBridgeContext::Current();
+    const auto* packetKey = packet.get();
 
-    const auto* packetKey =
-        packet.get();
-
-    if (ctx)
+    if (binding.context || binding.completion)
     {
-        m_packetContexts[packetKey] = ctx;
+        // Keep the local copy in case the registry rejects a duplicate key.
+        if (!m_packetBindings.Store(packetKey, binding))
+        {
+            failBinding(
+                binding,
+                Simulator::Now().GetMicroSeconds(),
+                "dcc_packet_binding_duplicate");
+            return;
+        }
 
-        V2XWriteLog(
-            *ctx,
-            V2XLogLevel::DEBUG,
-            "DCC",
-            "DCC_REQUEST",
-            "profile=" +
-                std::to_string(
-                    static_cast<unsigned>(
-                        dccRequest.dcc_profile)));
+        if (binding.context)
+        {
+            V2XWriteLog(
+                *binding.context,
+                V2XLogLevel::DEBUG,
+                "DCC",
+                "DCC_REQUEST",
+                "profile=" +
+                    std::to_string(
+                        static_cast<unsigned>(
+                            dccRequest.dcc_profile)));
+        }
     }
 
     /*
-     * Delegate the DCC decision entirely to Vanetza::dcc::FlowControl.
-     *
-     * FlowControl decides whether the packet is:
-     *
-     *   1. transmitted immediately, or
-     *   2. queued and associated with a future Runtime callback.
-     *
-     * No Profile -> AccessCategory mapping is performed here.
+     * FlowControl decides whether to transmit immediately or queue.
+     * The registry retains the context/completion pair while queued.
      */
     m_flowControl.request(
         dccRequest,
         std::move(packet));
 
-    /*
-     * FlowControl may have scheduled a callback in ManualRuntime.
-     * Synchronize that callback with the ns-3 Simulator.
-     */
     ScheduleNextRuntimeEvent();
 
-    /*
-     * The PacketContext is now owned by m_packetContexts for any queued
-     * transmission. The bridge must not remain populated after returning
-     * from FlowControl::request(), otherwise an unrelated/internal
-     * transmission can inherit a stale application context.
-     *
-     * For an immediate transmission, Ns3AccessAdapter::request() has
-     * already consumed the bridge, so Current() is null here.
-     */
-    if (ctx &&
-        TxBridgeContext::Current() == ctx)
-    {
-        TxBridgeContext::Pop();
-    }
-
-    /*
-     * For immediate transmission, the packet_transmit_hook has already
-     * transferred the PacketContext to Ns3AccessAdapter through
-     * TxBridgeContext. In that case there is no pending Runtime event
-     * associated with this packet, so the local map entry can be removed.
-     *
-     * For queued packets, the context remains in m_packetContexts until
-     * FlowControl invokes either the transmit or drop hook.
-     */
-    if (m_runtime.next() ==
-        vanetza::Clock::time_point::max())
-    {
-        EraseContext(packetKey);
-    }
 }
 
 void
