@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<routes>
+
+    <vType id="car"
+           accel="2.5"
+           decel="4.5"
+           sigma="0.0"
+           tau="1.0"
+           length="5.0"
+           minGap="2.5"
+           maxSpeed="13.9"
+           color="1,1,0"/>
+
+    <vehicle id="veh0"
+             type="car"
+             depart="0.0"
+             departSpeed="13.9"
+             departLane="0">
+        <route edges="A0A1 A1B1 B1B0 B0A0"/>
+    </vehicle>
+
+    <vehicle id="veh1"
+             type="car"
+             depart="0.0"
+             departSpeed="13.9"
+             departLane="0">
+        <route edges="A0A1 A1B1 B1B0 B0A0"/>
+    </vehicle>
+
+    <vehicle id="veh2"
+             type="car"
+             depart="0.0"
+             departSpeed="13.9"
+             departLane="0">
+        <route edges="A0A1 A1B1 B1B0 B0A0"/>
+    </vehicle>
+
+    <vehicle id="veh3"
+             type="car"
+             depart="0.0"
+             departSpeed="13.9"
+             departLane="0">
+        <route edges="A0A1 A1B1 B1B0 B0A0"/>
+    </vehicle>
+
+</routes>
