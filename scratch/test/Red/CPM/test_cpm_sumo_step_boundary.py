@@ -11,10 +11,31 @@ class TestCpmSumoStepBoundary(unittest.TestCase):
             ROOT / "sumo/current/integration/v2x_bridge_16.py"
         ).read_text()
 
-        loop_start = source.find("while should_continue_simulation(")
+        loop_start = source.find("while should_continue_simulation_us(")
         self.assertGreaterEqual(loop_start, 0, "Loop SUMO não encontrado")
 
-        vehicle = source.find("process_vehicle(", loop_start)
+        vehicle = source.find("publish_vehicle_updates(", loop_start)
+
+        vehicle_updates_start = source.find("def publish_vehicle_updates(")
+        self.assertGreaterEqual(
+            vehicle_updates_start,
+            0,
+            "Helper publish_vehicle_updates não encontrado",
+        )
+
+        vehicle_updates_end = source.find("\ndef ", vehicle_updates_start + 1)
+        self.assertGreater(
+            vehicle_updates_end,
+            vehicle_updates_start,
+            "Limites de publish_vehicle_updates não encontrados",
+        )
+
+        vehicle_updates = source[vehicle_updates_start:vehicle_updates_end]
+        self.assertIn(
+            "process_vehicle(",
+            vehicle_updates,
+            "publish_vehicle_updates deixou de delegar em process_vehicle",
+        )
         tls = source.find("publish_traffic_light_updates(", loop_start)
         marker = source.find("SUMO_STEP_END,", loop_start)
         receive = source.find("receive_from_ns3(sock)", loop_start)

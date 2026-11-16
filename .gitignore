@@ -202,3 +202,7 @@ sumo/current/**/.cache/
 
 # VAM Etapa 11.3 origin model plan
 !/scratch/docs/VAM/ETAPA_11_VAM_PLANO.md
+
+# VAM Etapa 11.6 — whitelist documental restrita
+!/scratch/docs/VAM/2026-11-16-0845-feat-vam-transaction-lifecycle-plan.md
+!/scratch/docs/VAM/ETAPA_11_6_CLOSEOUT.md

@@ -217,8 +217,8 @@ class TestVamGenerationScheduler(unittest.TestCase):
                 "[PASS] REMOVE_FORGETS_RUNTIME_MANAGER_AND_PENDING_CANDIDATE",
                 "[PASS] REENTRY_STARTS_NEW_RUNTIME_GENERATION_HISTORY",
                 "[PASS] RESET_FIXTURE_HAS_PENDING_CANDIDATE",
-                "[PASS] RESET_CLEARS_PENDING_RUNTIME_ONLY",
-                "[PASS] RESET_ALLOWS_FRESH_INITIAL_EVALUATION",
+                "[PASS] DRAIN_CLEARS_RUNTIME_AND_PRESERVES_IDENTITY",
+                "[PASS] DRAIN_ALLOWS_FRESH_INITIAL_EVALUATION",
                 "VAM_GENERATION_SCHEDULER=PASS",
             ):
                 self.assertIn(marker, output, f"Missing evidence: {marker}")

@@ -39,7 +39,7 @@ class TestVamNeutralModelContract(unittest.TestCase):
 
         command = [
             cls.compiler,
-            "-std=c++17",
+            "-std=c++23",
             "-Wall",
             "-Wextra",
             "-Wpedantic",

@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <map>
 #include <optional>
 #include <string>
@@ -37,12 +38,18 @@ struct VamGenerationSchedulerConfig
     VamGenerationEvaluationAdapterConfig evaluation{};
 };
 
+using VamGenerationAbortExecutor = std::function<bool(
+    VamGenerationManager& manager,
+    std::uint64_t transactionId,
+    std::string& error)>;
+
 struct VamGenerationScheduledCandidate
 {
     std::string egoPersonId;
     VamStationId stationId{};
     VamInput input{};
     VamGenerationResult decision{};
+    std::optional<VamGenerationTransactionHandle> transactionHandle;
 };
 
 struct VamGenerationSchedulerReport
@@ -52,6 +59,10 @@ struct VamGenerationSchedulerReport
     std::size_t skippedPendingTransactions{};
     std::size_t evaluatedSubjects{};
     std::size_t blockedByPolicy{};
+    std::size_t retiredAbortAttempts{};
+    std::size_t retiredAbortSuccesses{};
+    std::size_t pendingRetiredTransactions{};
+    std::size_t skippedQuarantinedSubjects{};
     bool skippedByCadence{false};
 };
 
@@ -68,7 +79,8 @@ class VamGenerationScheduler
 {
 public:
     explicit VamGenerationScheduler(
-        VamGenerationSchedulerConfig config);
+        VamGenerationSchedulerConfig config,
+        VamGenerationAbortExecutor abortExecutor = {});
 
     // Reserva uma identidade ITS explicitamente fornecida pelo chamador.
     // Não deriva stationId de personId, Node ID ou MAC.
@@ -89,35 +101,58 @@ public:
         std::string& error);
 
     bool ConfirmGeneration(
-        const std::string& personId,
-        std::uint64_t transactionId,
+        const VamGenerationTransactionHandle& handle,
         std::int64_t confirmedAtMs,
         std::string& error);
 
     bool AbortGeneration(
-        const std::string& personId,
-        std::uint64_t transactionId,
+        const VamGenerationTransactionHandle& handle,
         std::string& error);
+
+    // Invalidate one accepted SUMO presence. A failed abort moves the
+    // runtime and candidate to the retired ledger and quarantines personId.
+    bool InvalidatePersonPresence(
+        const std::string& personId,
+        std::string& error);
+
+    // Resolve every active and retired transaction before scheduler
+    // replacement, disable or destruction. Failure retains unresolved
+    // managers in the active or retired state for a later retry.
+    bool DrainTransactions(std::string& error);
+
+    std::size_t GetRetiredTransactionCount() const noexcept;
+    bool IsPersonQuarantined(
+        const std::string& personId) const noexcept;
+
+    bool HasValidInstanceIdentity() const noexcept;
 
     std::vector<VamGenerationScheduledCandidate>
     GetPendingCandidates() const;
-
-    // Limpa apenas o estado transitório desta execução.
-    // As reservas de identidade ITS permanecem na autoridade global.
-    void ResetRuntime() noexcept;
 
 private:
     struct SubjectRuntime
     {
         explicit SubjectRuntime(
-            const VamGenerationConfig& generationConfig);
+            const VamGenerationConfig& generationConfig,
+            VamPersonPresenceEpoch presenceEpoch);
 
+        VamPersonPresenceEpoch presenceEpoch{};
         VamGenerationManager generationManager;
         VamProximityProvider proximityProvider;
 
         std::optional<VamGenerationScheduledCandidate>
             pendingCandidate;
     };
+
+    bool AbortRuntimeCandidate(
+        SubjectRuntime& runtime,
+        const std::string& personId,
+        bool requireCurrentSchedulerInstance,
+        std::string& error);
+
+    void RetryRetiredTransactions(
+        const std::map<std::string, VamPersonPresenceEpoch>& activePresenceByPerson,
+        VamGenerationSchedulerReport& report);
 
     static bool BuildInput(
         std::int64_t itsStartClockUs,
@@ -129,8 +164,16 @@ private:
         std::string& error);
 
     VamGenerationSchedulerConfig m_config;
+    std::optional<VamGenerationSchedulerInstanceId> m_schedulerInstanceId;
 
     std::map<std::string, SubjectRuntime> m_subjectRuntimeByPerson;
+
+    // Failed REMOVE aborts retain the original manager and candidate here.
+    // Presence quarantine is represented by membership in this ledger.
+    std::map<std::string, SubjectRuntime> m_retiredRuntimeByPerson;
+
+    // Empty injection selects the production GenerationManager abort.
+    VamGenerationAbortExecutor m_abortExecutor;
 
     // Último passo SUMO aceite, incluindo passos ignorados pela cadência.
     std::optional<std::uint64_t> m_lastStepTimeUs;

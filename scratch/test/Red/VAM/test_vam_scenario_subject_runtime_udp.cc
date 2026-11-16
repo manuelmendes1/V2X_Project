@@ -47,12 +47,19 @@ struct RuntimeCleanup
             close(senderFd);
         }
 
+        if (!SimulationController::ShutdownVamGeneration())
+        {
+            std::cerr
+                << "[VAM_SCENARIO_UDP] shutdown failed; skipping adapter "
+                   "close and ITS identity clear\n";
+            return;
+        }
+
         if (adapterInitialized)
         {
             SumoAdapter::Close();
         }
 
-        SimulationController::ShutdownVamGeneration();
         ItsStationIdentityAuthority::Instance().Clear();
     }
 };
