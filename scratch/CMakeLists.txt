@@ -350,6 +350,8 @@ add_library(vanetza_vam_obj OBJECT
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/vam/perception/vam_proximity_provider.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/vam/perception/vam_proximity_snapshot_builder.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/vam/perception/vam_generation_evaluation_adapter.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/vam/scheduler/vam_generation_scheduler.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/vam/scenario/vam_scenario_subjects.cc
 )
 
 target_include_directories(vanetza_vam_obj PUBLIC

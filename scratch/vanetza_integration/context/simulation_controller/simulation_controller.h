@@ -1,9 +1,11 @@
 #pragma once
 
 #include <cstdint>
+#include <map>
 #include <memory>
 #include <optional>
 #include <string>
+#include <vector>
 
 #include "ns3/core-module.h"
 
@@ -12,6 +14,8 @@
 #include "vanetza_integration/context/sumo_person_registry/sumo_person_registry.h"
 #include "vanetza_integration/context/sumo_vru_subject_registry/sumo_vru_subject_registry.h"
 #include "vanetza_integration/vam/cluster/vam_cluster_lifecycle_state_machine.h"
+#include "vanetza_integration/vam/scheduler/vam_generation_scheduler.h"
+#include "vanetza_integration/vru/role/types/vru_role_types.h"
 
 class CpmVehiclePerceptionSource;
 
@@ -27,6 +31,18 @@ class SpatemRsuRuntime;
 class SumoTrafficLightSpatemIntersectionBuilder;
 
 struct SumoVehicleRemoveDatagram;
+
+// Explicit scenario-owned VAM identity and role configuration.
+// No field is inferred from SUMO IDs, vClass, ns-3 node IDs, or MAC addresses.
+struct VamVruScenarioSubjectConfig
+{
+    using VbsState = vanetza_integration::vru::role::VbsState;
+
+    std::string personId;
+    std::uint32_t stationId{0};
+    bool activateRole{false};
+    VbsState vbsState{VbsState::Idle};
+};
 
 class SimulationController
 {
@@ -59,6 +75,43 @@ public:
     ApplyVruSubjectClusterLifecycle(
         const std::string& personId,
         const vanetza_integration::vam::VruClusterLifecycleEvent& event);
+
+    // Opt-in generation evaluation only. This does not encode, sign,
+    // or transmit VAM packets.
+    static bool ConfigureVamGeneration(
+        bool enabled,
+        const vanetza_integration::vam::VamGenerationConfig& generation,
+        const vanetza_integration::vam::VamGenerationEvaluationAdapterConfig& evaluation,
+        std::string& error);
+
+    // Explicit external identity assignment. Never derive stationId from
+    // SUMO person ID, ns-3 Node ID, or MAC address.
+    static bool RegisterVamVruStationIdentity(
+        const std::string& personId,
+        std::uint32_t stationId,
+        std::string& error);
+
+    // Atomically validates scenario-owned VRU assignments and reserves
+    // their globally unique ITS station identities.
+    static bool ConfigureVamVruScenarioSubjects(
+        const std::vector<VamVruScenarioSubjectConfig>& subjects,
+        std::string& error);
+
+    static std::vector<
+        vanetza_integration::vam::VamGenerationScheduledCandidate>
+    GetPendingVamGenerationCandidates();
+
+    // confirmedAtMs is logical SUMO simulation time, in milliseconds.
+    static bool ConfirmVamGeneration(
+        const std::string& personId,
+        std::uint64_t transactionId,
+        std::int64_t confirmedAtMs,
+        std::string& error);
+
+    static bool AbortVamGeneration(
+        const std::string& personId,
+        std::uint64_t transactionId,
+        std::string& error);
 
     static void SetCamEnabled(bool enabled);
 
@@ -122,18 +175,27 @@ public:
     // Release SPATEM resources before ns-3 and static teardown.
     static void ShutdownSpatemEmitter();
 
+    // Release scheduler runtime state before Simulator::Destroy().
+    static void ShutdownVamGeneration();
+
 private:
 
     static void DrainCpmReceptionQueues();
     static void SendSpatemSnapshot();
     static bool EnsureCpmRuntime();
     static void RunCpmPerception(std::uint64_t referenceTimeUs);
+    static void RunVamGeneration(std::uint64_t referenceTimeUs);
     static void HandleSumoStepComplete(std::uint64_t referenceTimeUs);
     static void HandlePersonUpdateFromSumo(const SumoPersonDatagram& datagram);
+    static bool ApplyVamVruScenarioSubjectConfiguration(
+        const std::string& personId);
 
     static Time m_stepLength;
     static SumoPersonRegistry m_sumoPersonRegistry;
     static SumoVruSubjectRegistry m_sumoVruSubjectRegistry;
+    static std::unique_ptr<vanetza_integration::vam::VamGenerationScheduler> m_vamGenerationScheduler;
+    static std::map<std::string, VamVruScenarioSubjectConfig>
+        m_vamVruScenarioSubjects;
 
     static bool m_camEnabled;
     static bool m_denmEnabled;
