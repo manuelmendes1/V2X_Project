@@ -99,6 +99,10 @@ struct VamGenerationConfig
     std::uint8_t numSkipVamsForRedundancyMitigation{4};
 };
 
+// Shared configuration contract used by the manager and runtime controller.
+bool IsValidVamGenerationConfig(
+    const VamGenerationConfig& config) noexcept;
+
 struct VamGenerationResult
 {
     VamGenerationOutcome outcome{VamGenerationOutcome::NotDue};

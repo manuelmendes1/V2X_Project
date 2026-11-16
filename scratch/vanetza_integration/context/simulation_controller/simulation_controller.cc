@@ -40,6 +40,7 @@
 
 #include <cstdint>
 #include <iostream>
+#include <set>
 #include <utility>
 #include <cstdlib>
 #include <cerrno>
@@ -78,6 +79,10 @@ VruProfileName(
 Time SimulationController::m_stepLength = MilliSeconds(100);
 SumoPersonRegistry SimulationController::m_sumoPersonRegistry{};
 SumoVruSubjectRegistry SimulationController::m_sumoVruSubjectRegistry{};
+std::unique_ptr<vanetza_integration::vam::VamGenerationScheduler>
+    SimulationController::m_vamGenerationScheduler;
+std::map<std::string, VamVruScenarioSubjectConfig>
+    SimulationController::m_vamVruScenarioSubjects{};
 
 bool SimulationController::m_camEnabled = true;
 bool SimulationController::m_denmEnabled = false;
@@ -126,6 +131,10 @@ SimulationController::Start(Time stepLength)
     m_stepLength = stepLength;
     m_sumoPersonRegistry.Clear();
     m_sumoVruSubjectRegistry.Clear();
+    if (m_vamGenerationScheduler)
+    {
+        m_vamGenerationScheduler->ResetRuntime();
+    }
     SumoVehicleLifecycleRegistry::Instance().Clear();
 
     // Polling SUMO mantém a sua cadência original.
@@ -704,6 +713,362 @@ SimulationController::ConfigureCpmPerception(
     return true;
 }
 
+
+bool
+SimulationController::ConfigureVamGeneration(
+    bool enabled,
+    const vanetza_integration::vam::VamGenerationConfig& generation,
+    const vanetza_integration::vam::VamGenerationEvaluationAdapterConfig& evaluation,
+    std::string& error)
+{
+    if (!enabled)
+    {
+        // Explicit disable releases only transient scheduler state.
+        // Logical ITS identity reservations and scenario declarations survive.
+        m_vamGenerationScheduler.reset();
+
+        error.clear();
+        NS_LOG_UNCOND("[VAM_GENERATION] DISABLED");
+        return true;
+    }
+
+    // Validate the requested replacement without disturbing the active
+    // scheduler. A rejected reconfiguration must preserve current runtime.
+    if (SimulationContext::itsStartTime.empty())
+    {
+        error = "VAM generation requires --itsStartTime";
+        NS_LOG_UNCOND("[VAM_GENERATION] CONFIGURATION_REJECTED reason=" << error);
+        return false;
+    }
+
+    vanetza::Clock::time_point start;
+    if (!ItsStartTimeParser::ParseUtc(
+            SimulationContext::itsStartTime,
+            start,
+            error))
+    {
+        error = "Invalid UTC --itsStartTime: " + error;
+        NS_LOG_UNCOND("[VAM_GENERATION] CONFIGURATION_REJECTED reason=" << error);
+        return false;
+    }
+
+    const auto startClockUs = start.time_since_epoch().count();
+    if (startClockUs < 0)
+    {
+        error = "VAM ITS start clock must be non-negative";
+        NS_LOG_UNCOND("[VAM_GENERATION] CONFIGURATION_REJECTED reason=" << error);
+        return false;
+    }
+
+    const auto validThresholds =
+        [](const vanetza_integration::vam::VamProximityThresholds& thresholds)
+        {
+            return std::isfinite(thresholds.minimumSafeLateralDistanceMeters) &&
+                   thresholds.minimumSafeLateralDistanceMeters > 0.0 &&
+                   std::isfinite(thresholds.minimumSafeLongitudinalDistanceMeters) &&
+                   thresholds.minimumSafeLongitudinalDistanceMeters > 0.0 &&
+                   std::isfinite(thresholds.minimumSafeVerticalDistanceMeters) &&
+                   thresholds.minimumSafeVerticalDistanceMeters > 0.0;
+        };
+
+    if (!vanetza_integration::vam::IsValidVamGenerationConfig(generation) ||
+        !validThresholds(evaluation.snapshotBuilder.vehicleThresholds) ||
+        !validThresholds(evaluation.snapshotBuilder.vruThresholds))
+    {
+        error =
+            "VAM generation parameters must satisfy the generation manager "
+            "contract, and all vehicle/VRU proximity thresholds must be "
+            "explicitly configured with valid positive values";
+        NS_LOG_UNCOND("[VAM_GENERATION] CONFIGURATION_REJECTED reason=" << error);
+        return false;
+    }
+
+    vanetza_integration::vam::VamGenerationSchedulerConfig config{};
+    config.itsStartClockUs = startClockUs;
+    config.generation = generation;
+    config.evaluation = evaluation;
+
+    // Build the replacement first. Construction failure or validation
+    // rejection cannot destroy the currently active scheduler.
+    auto replacementScheduler =
+        std::make_unique<
+            vanetza_integration::vam::VamGenerationScheduler>(
+                std::move(config));
+
+    // Identity lookup is owned by ItsStationIdentityAuthority, not by the
+    // scheduler. Scenario declarations remain owned by this controller.
+    // swap is noexcept; the previous scheduler is released afterwards.
+    m_vamGenerationScheduler.swap(replacementScheduler);
+
+    error.clear();
+
+    NS_LOG_UNCOND(
+        "[VAM_GENERATION] CONFIGURED"
+        << " its_start_clock_us=" << startClockUs
+        << " t_check_ms=" << generation.tCheckVamGenMs
+        << " t_gen_min_ms=" << generation.tGenVamMinMs
+        << " t_gen_max_ms=" << generation.tGenVamMaxMs
+        << " maximum_sample_age_us="
+        << evaluation.proximity.maximumSampleAgeUs
+        << " mode=EVALUATION_ONLY");
+
+    return true;
+}
+
+
+bool
+SimulationController::RegisterVamVruStationIdentity(
+    const std::string& personId,
+    std::uint32_t stationId,
+    std::string& error)
+{
+    if (!m_vamGenerationScheduler)
+    {
+        error = "VAM generation scheduler is not enabled";
+        return false;
+    }
+
+    return m_vamGenerationScheduler->RegisterSubjectStationIdentity(
+        personId,
+        vanetza_integration::vam::VamStationId{stationId},
+        error);
+}
+
+bool
+SimulationController::ConfigureVamVruScenarioSubjects(
+    const std::vector<VamVruScenarioSubjectConfig>& subjects,
+    std::string& error)
+{
+    using VbsState = VamVruScenarioSubjectConfig::VbsState;
+
+    // An empty scenario list is valid even when VAM evaluation is disabled.
+    // Existing ITS identity reservations are deliberately not released.
+    if (subjects.empty())
+    {
+        std::map<std::string, VamVruScenarioSubjectConfig> empty;
+        m_vamVruScenarioSubjects.swap(empty);
+        error.clear();
+
+        NS_LOG_UNCOND(
+            "[VAM_SCENARIO] SUBJECTS_CONFIGURED"
+            << " count=0 mode=NO_SUBJECTS");
+
+        return true;
+    }
+
+    // Validate the complete declaration before reserving any identity.
+    std::set<std::string> personIds;
+    std::set<std::uint32_t> stationIds;
+    std::map<std::string, VamVruScenarioSubjectConfig> staged;
+
+    for (const auto& subject : subjects)
+    {
+        if (subject.personId.empty())
+        {
+            error = "VAM scenario personId must not be empty";
+            return false;
+        }
+
+        if (subject.stationId == 0)
+        {
+            error = "VAM scenario stationId must be non-zero";
+            return false;
+        }
+
+        if (!personIds.insert(subject.personId).second)
+        {
+            error = "Duplicate VAM scenario personId: " + subject.personId;
+            return false;
+        }
+
+        if (!stationIds.insert(subject.stationId).second)
+        {
+            error = "Duplicate VAM scenario stationId: " +
+                    std::to_string(subject.stationId);
+            return false;
+        }
+
+        // Scenario startup supports only the non-cluster role states.
+        // Cluster leadership/passive transitions must be driven through
+        // ApplyClusterLifecycle(), never assigned through SetVbsState().
+        switch (subject.vbsState)
+        {
+        case VbsState::Idle:
+        case VbsState::ActiveStandalone:
+            break;
+        default:
+            error =
+                "Unsupported VBS state in VAM scenario configuration "
+                "(only Idle and ActiveStandalone are supported): " +
+                subject.personId;
+            return false;
+        }
+
+        if (!subject.activateRole && subject.vbsState != VbsState::Idle)
+        {
+            error =
+                "A VAM scenario subject with role activation disabled "
+                "must use VbsState::Idle: " + subject.personId;
+            return false;
+        }
+
+        if (subject.activateRole &&
+            subject.vbsState != VbsState::ActiveStandalone)
+        {
+            error =
+                "A VAM scenario subject with role activation enabled "
+                "must use VbsState::ActiveStandalone: " + subject.personId;
+            return false;
+        }
+
+        staged.emplace(subject.personId, subject);
+    }
+
+    if (!m_vamGenerationScheduler)
+    {
+        error =
+            "VAM scenario subjects require an enabled VAM generation scheduler";
+        return false;
+    }
+
+    auto& authority = ItsStationIdentityAuthority::Instance();
+
+    // Only reservations created by this call are eligible for rollback.
+    // Existing reservations for the same logical owner/ID remain intact.
+    std::vector<std::pair<ItsStationIdentityOwner, std::uint32_t>>
+        newlyReserved;
+
+    const auto rollbackNewReservations = [&authority, &newlyReserved]()
+    {
+        for (const auto& reservation : newlyReserved)
+        {
+            authority.Release(reservation.first, reservation.second);
+        }
+    };
+
+    // Reserve every identity before touching the scheduler's person map.
+    // This catches global collisions before any scheduler registration.
+    for (const auto& [personId, subject] : staged)
+    {
+        const ItsStationIdentityOwner owner{
+            ItsStationIdentityOwnerKind::ItsStation,
+            "vam-vru:" + personId
+        };
+
+        const auto existingStationId = authority.FindStationId(owner);
+
+        if (existingStationId.has_value() &&
+            *existingStationId != subject.stationId)
+        {
+            error =
+                "VAM scenario cannot change an existing stationId reservation "
+                "for personId: " + personId;
+            rollbackNewReservations();
+            return false;
+        }
+
+        if (!authority.Reserve(owner, subject.stationId))
+        {
+            error =
+                "VAM scenario stationId reservation failed or conflicts "
+                "with another ITS station: " + std::to_string(subject.stationId);
+            rollbackNewReservations();
+            return false;
+        }
+
+        if (!existingStationId.has_value())
+        {
+            newlyReserved.emplace_back(owner, subject.stationId);
+        }
+    }
+
+    // The same owner/ID pairs are already reserved above. These registrations
+    // populate the scheduler's person-to-station lookup.
+    for (const auto& [personId, subject] : staged)
+    {
+        if (!RegisterVamVruStationIdentity(
+                personId, subject.stationId, error))
+        {
+            // This is an invariant failure: validated, pre-reserved pairs
+            // should be idempotently accepted by the scheduler.
+            rollbackNewReservations();
+            return false;
+        }
+    }
+
+    // Publish configuration only after all reservations and registrations.
+    m_vamVruScenarioSubjects.swap(staged);
+    error.clear();
+
+    NS_LOG_UNCOND(
+        "[VAM_SCENARIO] SUBJECTS_CONFIGURED"
+        << " count=" << m_vamVruScenarioSubjects.size()
+        << " identities_reserved=" << newlyReserved.size());
+
+    return true;
+}
+
+std::vector<
+    vanetza_integration::vam::VamGenerationScheduledCandidate>
+SimulationController::GetPendingVamGenerationCandidates()
+{
+    if (!m_vamGenerationScheduler)
+    {
+        return {};
+    }
+
+    return m_vamGenerationScheduler->GetPendingCandidates();
+}
+
+bool
+SimulationController::ConfirmVamGeneration(
+    const std::string& personId,
+    std::uint64_t transactionId,
+    std::int64_t confirmedAtMs,
+    std::string& error)
+{
+    if (!m_vamGenerationScheduler)
+    {
+        error = "VAM generation scheduler is not enabled";
+        return false;
+    }
+
+    return m_vamGenerationScheduler->ConfirmGeneration(
+        personId,
+        transactionId,
+        confirmedAtMs,
+        error);
+}
+
+bool
+SimulationController::AbortVamGeneration(
+    const std::string& personId,
+    std::uint64_t transactionId,
+    std::string& error)
+{
+    if (!m_vamGenerationScheduler)
+    {
+        error = "VAM generation scheduler is not enabled";
+        return false;
+    }
+
+    return m_vamGenerationScheduler->AbortGeneration(
+        personId,
+        transactionId,
+        error);
+}
+
+void
+SimulationController::ShutdownVamGeneration()
+{
+    if (m_vamGenerationScheduler)
+    {
+        m_vamGenerationScheduler->ResetRuntime();
+        m_vamGenerationScheduler.reset();
+        NS_LOG_UNCOND("[VAM_GENERATION] SHUTDOWN_COMPLETE");
+    }
+}
+
 void
 SimulationController::SetCamEnabled(bool enabled)
 {
@@ -1129,6 +1494,14 @@ void
 SimulationController::HandlePersonUpdateFromSumo(
     const SumoPersonDatagram& datagram)
 {
+    // A missing active person means this accepted UPSERT starts a new
+    // presence period. This is also true after a previously accepted REMOVE.
+    const auto previousPerson =
+        m_sumoPersonRegistry.Find(datagram.personId);
+    const bool startsNewPresence =
+        datagram.eventType == SumoPersonEventType::Upsert &&
+        !previousPerson.has_value();
+
     if (!m_sumoPersonRegistry.Apply(datagram))
     {
         NS_LOG_UNCOND(
@@ -1149,6 +1522,18 @@ SimulationController::HandlePersonUpdateFromSumo(
     {
         NS_LOG_UNCOND(
             "[SUMO_VRU_SUBJECT] SYNCHRONIZATION_REJECTED"
+            << " person_id=" << datagram.personId
+            << " simulation_time_us=" << datagram.simulationTimeUs);
+        return;
+    }
+
+    // Apply scenario-owned role/VBS settings exactly once per active
+    // presence period, after the authoritative registries are synchronized.
+    if (startsNewPresence &&
+        !ApplyVamVruScenarioSubjectConfiguration(datagram.personId))
+    {
+        NS_LOG_UNCOND(
+            "[VAM_SCENARIO] SUBJECT_CONFIGURATION_REJECTED"
             << " person_id=" << datagram.personId
             << " simulation_time_us=" << datagram.simulationTimeUs);
         return;
@@ -1221,6 +1606,62 @@ SimulationController::SetVruSubjectVbsState(
     return m_sumoVruSubjectRegistry.SetVbsState(personId, state);
 }
 
+bool
+SimulationController::ApplyVamVruScenarioSubjectConfiguration(
+    const std::string& personId)
+{
+    using VbsState = VamVruScenarioSubjectConfig::VbsState;
+    using VruTransitionResult =
+        vanetza_integration::vru::role::VruTransitionResult;
+
+    const auto configured = m_vamVruScenarioSubjects.find(personId);
+    if (configured == m_vamVruScenarioSubjects.end())
+    {
+        return true;
+    }
+
+    const auto& subject = configured->second;
+
+    if (!subject.activateRole)
+    {
+        // Configuration validation requires Idle when role activation is off.
+        return subject.vbsState == VbsState::Idle;
+    }
+
+    const auto roleTransition = ActivateVruSubject(personId);
+    if (!roleTransition.has_value() ||
+        *roleTransition == VruTransitionResult::Rejected)
+    {
+        NS_LOG_UNCOND(
+            "[VAM_SCENARIO] ROLE_ACTIVATION_REJECTED"
+            << " person_id=" << personId);
+        return false;
+    }
+
+    const auto vbsTransition =
+        SetVruSubjectVbsState(personId, subject.vbsState);
+
+    if (!vbsTransition.has_value() ||
+        *vbsTransition == VruTransitionResult::Rejected)
+    {
+        // Fail closed if the second transition unexpectedly fails.
+        DeactivateVruSubject(personId);
+
+        NS_LOG_UNCOND(
+            "[VAM_SCENARIO] VBS_STATE_REJECTED"
+            << " person_id=" << personId);
+        return false;
+    }
+
+    NS_LOG_UNCOND(
+        "[VAM_SCENARIO] SUBJECT_ACTIVATED"
+        << " person_id=" << personId
+        << " station_id=" << subject.stationId
+        << " vbs_state=" << static_cast<unsigned int>(subject.vbsState));
+
+    return true;
+}
+
 std::optional<
     vanetza_integration::vam::VruClusterLifecycleResult>
 SimulationController::ApplyVruSubjectClusterLifecycle(
@@ -1230,10 +1671,119 @@ SimulationController::ApplyVruSubjectClusterLifecycle(
     return m_sumoVruSubjectRegistry.ApplyClusterLifecycle(personId, event);
 }
 
+
+void
+SimulationController::RunVamGeneration(std::uint64_t referenceTimeUs)
+{
+    if (!m_vamGenerationScheduler)
+    {
+        return;
+    }
+
+    using namespace vanetza_integration::vam;
+
+    VamGenerationContext context{};
+    std::vector<VamGenerationScheduledCandidate> candidates;
+    VamGenerationSchedulerReport report{};
+    std::string error;
+
+    if (!m_vamGenerationScheduler->EvaluateStep(
+            referenceTimeUs,
+            m_sumoPersonRegistry,
+            m_sumoVruSubjectRegistry,
+            VehicleRegistry::Instance(),
+            SumoVehicleLifecycleRegistry::Instance(),
+            context,
+            candidates,
+            report,
+            error))
+    {
+        NS_LOG_UNCOND(
+            "[VAM_GENERATION] STEP_REJECTED"
+            << " reference_sumo_us=" << referenceTimeUs
+            << " reason=" << error);
+        return;
+    }
+
+    if (report.skippedByCadence)
+    {
+        return;
+    }
+
+    NS_LOG_UNCOND(
+        "[VAM_GENERATION] STEP_EVALUATED"
+        << " reference_sumo_us=" << referenceTimeUs
+        << " evaluated=" << report.evaluatedSubjects
+        << " candidates=" << candidates.size()
+        << " blocked_by_policy=" << report.blockedByPolicy
+        << " missing_identity=" << report.skippedMissingIdentity
+        << " missing_subject=" << report.skippedMissingSubject
+        << " pending=" << report.skippedPendingTransactions);
+
+    for (const auto& candidate : candidates)
+    {
+        if (!candidate.decision.transactionId.has_value())
+        {
+            continue;
+        }
+
+        const auto transactionId =
+            *candidate.decision.transactionId;
+
+        NS_LOG_UNCOND(
+            "[VAM_GENERATION] CANDIDATE_EVALUATED"
+            << " person_id=" << candidate.egoPersonId
+            << " station_id=" << candidate.stationId.value
+            << " transaction_id=" << transactionId
+            << " reason=" << static_cast<unsigned>(candidate.decision.reason)
+            << " generation_time_its_us="
+            << candidate.input.generationTimeIts.count()
+            << " role_on="
+            << (candidate.input.vruRole.role ==
+                        vanetza_integration::vru::role::VruRoleStatus::On
+                    ? "true" : "false")
+            << " vbs_active_standalone="
+            << (candidate.input.vruRole.vbs ==
+                        vanetza_integration::vru::role::VbsState::ActiveStandalone
+                    ? "true" : "false")
+            << " mode=EVALUATION_ONLY");
+
+        // Evaluation is not transmission. Abort rather than confirm:
+        // no successful-generation baseline may be committed here.
+        std::string abortError;
+        if (!AbortVamGeneration(
+                candidate.egoPersonId,
+                transactionId,
+                abortError))
+        {
+            NS_LOG_UNCOND(
+                "[VAM_GENERATION] CANDIDATE_ABORT_FAILED"
+                << " person_id=" << candidate.egoPersonId
+                << " station_id=" << candidate.stationId.value
+                << " transaction_id=" << transactionId
+                << " error=" << abortError
+                << " mode=EVALUATION_ONLY");
+            continue;
+        }
+
+        NS_LOG_UNCOND(
+            "[VAM_GENERATION] CANDIDATE_ABORTED"
+            << " person_id=" << candidate.egoPersonId
+            << " station_id=" << candidate.stationId.value
+            << " transaction_id=" << transactionId
+            << " baseline=UNCHANGED"
+            << " mode=EVALUATION_ONLY");
+    }
+
+    // This stage deliberately stops at candidate evaluation.
+    // Encoding, signing, BTP/GeoNetworking and transmission are not invoked.
+}
+
 void
 SimulationController::HandleSumoStepComplete(std::uint64_t referenceTimeUs)
 {
     RunCpmPerception(referenceTimeUs);
+    RunVamGeneration(referenceTimeUs);
 }
 
 

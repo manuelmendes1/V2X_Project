@@ -7,6 +7,7 @@
 #include "ns3/ipv4-address-helper.h"
 
 #include <string>
+#include <vector>
 
 #include "vanetza_integration/rx/rx_callback/rx_callback.h"
 #include "vanetza_integration/context/simulation_controller/simulation_controller.h"
@@ -14,6 +15,7 @@
 #include "vanetza_integration/context/vehicle_factory/vehicle_factory.h"
 #include "vanetza_integration/sumo_adapter/sumo_adapter.h"
 #include "vanetza_integration/context/its_station_identity/its_station_identity_authority.h"
+#include "vanetza_integration/vam/scenario/vam_scenario_subjects.h"
 
 using namespace ns3;
 
@@ -54,6 +56,36 @@ int main(int argc, char* argv[]) {
     double cpmNs3X = 0.0;
     double cpmNs3Y = 0.0;
     double cpmPerceptionRangeMeters = 50.0;
+
+    bool enableVamGeneration = false;
+    bool enableVamEvaluationScenario = false;
+    uint32_t vamTCheckVamGenMs = 100;
+    uint32_t vamTGenVamMinMs = 100;
+    uint32_t vamTGenVamMaxMs = 5000;
+    uint32_t vamTGenVamLfMinMs = 2000;
+
+    double vamVehicleSafeLateralMeters =
+        std::numeric_limits<double>::quiet_NaN();
+    double vamVehicleSafeLongitudinalMeters =
+        std::numeric_limits<double>::quiet_NaN();
+    double vamVehicleSafeVerticalMeters =
+        std::numeric_limits<double>::quiet_NaN();
+
+    double vamVruSafeLateralMeters =
+        std::numeric_limits<double>::quiet_NaN();
+    double vamVruSafeLongitudinalMeters =
+        std::numeric_limits<double>::quiet_NaN();
+    double vamVruSafeVerticalMeters =
+        std::numeric_limits<double>::quiet_NaN();
+
+    uint64_t vamMaximumSampleAgeUs = 250000;
+
+    // Explicit scenario-owned VRU identities and authorization.
+    // Populate with real SUMO person IDs and externally assigned ITS station IDs.
+    // Example entry shape:
+    // {"<SUMO-person-id>", <unique-station-id>, true,
+    //  VamVruScenarioSubjectConfig::VbsState::ActiveStandalone}
+    std::vector<VamVruScenarioSubjectConfig> vamScenarioSubjects{};
 
     CommandLine cmd;
 
@@ -153,7 +185,86 @@ int main(int argc, char* argv[]) {
         "Coordenada Y física da RSU no referencial SUMO/ns-3, em metros",
         spatemNs3Y);
 
+
+    cmd.AddValue(
+        "enableVamGeneration",
+        "Ativa a avaliação de candidatos VAM; não transmite VAM",
+        enableVamGeneration);
+
+    cmd.AddValue(
+        "enableVamEvaluationScenario",
+        "Ativa o sujeito VAM sintético de avaliação; requer enableVamGeneration",
+        enableVamEvaluationScenario);
+
+    cmd.AddValue(
+        "vamTCheckVamGenMs",
+        "Cadência lógica de avaliação VAM em milissegundos",
+        vamTCheckVamGenMs);
+
+    cmd.AddValue(
+        "vamTGenVamMinMs",
+        "Intervalo mínimo de geração VAM em milissegundos",
+        vamTGenVamMinMs);
+
+    cmd.AddValue(
+        "vamTGenVamMaxMs",
+        "Intervalo máximo de geração VAM em milissegundos",
+        vamTGenVamMaxMs);
+
+    cmd.AddValue(
+        "vamTGenVamLfMinMs",
+        "Intervalo mínimo do contentor VAM de baixa frequência",
+        vamTGenVamLfMinMs);
+
+    cmd.AddValue(
+        "vamVehicleSafeLateralMeters",
+        "Limiar lateral de proximidade segura para veículos",
+        vamVehicleSafeLateralMeters);
+
+    cmd.AddValue(
+        "vamVehicleSafeLongitudinalMeters",
+        "Limiar longitudinal de proximidade segura para veículos",
+        vamVehicleSafeLongitudinalMeters);
+
+    cmd.AddValue(
+        "vamVehicleSafeVerticalMeters",
+        "Limiar vertical de proximidade segura para veículos",
+        vamVehicleSafeVerticalMeters);
+
+    cmd.AddValue(
+        "vamVruSafeLateralMeters",
+        "Limiar lateral de proximidade segura para outros VRUs",
+        vamVruSafeLateralMeters);
+
+    cmd.AddValue(
+        "vamVruSafeLongitudinalMeters",
+        "Limiar longitudinal de proximidade segura para outros VRUs",
+        vamVruSafeLongitudinalMeters);
+
+    cmd.AddValue(
+        "vamVruSafeVerticalMeters",
+        "Limiar vertical de proximidade segura para outros VRUs",
+        vamVruSafeVerticalMeters);
+
+    cmd.AddValue(
+        "vamMaximumSampleAgeUs",
+        "Idade máxima aceite para observações SUMO em microssegundos",
+        vamMaximumSampleAgeUs);
+
     cmd.Parse(argc, argv);
+
+    if (enableVamEvaluationScenario && !enableVamGeneration)
+    {
+        std::cerr
+            << "[VAM_SCENARIO] enableVamEvaluationScenario requires "
+               "enableVamGeneration=true\n";
+        return 2;
+    }
+
+    if (enableVamGeneration && enableVamEvaluationScenario)
+    {
+        vamScenarioSubjects = MakeVamEvaluationScenarioSubjects();
+    }
 
     if (enableCpm && cpmPkiDir.empty())
     {
@@ -174,6 +285,54 @@ int main(int argc, char* argv[]) {
 
     SimulationContext::itsStartTime = itsStartTime;
     SimulationContext::cpmPkiDirectory = cpmPkiDir;
+
+
+    vanetza_integration::vam::VamGenerationConfig vamGenerationConfig{};
+    vamGenerationConfig.tCheckVamGenMs = vamTCheckVamGenMs;
+    vamGenerationConfig.tGenVamMinMs = vamTGenVamMinMs;
+    vamGenerationConfig.tGenVamMaxMs = vamTGenVamMaxMs;
+    vamGenerationConfig.tGenVamLfMinMs = vamTGenVamLfMinMs;
+
+    vanetza_integration::vam::VamGenerationEvaluationAdapterConfig
+        vamEvaluationConfig{};
+
+    vamEvaluationConfig.snapshotBuilder.vehicleThresholds = {
+        vamVehicleSafeLateralMeters,
+        vamVehicleSafeLongitudinalMeters,
+        vamVehicleSafeVerticalMeters
+    };
+
+    vamEvaluationConfig.snapshotBuilder.vruThresholds = {
+        vamVruSafeLateralMeters,
+        vamVruSafeLongitudinalMeters,
+        vamVruSafeVerticalMeters
+    };
+
+    vamEvaluationConfig.proximity.maximumSampleAgeUs =
+        vamMaximumSampleAgeUs;
+
+    std::string vamConfigurationError;
+    if (!SimulationController::ConfigureVamGeneration(
+            enableVamGeneration,
+            vamGenerationConfig,
+            vamEvaluationConfig,
+            vamConfigurationError))
+    {
+        std::cerr
+            << "[VAM_GENERATION] invalid configuration; startup aborted: "
+            << vamConfigurationError << '\n';
+        return 2;
+    }
+
+    std::string vamScenarioSubjectError;
+    if (!SimulationController::ConfigureVamVruScenarioSubjects(vamScenarioSubjects,
+            vamScenarioSubjectError))
+    {
+        std::cerr
+            << "[VAM_SCENARIO] invalid subject configuration; startup aborted: "
+            << vamScenarioSubjectError << '\n';
+        return 2;
+    }
 
     if (!SimulationController::ConfigureCpmPerception(
             enableCpm, cpmStationId, cpmLatitudeDeg,
@@ -218,6 +377,7 @@ int main(int argc, char* argv[]) {
     // Release CPM and SPATEM while ns-3 and the station registry are alive.
     SimulationController::ShutdownCpmEmitter();
     SimulationController::ShutdownSpatemEmitter();
+    SimulationController::ShutdownVamGeneration();
 
     Simulator::Destroy();
 

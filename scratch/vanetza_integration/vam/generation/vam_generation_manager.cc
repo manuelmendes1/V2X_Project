@@ -365,6 +365,12 @@ bool ShouldSuppressForRedundancy(
 
 } // namespace
 
+bool
+IsValidVamGenerationConfig(const VamGenerationConfig& config) noexcept
+{
+    return IsValidConfig(config);
+}
+
 VamGenerationManager::VamGenerationManager(VamGenerationConfig config)
     : m_config(std::move(config))
 {
