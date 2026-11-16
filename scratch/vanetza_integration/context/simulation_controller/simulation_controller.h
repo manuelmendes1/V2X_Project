@@ -103,14 +103,12 @@ public:
 
     // confirmedAtMs is logical SUMO simulation time, in milliseconds.
     static bool ConfirmVamGeneration(
-        const std::string& personId,
-        std::uint64_t transactionId,
+        const vanetza_integration::vam::VamGenerationTransactionHandle& handle,
         std::int64_t confirmedAtMs,
         std::string& error);
 
     static bool AbortVamGeneration(
-        const std::string& personId,
-        std::uint64_t transactionId,
+        const vanetza_integration::vam::VamGenerationTransactionHandle& handle,
         std::string& error);
 
     static void SetCamEnabled(bool enabled);
@@ -175,8 +173,9 @@ public:
     // Release SPATEM resources before ns-3 and static teardown.
     static void ShutdownSpatemEmitter();
 
-    // Release scheduler runtime state before Simulator::Destroy().
-    static void ShutdownVamGeneration();
+    // Drain VAM transactions before releasing the scheduler. A failed
+    // drain preserves the scheduler and blocks normal simulation teardown.
+    static bool ShutdownVamGeneration();
 
 private:
 

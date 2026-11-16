@@ -131,10 +131,6 @@ SimulationController::Start(Time stepLength)
     m_stepLength = stepLength;
     m_sumoPersonRegistry.Clear();
     m_sumoVruSubjectRegistry.Clear();
-    if (m_vamGenerationScheduler)
-    {
-        m_vamGenerationScheduler->ResetRuntime();
-    }
     SumoVehicleLifecycleRegistry::Instance().Clear();
 
     // Polling SUMO mantém a sua cadência original.
@@ -723,9 +719,20 @@ SimulationController::ConfigureVamGeneration(
 {
     if (!enabled)
     {
-        // Explicit disable releases only transient scheduler state.
-        // Logical ITS identity reservations and scenario declarations survive.
-        m_vamGenerationScheduler.reset();
+        // A scheduler may be destroyed only after every pending or retired
+        // transaction has been resolved. Failure preserves the old instance.
+        if (m_vamGenerationScheduler)
+        {
+            if (!m_vamGenerationScheduler->DrainTransactions(error))
+            {
+                error = "VAM disable blocked by unresolved transactions: " + error;
+                NS_LOG_UNCOND(
+                    "[VAM_GENERATION] DISABLE_BLOCKED reason=" << error);
+                return false;
+            }
+
+            m_vamGenerationScheduler.reset();
+        }
 
         error.clear();
         NS_LOG_UNCOND("[VAM_GENERATION] DISABLED");
@@ -795,9 +802,31 @@ SimulationController::ConfigureVamGeneration(
             vanetza_integration::vam::VamGenerationScheduler>(
                 std::move(config));
 
+    // Exhaustion must fail closed. Keep the active scheduler untouched.
+    if (!replacementScheduler->HasValidInstanceIdentity())
+    {
+        error = "VAM scheduler instance identifier is exhausted";
+        NS_LOG_UNCOND(
+            "[VAM_GENERATION] CONFIGURATION_REJECTED reason=" << error);
+        return false;
+    }
+
+    // Drain the old instance only after the replacement has been fully
+    // validated. A failed drain leaves the active scheduler untouched.
+    if (m_vamGenerationScheduler)
+    {
+        if (!m_vamGenerationScheduler->DrainTransactions(error))
+        {
+            error = "VAM replacement blocked by unresolved transactions: " + error;
+            NS_LOG_UNCOND(
+                "[VAM_GENERATION] RECONFIGURATION_BLOCKED reason=" << error);
+            return false;
+        }
+    }
+
     // Identity lookup is owned by ItsStationIdentityAuthority, not by the
     // scheduler. Scenario declarations remain owned by this controller.
-    // swap is noexcept; the previous scheduler is released afterwards.
+    // swap is noexcept; the previous, fully drained scheduler is released afterwards.
     m_vamGenerationScheduler.swap(replacementScheduler);
 
     error.clear();
@@ -1022,8 +1051,7 @@ SimulationController::GetPendingVamGenerationCandidates()
 
 bool
 SimulationController::ConfirmVamGeneration(
-    const std::string& personId,
-    std::uint64_t transactionId,
+    const vanetza_integration::vam::VamGenerationTransactionHandle& handle,
     std::int64_t confirmedAtMs,
     std::string& error)
 {
@@ -1034,16 +1062,14 @@ SimulationController::ConfirmVamGeneration(
     }
 
     return m_vamGenerationScheduler->ConfirmGeneration(
-        personId,
-        transactionId,
+        handle,
         confirmedAtMs,
         error);
 }
 
 bool
 SimulationController::AbortVamGeneration(
-    const std::string& personId,
-    std::uint64_t transactionId,
+    const vanetza_integration::vam::VamGenerationTransactionHandle& handle,
     std::string& error)
 {
     if (!m_vamGenerationScheduler)
@@ -1053,20 +1079,29 @@ SimulationController::AbortVamGeneration(
     }
 
     return m_vamGenerationScheduler->AbortGeneration(
-        personId,
-        transactionId,
+        handle,
         error);
 }
 
-void
+bool
 SimulationController::ShutdownVamGeneration()
 {
-    if (m_vamGenerationScheduler)
+    if (!m_vamGenerationScheduler)
     {
-        m_vamGenerationScheduler->ResetRuntime();
-        m_vamGenerationScheduler.reset();
-        NS_LOG_UNCOND("[VAM_GENERATION] SHUTDOWN_COMPLETE");
+        return true;
     }
+
+    std::string error;
+    if (!m_vamGenerationScheduler->DrainTransactions(error))
+    {
+        NS_LOG_UNCOND(
+            "[VAM_GENERATION] SHUTDOWN_BLOCKED reason=" << error);
+        return false;
+    }
+
+    m_vamGenerationScheduler.reset();
+    NS_LOG_UNCOND("[VAM_GENERATION] SHUTDOWN_COMPLETE");
+    return true;
 }
 
 void
@@ -1515,6 +1550,27 @@ SimulationController::HandlePersonUpdateFromSumo(
         return;
     }
 
+    // An accepted REMOVE terminates the VAM presence before the derived
+    // VRU subject registry is synchronized. Abort failure is fail-closed:
+    // the scheduler retains the transaction and quarantines only this person.
+    if (datagram.eventType == SumoPersonEventType::Remove)
+    {
+        if (m_vamGenerationScheduler)
+        {
+            std::string vamInvalidationError;
+            if (!m_vamGenerationScheduler->InvalidatePersonPresence(
+                    datagram.personId,
+                    vamInvalidationError))
+            {
+                NS_LOG_UNCOND(
+                    "[VAM_GENERATION] CANDIDATE_ABORT_FAILED"
+                    << " person_id=" << datagram.personId
+                    << " error=" << vamInvalidationError
+                    << " mode=EVALUATION_ONLY");
+            }
+        }
+    }
+
     // PersonRegistry remains authoritative. Only accepted events reach the
     // derived VRU subject synchronizer, independently of optional audit logs.
     if (!SumoVruSubjectSynchronizer::SynchronizeAccepted(
@@ -1750,10 +1806,19 @@ SimulationController::RunVamGeneration(std::uint64_t referenceTimeUs)
 
         // Evaluation is not transmission. Abort rather than confirm:
         // no successful-generation baseline may be committed here.
+        if (!candidate.transactionHandle.has_value())
+        {
+            NS_LOG_UNCOND(
+                "[VAM_GENERATION] CANDIDATE_HANDLE_MISSING"
+                << " person_id=" << candidate.egoPersonId
+                << " transaction_id=" << transactionId
+                << " mode=EVALUATION_ONLY");
+            continue;
+        }
+
         std::string abortError;
         if (!AbortVamGeneration(
-                candidate.egoPersonId,
-                transactionId,
+                *candidate.transactionHandle,
                 abortError))
         {
             NS_LOG_UNCOND(

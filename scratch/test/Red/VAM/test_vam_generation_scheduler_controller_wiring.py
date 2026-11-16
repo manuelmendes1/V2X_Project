@@ -60,6 +60,7 @@ class TestVamGenerationSchedulerControllerWiring(unittest.TestCase):
         )
         self.assertIn("ConfirmVamGeneration(", self.header)
         self.assertIn("AbortVamGeneration(", self.header)
+        self.assertIn("VamGenerationTransactionHandle", self.header)
 
     def test_controller_owns_dedicated_scheduler(self):
         self.assertIn(
@@ -77,15 +78,37 @@ class TestVamGenerationSchedulerControllerWiring(unittest.TestCase):
             self.controller,
         )
 
-    def test_start_resets_transient_scheduler_state(self):
+    def test_evaluate_step_rejects_exhausted_scheduler_identity(self):
+        scheduler = (
+            ROOT / "scratch/vanetza_integration/vam/scheduler/"
+            "vam_generation_scheduler.cc"
+        ).read_text()
+        evaluate = braced_block_after(
+            scheduler,
+            "VamGenerationScheduler::EvaluateStep(",
+        )
+        self.assertTrue(evaluate, "VAM_EVALUATE_STEP_MISSING")
+        guard = evaluate.find(
+            "HasValidVamGenerationSchedulerInstanceId("
+        )
+        rejection = evaluate.find(
+            "VAM scheduler instance identifier is exhausted"
+        )
+        handle_creation = evaluate.find("VamGenerationTransactionHandle{")
+        self.assertGreaterEqual(guard, 0, "EVALUATE_IDENTITY_GUARD_MISSING")
+        self.assertGreater(rejection, guard)
+        self.assertGreater(handle_creation, rejection)
+
+    def test_start_does_not_reset_configured_vam_scheduler(self):
         start = braced_block_after(
             self.controller,
             "SimulationController::Start(Time stepLength)",
         )
         self.assertTrue(start, "SIMULATION_CONTROLLER_START_MISSING")
-        self.assertIn(
-            "m_vamGenerationScheduler->ResetRuntime()",
+        self.assertNotIn(
+            "ResetRuntime(",
             start,
+            "START_MUST_NOT_DISCARD_VAM_TRANSACTION_STATE",
         )
 
     def test_configuration_requires_its_time_and_explicit_thresholds(self):
@@ -132,6 +155,12 @@ class TestVamGenerationSchedulerControllerWiring(unittest.TestCase):
         self.assertIn("ConfirmGeneration", confirm)
         self.assertIn("AbortGeneration", abort)
         self.assertIn("GetPendingCandidates", pending)
+        self.assertIn("handle", confirm)
+        self.assertIn("handle", abort)
+        self.assertNotIn("personId", confirm)
+        self.assertNotIn("transactionId", confirm)
+        self.assertNotIn("personId", abort)
+        self.assertNotIn("transactionId", abort)
 
     def test_step_complete_invokes_vam_after_cpm(self):
         method = braced_block_after(
@@ -160,6 +189,7 @@ class TestVamGenerationSchedulerControllerWiring(unittest.TestCase):
         self.assertNotIn("SendVam(", method)
         self.assertNotIn("TransmitVam(", method)
         self.assertNotIn("ConfirmVamGeneration(", method)
+        self.assertIn("candidate.transactionHandle", method)
 
         evaluated_position = method.find(
             '"[VAM_GENERATION] CANDIDATE_EVALUATED"'
@@ -181,6 +211,17 @@ class TestVamGenerationSchedulerControllerWiring(unittest.TestCase):
             aborted_position, abort_position,
             "CANDIDATE_ABORT_RESULT_LOG_MISSING",
         )
+
+    def test_scheduler_identity_exhaustion_preserves_active_instance(self):
+        method = braced_block_after(
+            self.controller,
+            "SimulationController::ConfigureVamGeneration(",
+        )
+        self.assertTrue(method, "VAM_CONFIGURATION_METHOD_MISSING")
+        guard = method.find("HasValidInstanceIdentity()")
+        swap = method.find("m_vamGenerationScheduler.swap(replacementScheduler)")
+        self.assertGreaterEqual(guard, 0, "SCHEDULER_IDENTITY_GUARD_MISSING")
+        self.assertGreater(swap, guard, "INVALID_SCHEDULER_MUST_NOT_REPLACE_ACTIVE")
 
     def test_cli_keeps_vam_generation_opt_in(self):
         self.assertIn(

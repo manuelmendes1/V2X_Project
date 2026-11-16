@@ -374,10 +374,18 @@ int main(int argc, char* argv[]) {
 
     Simulator::Run();
 
-    // Release CPM and SPATEM while ns-3 and the station registry are alive.
+    // VAM must drain before any subsystem teardown or global identity clear.
+    if (!SimulationController::ShutdownVamGeneration())
+    {
+        std::cerr
+            << "[VAM_GENERATION] shutdown blocked; normal teardown aborted; "
+               "ITS identity authority was not explicitly cleared\n";
+        return 3;
+    }
+
+    // Other runtimes are released only after VAM transaction drain succeeds.
     SimulationController::ShutdownCpmEmitter();
     SimulationController::ShutdownSpatemEmitter();
-    SimulationController::ShutdownVamGeneration();
 
     Simulator::Destroy();
 

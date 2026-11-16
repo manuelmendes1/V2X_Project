@@ -34,9 +34,10 @@ class SpatemPhysicalDuplicateHookTest(unittest.TestCase):
         )
 
     def test_duplicate_copies_the_serialized_packet_and_is_deferred(self):
-        self.assertIn(
-            "[ctx, socket, ns3Packet, duplicateDenm, duplicateSpatem, duplicateCpm]()",
+        self.assertRegex(
             self.source,
+            r"Simulator::ScheduleNow\(\s*\[ctx,\s*completion,\s*socket,\s*ns3Packet,\s*"
+            r"duplicateDenm,\s*duplicateSpatem,\s*duplicateCpm\]\(\)",
         )
         self.assertRegex(
             self.source,

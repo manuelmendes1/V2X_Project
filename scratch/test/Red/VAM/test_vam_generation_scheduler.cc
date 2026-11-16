@@ -255,7 +255,9 @@ bool TestPerSubjectTransactionIsolation()
     ok &= Check(
         candidateA && candidateB &&
             candidateA->decision.transactionId.has_value() &&
-            candidateB->decision.transactionId.has_value(),
+            candidateB->decision.transactionId.has_value() &&
+            candidateA->transactionHandle.has_value() &&
+            candidateB->transactionHandle.has_value(),
         "SUBJECTS_HAVE_DISTINCT_PENDING_TRANSACTIONS");
 
     if (!candidateA || !candidateB ||
@@ -268,8 +270,7 @@ bool TestPerSubjectTransactionIsolation()
     error.clear();
     ok &= Check(
         scheduler.ConfirmGeneration(
-            "ped-a",
-            *candidateA->decision.transactionId,
+            *candidateA->transactionHandle,
             0,
             error),
         "CONFIRMATION_RESOLVES_ONLY_THE_SELECTED_SUBJECT");
@@ -277,8 +278,7 @@ bool TestPerSubjectTransactionIsolation()
     error.clear();
     ok &= Check(
         scheduler.AbortGeneration(
-            "ped-b",
-            *candidateB->decision.transactionId,
+            *candidateB->transactionHandle,
             error),
         "ABORT_RESOLVES_ONLY_THE_SELECTED_SUBJECT");
 
@@ -464,7 +464,7 @@ bool TestRemovalAndReentry()
 }
 
 
-bool TestRuntimeResetPreservesIdentity()
+bool TestDrainPreservesIdentity()
 {
     auto& authority = ItsStationIdentityAuthority::Instance();
     authority.Clear();
@@ -499,12 +499,14 @@ bool TestRuntimeResetPreservesIdentity()
         "vam-vru:ped-reset"
     };
 
-    scheduler.ResetRuntime();
+    ok &= Check(
+        scheduler.DrainTransactions(error) && error.empty(),
+        "DRAIN_RESOLVES_PENDING_TRANSACTION");
 
     ok &= Check(
         scheduler.GetPendingCandidates().empty() &&
             authority.IsReservedBy(5001, owner),
-        "RESET_CLEARS_PENDING_RUNTIME_ONLY");
+        "DRAIN_CLEARS_RUNTIME_AND_PRESERVES_IDENTITY");
 
     candidates.clear();
     report = {};
@@ -520,7 +522,7 @@ bool TestRuntimeResetPreservesIdentity()
             candidates.front().decision.reason ==
                 VamGenerationReason::InitialActivation &&
             !report.skippedByCadence,
-        "RESET_ALLOWS_FRESH_INITIAL_EVALUATION");
+        "DRAIN_ALLOWS_FRESH_INITIAL_EVALUATION");
 
     return ok;
 }
@@ -539,7 +541,7 @@ int main()
     ok &= TestPerSubjectTransactionIsolation();
     ok &= TestCadenceAndTimeRegression();
     ok &= TestRemovalAndReentry();
-    ok &= TestRuntimeResetPreservesIdentity();
+    ok &= TestDrainPreservesIdentity();
 
     std::cout << "VAM_GENERATION_SCHEDULER="
               << (ok ? "PASS" : "FAIL") << '\n';
