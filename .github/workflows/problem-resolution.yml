@@ -50,7 +50,7 @@ jobs:
           test -x scripts/problem-tests.sh
 
       - name: Validate automation script syntax
-        run: bash -n scripts/problem-resolution.sh scripts/problem-tests.sh scripts/problem-tests/C-01.sh
+        run: bash -n scripts/problem-resolution.sh scripts/problem-tests.sh scripts/problem-tests/*.sh
 
       - name: Run problem-specific validation profile
         run: scripts/problem-tests.sh "$PROBLEM_BRANCH"

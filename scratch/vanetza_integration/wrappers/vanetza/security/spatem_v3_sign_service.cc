@@ -195,7 +195,7 @@ SpatemV3SignService::sign(
     }
 
     // StraightSignService validates the configured chain and the ticket's
-    // permission for AID 639 before producing the signed message.
+    // permission for SPATEM AID 137 before producing the signed message.
     return m_impl->signer->sign(std::move(request));
 }
 

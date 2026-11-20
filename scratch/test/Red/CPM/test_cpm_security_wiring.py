@@ -126,7 +126,8 @@ class TestCpmSecurityWiring(unittest.TestCase):
         for required in (
             "CpmV3VerifyService",
             "DenmV3VerifyService",
-            "kCpmItsAid",
+            "ClassifyV2xV3SecurityProfile",
+            "V2xV3SecurityProfile::CpmRsu",
             "VerificationReport::Configuration_Problem",
         ):
             with self.subTest(required=required):

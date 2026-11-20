@@ -57,7 +57,7 @@ namespace ns3 {
         if (!ReloadActiveCredential())
         {
             throw std::runtime_error(
-                "Unable to initialize DENM V3 signer credential");
+                "Unable to initialize vehicle V3 signer credential");
         }
     }
 
@@ -195,7 +195,7 @@ namespace ns3 {
                     V2XLogLevel::DEBUG,
                     "SECURITY",
                     "SIGN_BEGIN",
-                    "DENM_V3 signing");
+                    "vehicle CAM/DENM V3 signing");
             }
 
             auto confirm = m_denmSigner->sign(std::move(request));
@@ -265,7 +265,7 @@ namespace ns3 {
                             V2XLogLevel::DEBUG,
                             "SECURITY",
                             "SIGN_OK",
-                            "DENM_V3 signed "
+                            "vehicle CAM/DENM V3 signed "
                             "protocol_version=" +
                             std::to_string(
                                 static_cast<unsigned>(
@@ -321,7 +321,7 @@ namespace ns3 {
                         V2XLogLevel::ERROR,
                         "SECURITY",
                         "SIGN_FAIL",
-                        "DENM_V3 sign_failed error=" +
+                        "vehicle V3 sign_failed error=" +
                         std::to_string(
                             static_cast<int>(confirm.error)));
                 }
