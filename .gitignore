@@ -173,29 +173,38 @@ scratch/test/**/build/
 !scratch/docs/CPM/ETAPA_10_3_MODELO_NEUTRO.md
 
 # ------------------------------------------------------------
-# SUMO official project tree
+# SUMO official project tree relocated under scratch/
 # ------------------------------------------------------------
 
-!/sumo/
-!/sumo/**
+!/scratch/sumo/
+!/scratch/sumo/**
 
-# Generated files in the active worktree.
-# Historical snapshots under sumo/versions/ remain preserved.
-sumo/current/**/__pycache__/
-sumo/current/**/*.pyc
-sumo/current/**/*.log
-sumo/current/**/*.bak
-sumo/current/**/*.tmp
-sumo/current/**/*.out
-sumo/current/**/.pytest_cache/
-sumo/current/**/.cache/
+# Historical snapshots are local backups, not canonical sources.
+/scratch/sumo/versions/
 
-# SUMO generated network and local snapshot archive
-# The generated network is >100 MB; preserve locally and rebuild from OSM source.
-# Snapshot copies are local backups and must not be added wholesale to Git.
-/sumo/versions/
-/sumo/current/scenario/georeferenced/vila-nova-de-famalicao/famalicao.net.xml
-/sumo/current/scenario/georeferenced/vila-nova-de-famalicao/netconvert.log
+# Generated files and runtime artefacts in the active worktree.
+scratch/sumo/current/**/__pycache__/
+scratch/sumo/current/**/*.py[cod]
+scratch/sumo/current/**/*.log
+scratch/sumo/current/**/*.bak
+scratch/sumo/current/**/*.tmp
+scratch/sumo/current/**/*.out
+scratch/sumo/current/**/.pytest_cache/
+scratch/sumo/current/**/.cache/
+
+# Preserve the previously tracked DENM boundary evidence log.
+!/scratch/sumo/current/evidence/e2e-cpm-perception/20261022T133131Z/denm-boundary-ingest/injector.log
+
+# Generated network and netconvert output.
+# Rebuild the network from its OSM source.
+/scratch/sumo/current/scenario/georeferenced/vila-nova-de-famalicao/famalicao.net.xml
+/scratch/sumo/current/scenario/georeferenced/vila-nova-de-famalicao/netconvert.log
+
+# Private key material and PKCS#12 bundles must never be versioned.
+scratch/sumo/**/*.key
+scratch/sumo/**/*.pem
+scratch/sumo/**/*.p12
+scratch/sumo/**/*.pfx
 
 # CPM Etapa 10.6 ASN.1/UPER codec report
 !/scratch/docs/CPM/ETAPA_10_6_CODEC_ASN1_UPER.md
@@ -206,3 +215,29 @@ sumo/current/**/.cache/
 # VAM Etapa 11.6 — whitelist documental restrita
 !/scratch/docs/VAM/2026-11-16-0845-feat-vam-transaction-lifecycle-plan.md
 !/scratch/docs/VAM/ETAPA_11_6_CLOSEOUT.md
+
+# ------------------------------------------------------------
+# BEGIN V2X RELOCATION ALLOWLIST
+# ------------------------------------------------------------
+
+# VAM documentation relocated into the canonical Etapa directory.
+!/scratch/docs/VAM/Etapa/
+
+!/scratch/docs/VAM/Etapa/ETAPA_11_0_VAM_BASELINE_FREEZE.md
+!/scratch/docs/VAM/Etapa/2026-11-16-0845-feat-vam-transaction-lifecycle-plan.md
+!/scratch/docs/VAM/Etapa/ETAPA_11_1_AUDITORIA_CLOSEOUT.md
+!/scratch/docs/VAM/Etapa/ETAPA_11_2_PERFIL_PAPEL_VRU_CLOSEOUT.md
+!/scratch/docs/VAM/Etapa/ETAPA_11_3_NEUTRAL_CONTRACT_CLOSEOUT.md
+!/scratch/docs/VAM/Etapa/ETAPA_11_5_GENERATION_MANAGEMENT_CHECKPOINT.md
+!/scratch/docs/VAM/Etapa/ETAPA_11_6_CLOSEOUT.md
+!/scratch/docs/VAM/Etapa/ETAPA_11_VAM_PLANO.md
+!/scratch/docs/VAM/Etapa/etapa-11.6.1b-vru-subject-role.md
+
+# Evidence patch relocated under scratch/.
+!/scratch/evidence/
+!/scratch/evidence/v2x_sumo_bridge_sumogui_fix.patch
+
+# Test results, PKI fixtures and runtime credentials remain local only.
+/scratch/test-results/
+
+# END V2X RELOCATION ALLOWLIST
