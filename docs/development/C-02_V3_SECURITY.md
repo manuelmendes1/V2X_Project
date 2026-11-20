@@ -4,7 +4,7 @@
 
 C-02 elimina os caminhos de assinatura/verificação dummy do runtime de produção e torna explícita a seleção do verificador por ITS-AID. Uma assinatura de aplicação CAM por OpenSSL permanece como verificação adicional legada, mas não substitui a verificação do envelope ETSI Security V3.
 
-A configuração é *fail-closed*: uma credencial, trust anchor ou resultado de verificação em falta não é convertido num sucesso dummy.
+A configuração é *fail-closed*: uma credencial ETSI, trust anchor ou resultado de verificação em falta não é convertido num sucesso dummy. Para compatibilidade com a assinatura CAM de aplicação já existente, o código continua a construir um X.509 OpenSSL local a partir da chave privada do ticket; esse certificado local não valida a cadeia ETSI e só é usado depois de a verificação V3 do envelope ter passado.
 
 ## Perfis de segurança
 
@@ -51,7 +51,7 @@ Mantém o contrato CPM já existente: `cpm-root.cert`, `cpm-aa.cert`, `cpm-rsu-t
 
 Os verificadores V3 usam `StraightVerifyService`, cache de certificados, trust store com a raiz explicitamente confiada, issuer lookup, runtime ITS e posição WGS84. As verificações temporal e geográfica não são desactivadas. Os campos neutros `verificationPerformed`, `verificationSucceeded` e `verifiedItsAid` transportam o veredicto até ao pipeline de aplicação.
 
-CAM e SPATEM recusam a entrega quando falta a prova V3 ou quando o AID verificado não coincide com o perfil esperado. CAM compara ainda o `stationId` ASN.1 com a identidade do emissor resolvida no boundary GeoNetworking. A assinatura OpenSSL CAM preexistente continua depois desse gate como integridade adicional; não é uma trust anchor nem uma alternativa à cadeia V3.
+CAM e SPATEM recusam a entrega quando falta a prova V3 ou quando o AID verificado não coincide com o perfil esperado. CAM compara ainda o `stationId` ASN.1 com a identidade do emissor resolvida no boundary GeoNetworking. A assinatura OpenSSL CAM preexistente continua depois desse gate como integridade adicional. O X.509 local criado a partir da chave do ticket não é uma trust anchor nem uma alternativa à cadeia V3.
 
 A verificação CPM existente mantém-se separada, com domínio PKI próprio.
 

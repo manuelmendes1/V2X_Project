@@ -14,8 +14,8 @@ def repository_root(start: Path) -> Path:
 
 
 def strip_cpp_comments(source: str) -> str:
-    source = re.sub(r"/\\*.*?\\*/", "", source, flags=re.DOTALL)
-    return re.sub(r"//[^\\n]*", "", source)
+    source = re.sub(r"/\*.*?\*/", "", source, flags=re.DOTALL)
+    return re.sub(r"//[^\n]*", "", source)
 
 
 class TestV2xV3SecurityContract(unittest.TestCase):
@@ -38,6 +38,8 @@ class TestV2xV3SecurityContract(unittest.TestCase):
         cls.spatem_rx = read("spatem/rx/spatem_rx_pipeline.cc")
         cls.cam_verify = read("rx/rx_verify/rx_verify.cc")
         cls.cam_rx = read("rx/rx_pipeline.cc")
+        cls.denm_rx = read("denm/rx/denm_rx_pipeline.cc")
+        cls.vehicle_initializer = read("context/vehicle_security/vehicle_security_initializer/vehicle_security_initializer.cc")
         cls.cmake = (cls.root / "scratch/CMakeLists.txt").read_text(encoding="utf-8")
         cls.simulation_context = read("context/simulation_context/simulation_context.h")
 
@@ -90,6 +92,25 @@ class TestV2xV3SecurityContract(unittest.TestCase):
                 self.assertIn(token, self.vehicle_verifier)
         self.assertNotIn("disable_location_checks", self.vehicle_verifier)
         self.assertNotIn("DummyVerifyService", strip_cpp_comments(self.vehicle_verifier))
+
+    def test_denm_rx_requires_v3_cryptographic_verification(self):
+        for token in (
+            "ctx.verifiedItsAid != 37",
+            "!ctx.verificationPerformed",
+            "!ctx.verificationSucceeded",
+            "denm_v3_verification_unavailable",
+            "denm_v3_verification_failed",
+        ):
+            with self.subTest(required=token):
+                self.assertIn(token, self.denm_rx)
+        self.assertNotIn("disable_location_checks", self.vehicle_verifier)
+
+    def test_missing_vehicle_ticket_has_no_synthesized_v3_fallback(self):
+        self.assertIn("DiscoverDenmCredentials", self.vehicle_initializer)
+        self.assertIn("SetActiveDenmCredential(0)", self.vehicle_initializer)
+        self.assertNotIn("GenerateEcdsaKeyAndCert", self.vehicle_initializer)
+        adapter = (self.integration / "wrappers/vanetza/geonet/vanetza_geonet_adapter.cc").read_text(encoding="utf-8")
+        self.assertIn("V2X_V3_CREDENTIAL_REQUIRED", adapter)
 
     def test_dispatcher_has_distinct_trust_domains_and_fails_closed(self):
         for token in (
