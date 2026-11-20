@@ -5,8 +5,12 @@
 
 #include <boost/variant/get.hpp>
 
+#include <filesystem>
+
 #include <vanetza/common/its_aid.hpp>
 #include <vanetza/security/v3/persistence.hpp>
+#include <vanetza/security/v3/issuer_memory_lookup.hpp>
+#include <vanetza/security/v3/trust_store.hpp>
 #include <vanetza/security/v3/secured_message.hpp>
 
 #include <ns3/log.h>
@@ -18,8 +22,23 @@
 
 namespace ns3 {
 
-
-
+namespace
+{
+std::filesystem::path
+RequireVehiclePkiFile(
+    const std::filesystem::path& directory,
+    const char* filename)
+{
+    const auto path = directory / filename;
+    std::error_code ec;
+    if (!std::filesystem::is_regular_file(path, ec) || ec)
+    {
+        throw std::runtime_error(
+            "vehicle CAM/DENM PKI configuration is incomplete");
+    }
+    return path;
+}
+} // namespace
 
     DenmV3SignService::DenmV3SignService(
         vanetza::ManualRuntime& runtime,
@@ -33,6 +52,8 @@ namespace ns3 {
         m_certificateProvider(nullptr),
         m_signHeaderPolicy(nullptr),
         m_locationChecker(),
+        m_issuerLookup(),
+        m_trustStore(),
         m_certificateValidator(),
         m_denmSigner(nullptr),
 
@@ -53,6 +74,41 @@ namespace ns3 {
         m_certificateValidator.use_runtime(&m_runtime);
         m_certificateValidator.use_position_provider(&m_position);
         m_certificateValidator.use_location_checker(&m_locationChecker);
+
+        const VehicleCredential* activeCredential =
+            m_credentialProvider.GetActiveCredential();
+        if (activeCredential == nullptr)
+        {
+            throw std::runtime_error(
+                "vehicle CAM/DENM V3 signer has no active ticket");
+        }
+
+        const std::filesystem::path pkiDirectory =
+            std::filesystem::path(activeCredential->certFile).parent_path();
+        const auto rootPath =
+            RequireVehiclePkiFile(pkiDirectory, "denm-root.cert");
+        const auto aaPath =
+            RequireVehiclePkiFile(pkiDirectory, "denm-aa.cert");
+
+        const auto root =
+            vanetza::security::v3::load_certificate_from_file(
+                rootPath.string());
+        const auto aa =
+            vanetza::security::v3::load_certificate_from_file(
+                aaPath.string());
+
+        if (!m_issuerLookup.insert(aa) ||
+            !m_issuerLookup.insert(root))
+        {
+            throw std::runtime_error(
+                "vehicle CAM/DENM PKI issuer configuration is invalid");
+        }
+
+        // The root is the only trust anchor; AA is an issuer, not an
+        // independently trusted certificate.
+        m_trustStore.insert(root);
+        m_certificateValidator.use_issuer_lookup(&m_issuerLookup);
+        m_certificateValidator.use_trust_store(&m_trustStore);
 
         if (!ReloadActiveCredential())
         {

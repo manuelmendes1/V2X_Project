@@ -64,6 +64,12 @@ class TestV2xV3SecurityContract(unittest.TestCase):
             "use_runtime",
             "use_position_provider",
             "use_location_checker",
+            "TrustStore",
+            "IssuerMemoryLookup",
+            "use_trust_store",
+            "use_issuer_lookup",
+            "denm-root.cert",
+            "denm-aa.cert",
             "No_Certificate",
         ):
             with self.subTest(required=token):
