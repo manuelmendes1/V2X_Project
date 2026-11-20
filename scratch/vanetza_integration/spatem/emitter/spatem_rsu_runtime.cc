@@ -7,6 +7,7 @@
 #include "vanetza_integration/wrappers/vanetza/security/spatem_v3_verify_service.h"
 
 
+#include <exception>
 #include <utility>
 
 #include <ns3/log.h>
