@@ -825,6 +825,11 @@ VanetzaBtpAdapter::SendBtpB(
         vanetza::OsiLayer::Application) =
         std::move(appPayload);
 
+    // Router.request() may synchronously advance the shared PacketContext
+    // through DCC and Access. Keep an independent context for GeoNetworking
+    // confirmation logging.
+    PacketContext geonetLogContext = context;
+
     vanetza::geonet::DataConfirm confirm =
         [&]() -> vanetza::geonet::DataConfirm
     {
@@ -858,36 +863,40 @@ VanetzaBtpAdapter::SendBtpB(
             std::move(packet));
     }();
 
-    context.MarkSuccess();
-
-    V2XWriteLog(
-        context,
-        V2XLogLevel::DEBUG,
-        "GEONET",
-        "GEONET_TX_OK",
-        std::string("transport=") +
-            transportName +
-            " profile=ITS_G5 aid=" +
-            aidName);
-
     //----------------------------------------------------------------------
     // Router confirmation
+    //
+    // Router.request() may synchronously hand the packet to DCC and Access.
+    // Access can therefore advance the shared PacketContext (and even report
+    // a terminal failure) before this call returns. Router acceptance is not
+    // permission to overwrite a downstream stage/result.
     //----------------------------------------------------------------------
+
+    const std::string confirmationReason =
+        ResultCodeToString(confirm.result_code);
 
     if (!confirm.accepted())
     {
-        context.MarkFailure();
+        // Router rejection may only update a still-pending GeoNetworking
+        // result. Never overwrite a synchronous downstream failure or drop.
+        if (context.pipelineStage == PipelineStage::GEONET_TX &&
+            context.pipelineResult == PipelineResult::BEGIN)
+        {
+            context.MarkFailure();
+            context.reason = confirmationReason;
+        }
 
-        context.reason =
-            ResultCodeToString(
-                confirm.result_code);
+        // Log the Router confirmation independently of downstream mutations.
+        geonetLogContext.AdvancePipeline(PipelineStage::GEONET_TX);
+        geonetLogContext.MarkFailure();
+        geonetLogContext.reason = confirmationReason;
 
         V2XWriteLog(
-            context,
+            geonetLogContext,
             V2XLogLevel::ERROR,
             "GEONET",
             "GEONET_TX_FAIL",
-            "result=" + context.reason);
+            "result=" + confirmationReason);
 
         V2XWriteLog(
             context,
@@ -901,11 +910,31 @@ VanetzaBtpAdapter::SendBtpB(
         return false;
     }
 
-    context.MarkSuccess();
+    // A Router acceptance only completes GeoNetworking if that stage is
+    // still pending. Synchronous downstream outcomes remain authoritative.
+    if (context.pipelineStage == PipelineStage::GEONET_TX &&
+        context.pipelineResult == PipelineResult::BEGIN)
+    {
+        context.MarkSuccess();
+        context.reason = confirmationReason;
+    }
 
-    context.reason =
-        ResultCodeToString(
-            confirm.result_code);
+    // GEONET_TX_OK describes Router acceptance, not terminal TX completion.
+    // Its log context must therefore remain GEONET_TX / OK even if Access
+    // already advanced the live context to a later stage.
+    geonetLogContext.AdvancePipeline(PipelineStage::GEONET_TX);
+    geonetLogContext.MarkSuccess();
+    geonetLogContext.reason = confirmationReason;
+
+    V2XWriteLog(
+        geonetLogContext,
+        V2XLogLevel::DEBUG,
+        "GEONET",
+        "GEONET_TX_OK",
+        std::string("transport=") +
+            transportName +
+            " profile=ITS_G5 aid=" +
+            aidName);
 
     return true;
 }
