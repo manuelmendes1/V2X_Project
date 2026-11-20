@@ -247,3 +247,6 @@ scratch/sumo/**/*.pfx
 !/scratch/docs/CPM/Etapa/*.md
 !/scratch/docs/SPATEM/Etapa/
 !/scratch/docs/SPATEM/Etapa/*.txt
+
+# VAM: plano principal na raiz e documentos da etapa
+!/scratch/docs/VAM/Etapa/Etapa-11-6-Plano-VAM.md
