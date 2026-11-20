@@ -16,7 +16,7 @@ permissions:
   pull-requests: read
 
 concurrency:
-  group: problem-resolution-\${{ github.event.pull_request.number || inputs.branch }}
+  group: problem-resolution-${{ github.event.pull_request.number || inputs.branch }}
   cancel-in-progress: true
 
 jobs:
@@ -25,12 +25,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      PROBLEM_BRANCH: \${{ github.event_name == 'pull_request' && github.head_ref || inputs.branch }}
+      PROBLEM_BRANCH: ${{ github.event_name == 'pull_request' && github.head_ref || inputs.branch }}
     steps:
       - name: Checkout problem branch
         uses: actions/checkout@v4
         with:
-          ref: \${{ github.event_name == 'pull_request' && github.head_ref || inputs.branch }}
+          ref: ${{ github.event_name == 'pull_request' && github.head_ref || inputs.branch }}
           fetch-depth: 0
 
       - name: Install focused native dependencies

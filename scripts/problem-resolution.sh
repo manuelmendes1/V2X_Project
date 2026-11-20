@@ -23,13 +23,13 @@ finish:
 USAGE
 }
 
-command_name="\${1:-}"
+command_name="${1:-}"
 [[ -n "$command_name" ]] || { usage >&2; exit 2; }
 shift
 
 normalize_problem_id() {
-  local value="\${1:-}"
-  value="\${value^^}"
+  local value="${1:-}"
+  value="${value^^}"
   [[ "$value" =~ ^C-[0-9]+$ ]] || {
     echo "ERROR: identificador esperado no formato C-NN; recebido: $value" >&2
     exit 2
@@ -39,9 +39,9 @@ normalize_problem_id() {
 
 case "$command_name" in
   start)
-    problem_id="$(normalize_problem_id "\${1:-}")"
-    slug="\${2:-}"
-    base="\${3:-main}"
+    problem_id="$(normalize_problem_id "${1:-}")"
+    slug="${2:-}"
+    base="${3:-main}"
     [[ "$slug" =~ ^[A-Za-z0-9][A-Za-z0-9-]*$ ]] || {
       echo "ERROR: slug inválido: $slug" >&2
       exit 2
@@ -56,7 +56,7 @@ case "$command_name" in
     git switch "$base"
     git pull --ff-only origin "$base"
 
-    branch="fix/\${problem_id,,}-\${slug,,}"
+    branch="fix/${problem_id,,}-${slug,,}"
     if git show-ref --verify --quiet "refs/heads/$branch"; then
       echo "ERROR: branch local já existe: $branch" >&2
       exit 2
@@ -67,11 +67,11 @@ case "$command_name" in
     ;;
 
   finish)
-    problem_id="$(normalize_problem_id "\${1:-}")"
-    title="\${2:-}"
+    problem_id="$(normalize_problem_id "${1:-}")"
+    title="${2:-}"
     shift 2 || true
     [[ -n "$title" ]] || { echo "ERROR: título de commit/PR obrigatório." >&2; exit 2; }
-    [[ "\${1:-}" == "--paths" ]] || {
+    [[ "${1:-}" == "--paths" ]] || {
       echo "ERROR: indique os caminhos intencionais com --paths." >&2
       exit 2
     }
@@ -79,13 +79,13 @@ case "$command_name" in
     (($# > 0)) || { echo "ERROR: não foram indicados caminhos para stage." >&2; exit 2; }
 
     branch="$(git branch --show-current)"
-    [[ "$branch" == "fix/\${problem_id,,}-"* ]] || {
+    [[ "$branch" == "fix/${problem_id,,}-"* ]] || {
       echo "ERROR: branch atual '$branch' não corresponde a $problem_id." >&2
       exit 2
     }
 
     paths=("$@")
-    for path in "\${paths[@]}"; do
+    for path in "${paths[@]}"; do
       [[ "$path" != /* && "$path" != *".."* && -e "$ROOT/$path" ]] || {
         echo "ERROR: caminho inválido ou inexistente: $path" >&2
         exit 2
@@ -97,11 +97,11 @@ case "$command_name" in
     git diff --check
 
     echo "===== SELECTIVE STAGE ====="
-    git add -- "\${paths[@]}"
+    git add -- "${paths[@]}"
     git diff --cached --check
 
     staged="$(git diff --cached --name-only | sort)"
-    expected="$(printf '%s\n' "\${paths[@]}" | sort)"
+    expected="$(printf '%s\n' "${paths[@]}" | sort)"
     [[ "$staged" == "$expected" ]] || {
       echo "ERROR: o index contém caminhos diferentes da allowlist." >&2
       echo "STAGED:" >&2

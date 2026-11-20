@@ -155,9 +155,6 @@ int main()
         outsideUtmRange,
         "GEOGRAPHICLIB_RANGE_FAILURE_PRESERVES_OUTPUT");
 
-    std::cout << "SUMO_GEODETIC_TRANSFORM="
-              << (passed ? "PASS" : "FAIL") << '\n';
-
 
     const ns3::Wgs84Position supplied{
         41.425290000,
@@ -232,6 +229,9 @@ int main()
         },
         std::nullopt,
         "INVALID_EXPLICIT_WGS84_REJECTED_ATOMICALLY");
+
+    std::cout << "SUMO_GEODETIC_TRANSFORM="
+              << (passed ? "PASS" : "FAIL") << '\n';
 
     return passed ? 0 : 1;
 }

@@ -2192,7 +2192,7 @@ SimulationController::HandleDenmEventFromSumo(
             << " event=" << event.eventId
             << " reason=INVALID_GEODETIC_POSITION"
             << " detail=" << geodeticError
-            << '\\n';
+            << '\n';
         return;
     }
 
@@ -2204,7 +2204,7 @@ SimulationController::HandleDenmEventFromSumo(
             << " vehicle=" << event.vehicleId
             << " event=" << event.eventId
             << " reason=EVENT_SOURCE_REJECTED"
-            << '\\n';
+            << '\n';
     }
 }
 
