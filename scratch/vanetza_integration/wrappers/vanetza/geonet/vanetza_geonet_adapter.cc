@@ -303,6 +303,7 @@ namespace ns3 {
         m_impl->dccAdapter = std::make_unique<Ns3DccAdapter>(
             *m_impl->access,
             *m_impl->runtime,
+            m_impl->itsStartTime,
             m_impl->vehicle.identity.vehId,
             m_impl->vehicle.identity.nodeId,
             m_impl->vehicle.identity.stationId);
