@@ -3,16 +3,35 @@
 #include "vanetza_integration/context/its_station_identity/its_station_identity_authority.h"
 #include "vanetza_integration/context/sumo_vehicle_lifecycle_registry/sumo_vehicle_lifecycle_registry.h"
 #include "vanetza_integration/context/vehicle_registry/vehicle_registry.h"
+#include "vanetza_integration/context/vehicle_factory/vehicle_factory.h"
 #include "vanetza_integration/sumo_adapter/sumo_adapter.h"
+#include "vanetza_integration/sumo_adapter/sumo_network_projection_loader.h"
+#include "vanetza_integration/context/its_time/its_start_time_parser.h"
+#include "vanetza_integration/vam/scheduler/vam_generation_scheduler.h"
+#include "vanetza_integration/vam/codec/vam_uper_encoder.h"
+
+#include <vanetza/common/clock.hpp>
+#include <vanetza/asn1/vam.hpp>
+#include <vanetza/asn1/its/r2/MessageId.h>
+#include <vanetza/asn1/its/r2/TrafficParticipantType.h>
+
+#include "ns3/core-module.h"
+#include "ns3/internet-module.h"
+#include "ns3/socket.h"
+#include "ns3/wifi-module.h"
 
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
 #include <chrono>
+#include <cmath>
+#include <utility>
 #include <cstdint>
+#include <fstream>
 #include <iostream>
 #include <limits>
+#include <memory>
 #include <string>
 #include <thread>
 #include <vector>
@@ -27,6 +46,12 @@ namespace
 constexpr std::uint32_t kScenarioStationId = 62101;
 constexpr std::uint32_t kAtomicGoodStationId = 62001;
 constexpr std::uint32_t kAtomicConflictStationId = 62002;
+
+struct AbortFaultInjectionState
+{
+    bool enabled{false};
+    std::size_t attempts{0};
+};
 
 bool Check(bool condition, const char* label)
 {
@@ -176,6 +201,280 @@ bool ConfigureActualScenarioSubject()
         error);
 }
 
+
+bool LoadRuntimeProjectionFixture(
+    ns3::SumoUtmWgs84ProjectionConfig& output)
+{
+    constexpr const char* fixturePath =
+        "vam-sumo-udp-projection.net.xml";
+
+    std::ofstream fixture(
+        fixturePath, std::ios::out | std::ios::trunc);
+    if (!fixture) {
+        std::cerr << "[FAIL] cannot create temporary SUMO projection fixture\n";
+        return false;
+    }
+
+    fixture << R"(<?xml version="1.0" encoding="UTF-8"?>
+<net>
+  <location
+    netOffset="-526913.640,-4576484.190"
+    convBoundary="0.00,0.00,50000.00,50000.00"
+    origBoundary="-8.4340762,41.4252900,-8.4000000,41.4500000"
+    projParameter="+proj=utm +zone=29 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"/>
+</net>
+)";
+    fixture.close();
+
+    if (!fixture) {
+        std::cerr << "[FAIL] cannot write temporary SUMO projection fixture\n";
+        return false;
+    }
+
+    std::string error;
+    if (!ns3::SumoNetworkProjectionLoader::LoadUtmWgs84(
+            fixturePath, output, error)) {
+        std::cerr << "[FAIL] SUMO projection fixture rejected: "
+                  << error << '\n';
+        return false;
+    }
+
+    return true;
+}
+
+bool EncodeUdpBackedCandidate(
+    const VamGenerationConfig& generation,
+    const VamGenerationEvaluationAdapterConfig& evaluation,
+    const ns3::SumoUtmWgs84ProjectionConfig& projection,
+    std::uint64_t referenceTimeUs)
+{
+    vanetza::Clock::time_point itsStartTime{};
+    std::string error;
+
+    if (!ItsStartTimeParser::ParseUtc(
+            SimulationContext::itsStartTime,
+            itsStartTime,
+            error))
+    {
+        std::cerr << "[FAIL] observer ITS start time: "
+                  << error << '\n';
+        return false;
+    }
+
+    VamGenerationSchedulerConfig schedulerConfig{};
+    schedulerConfig.itsStartClockUs =
+        itsStartTime.time_since_epoch().count();
+    schedulerConfig.generation = generation;
+    schedulerConfig.evaluation = evaluation;
+    schedulerConfig.sumoProjection = projection;
+
+    VamGenerationScheduler observer(std::move(schedulerConfig));
+
+    if (!observer.RegisterSubjectStationIdentity(
+            "runtime-vru",
+            VamStationId{kScenarioStationId},
+            error))
+    {
+        std::cerr << "[FAIL] observer identity registration: "
+                  << error << '\n';
+        return false;
+    }
+
+    VamGenerationContext context{};
+    std::vector<VamGenerationScheduledCandidate> candidates;
+    VamGenerationSchedulerReport report{};
+
+    // Consume the registries populated by the real UDP adapter.
+    if (!observer.EvaluateStep(
+            referenceTimeUs,
+            SimulationController::GetSumoPersonRegistry(),
+            SimulationController::GetSumoVruSubjectRegistry(),
+            VehicleRegistry::Instance(),
+            SumoVehicleLifecycleRegistry::Instance(),
+            context,
+            candidates,
+            report,
+            error))
+    {
+        std::cerr << "[FAIL] observer EvaluateStep: "
+                  << error << '\n';
+        return false;
+    }
+
+    if (candidates.size() != 1)
+    {
+        std::cerr << "[FAIL] expected exactly one UDP-backed candidate; got "
+                  << candidates.size() << '\n';
+
+        for (const auto& item : candidates)
+        {
+            if (item.transactionHandle.has_value())
+            {
+                std::string abortError;
+                (void)observer.AbortGeneration(
+                    *item.transactionHandle, abortError);
+            }
+        }
+
+        return false;
+    }
+
+    const auto& candidate = candidates.front();
+
+    bool passed = Check(
+        candidate.egoPersonId == "runtime-vru" &&
+            candidate.stationId.value == kScenarioStationId &&
+            candidate.input.originatingStation.stationId.value ==
+                kScenarioStationId &&
+            candidate.input.vruProfile == VruProfile::Pedestrian &&
+            candidate.input.referencePosition.latitudeDeg.has_value() &&
+            candidate.input.referencePosition.longitudeDeg.has_value() &&
+            candidate.transactionHandle.has_value(),
+        "UDP_BACKED_VAM_CANDIDATE_REBUILT");
+
+    // Encode the exact VamInput returned by the UDP-backed scheduler.
+    const auto encoded = VamUperEncoder::Encode(candidate.input);
+
+    const bool encodedOk =
+        encoded.success &&
+        !encoded.bytes.empty() &&
+        encoded.encodedBits > 0 &&
+        encoded.encodedBits <= encoded.bytes.size() * 8U &&
+        encoded.encodedBits > (encoded.bytes.size() - 1U) * 8U;
+
+    passed = Check(
+        encodedOk,
+        "UDP_BACKED_VAM_PROFILE1_UPER_ENCODED") && passed;
+
+    // Decode using the same Vanetza R2 ASN.1 type as the encoder contract test.
+    vanetza::asn1::r2::Vam decoded;
+
+    const bool decodedOk =
+        encodedOk &&
+        decoded.decode(encoded.bytes.data(), encoded.bytes.size());
+
+    passed = Check(
+        decodedOk,
+        "UDP_BACKED_VAM_R2_UPER_ROUNDTRIP_DECODED") && passed;
+
+    const auto* root = decoded.operator->();
+
+    const bool headerPreserved =
+        root != nullptr &&
+        root->header.protocolVersion == 3 &&
+        root->header.messageId == Vanetza_ITS2_MessageId_vam &&
+        root->header.stationId ==
+            static_cast<long>(candidate.stationId.value);
+
+    passed = Check(
+        headerPreserved,
+        "UDP_BACKED_VAM_HEADER_STATION_ID_PRESERVED") && passed;
+
+    // GenerationDeltaTime represents the reference-position timestamp.
+    const auto referencePositionTimeMs =
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+            candidate.input.referencePositionTimeIts).count();
+
+    const bool referenceTimePreserved =
+        root != nullptr &&
+        referencePositionTimeMs >= 0 &&
+        root->vam.generationDeltaTime ==
+            static_cast<long>(referencePositionTimeMs % 65536);
+
+    passed = Check(
+        referenceTimePreserved,
+        "UDP_BACKED_VAM_REFERENCE_TIME_PRESERVED") && passed;
+
+    long long expectedLatitudeE7 = 0;
+    long long expectedLongitudeE7 = 0;
+
+    const bool hasGeodeticPosition =
+        candidate.input.referencePosition.latitudeDeg.has_value() &&
+        candidate.input.referencePosition.longitudeDeg.has_value();
+
+    if (hasGeodeticPosition)
+    {
+        expectedLatitudeE7 = std::llround(
+            *candidate.input.referencePosition.latitudeDeg * 10000000.0);
+
+        expectedLongitudeE7 = std::llround(
+            *candidate.input.referencePosition.longitudeDeg * 10000000.0);
+    }
+
+    const bool geodeticPositionPreserved =
+        root != nullptr &&
+        hasGeodeticPosition &&
+        root->vam.vamParameters.basicContainer.referencePosition.latitude ==
+            expectedLatitudeE7 &&
+        root->vam.vamParameters.basicContainer.referencePosition.longitude ==
+            expectedLongitudeE7;
+
+    passed = Check(
+        geodeticPositionPreserved,
+        "UDP_BACKED_VAM_WGS84_POSITION_PRESERVED") && passed;
+
+    const bool pedestrianTypePreserved =
+        root != nullptr &&
+        root->vam.vamParameters.basicContainer.stationType ==
+            Vanetza_ITS2_TrafficParticipantType_pedestrian;
+
+    passed = Check(
+        pedestrianTypePreserved,
+        "UDP_BACKED_VAM_PEDESTRIAN_TYPE_PRESERVED") && passed;
+
+    // Resolve the observer's own transaction. The production controller
+    // continues to manage and abort its independent evaluation transaction.
+    bool observerAborted = false;
+
+    if (candidate.transactionHandle.has_value())
+    {
+        std::string abortError;
+
+        observerAborted =
+            observer.AbortGeneration(
+                *candidate.transactionHandle, abortError) &&
+            observer.GetPendingCandidates().empty();
+
+        if (!observerAborted)
+        {
+            std::cerr << "[FAIL] observer transaction abort: "
+                      << abortError << '\n';
+        }
+    }
+
+    passed = Check(
+        observerAborted,
+        "UDP_BACKED_VAM_OBSERVER_TRANSACTION_ABORTED") && passed;
+
+    if (encodedOk &&
+        decodedOk &&
+        headerPreserved &&
+        referenceTimePreserved &&
+        geodeticPositionPreserved &&
+        pedestrianTypePreserved &&
+        observerAborted)
+    {
+        const auto& position =
+            root->vam.vamParameters.basicContainer.referencePosition;
+
+        std::cout
+            << "[VAM_UPER_INTEGRATION] ROUNDTRIP_OK"
+            << " candidate_source=UDP_BACKED"
+            << " person_id=" << candidate.egoPersonId
+            << " station_id=" << candidate.stationId.value
+            << " generation_delta_time_ms="
+            << root->vam.generationDeltaTime
+            << " latitude_e7=" << position.latitude
+            << " longitude_e7=" << position.longitude
+            << " station_type=pedestrian"
+            << " encoded_bits=" << encoded.encodedBits
+            << " mode=EVALUATION_ONLY"
+            << '\n';
+    }
+
+    return passed;
+}
+
 bool RunIntegration()
 {
     RuntimeCleanup cleanup;
@@ -205,11 +504,63 @@ bool RunIntegration()
     const auto generation = GenerationConfig();
     const auto evaluation = EvaluationConfig();
 
+    // The same shared executor is passed to the initial scheduler and its
+    // valid replacement. Fault injection is armed only for the final lifecycle
+    // scenario; normal earlier candidates use the production abort operation.
+    const auto abortFaultState = std::make_shared<AbortFaultInjectionState>();
+    VamGenerationAbortExecutor abortExecutor =
+        [abortFaultState](
+            VamGenerationManager& manager,
+            std::uint64_t transactionId,
+            std::string& abortError)
+        {
+            if (!abortFaultState->enabled)
+            {
+                return manager.AbortGeneration(transactionId, abortError);
+            }
+
+            ++abortFaultState->attempts;
+            if (abortFaultState->attempts <= 3)
+            {
+                abortError = "deterministic controller lifecycle abort fault #" +
+                    std::to_string(abortFaultState->attempts);
+                return false;
+            }
+
+            return manager.AbortGeneration(transactionId, abortError);
+        };
+
+    ns3::SumoUtmWgs84ProjectionConfig sumoProjection{};
+    if (!Check(
+            LoadRuntimeProjectionFixture(sumoProjection),
+            "SUMO_NETWORK_PROJECTION_LOADED_BY_RUNTIME_HARNESS")) {
+        return false;
+    }
+
+    YansWifiChannelHelper channelHelper;
+    channelHelper.SetPropagationDelay(
+        "ns3::ConstantSpeedPropagationDelayModel");
+    channelHelper.AddPropagationLoss(
+        "ns3::LogDistancePropagationLossModel",
+        "Exponent", DoubleValue(2.7),
+        "ReferenceDistance", DoubleValue(1.0));
+    Ptr<YansWifiChannel> endpointChannel = channelHelper.Create();
+    Ipv4AddressHelper endpointIpv4;
+    endpointIpv4.SetBase("10.93.0.0", "255.255.255.0");
+    Callback<void, Ptr<Socket>> noReceiveCallback;
+    VehicleFactory::Initialize(
+        endpointChannel, endpointIpv4, noReceiveCallback);
+
+    if (!Check(
+            endpointChannel != nullptr,
+            "VAM_ENDPOINT_WIFI_CHANNEL_INITIALIZED")) {
+        return false;
+    }
+
     if (!Check(
             SimulationController::ConfigureVamGeneration(
-                true, generation, evaluation, error),
-            "INITIAL_VAM_SCHEDULER_CONFIGURED"))
-    {
+                true, generation, evaluation, error, sumoProjection, abortExecutor),
+            "INITIAL_VAM_SCHEDULER_CONFIGURED")) {
         std::cerr << "Configuration error: " << error << '\n';
         return false;
     }
@@ -465,7 +816,7 @@ bool RunIntegration()
             SendDatagram(
                 cleanup.senderFd,
                 localPort,
-                "SUMO_PERSON,UPSERT,runtime-vru,0,0,1,90,1000,pedestrian"),
+                "SUMO_PERSON,UPSERT,runtime-vru,20374.270,9640.360,1,90,1000,pedestrian"),
             "UDP_INITIAL_PERSON_UPSERT_SENT"))
     {
         return false;
@@ -483,6 +834,14 @@ bool RunIntegration()
                 firstSubject->roleState.role == VruRoleStatus::On &&
                 firstSubject->roleState.vbs == VbsState::ActiveStandalone,
             "UDP_UPSERT_APPLIED_SCENARIO_PROFILE_AND_ROLE"))
+    {
+        return false;
+    }
+
+    // Test-local observer: rebuild from the UDP-populated registries and
+    // encode/decode the exact scheduler-produced VamInput.
+    if (!EncodeUdpBackedCandidate(
+            generation, evaluation, sumoProjection, 100000))
     {
         return false;
     }
@@ -542,7 +901,7 @@ bool RunIntegration()
             SendDatagram(
                 cleanup.senderFd,
                 localPort,
-                "SUMO_PERSON,UPSERT,runtime-vru,1,0,1,90,1500,pedestrian"),
+                "SUMO_PERSON,UPSERT,runtime-vru,20375.270,9640.360,1,90,1500,pedestrian"),
             "UDP_REPEATED_PERSON_UPSERT_SENT"))
     {
         return false;
@@ -564,16 +923,70 @@ bool RunIntegration()
     // and the global ITS identity reservation.
     error.clear();
     if (!Check(
-            SimulationController::ConfigureVamGeneration(
-                true, generation, evaluation, error),
+            SimulationController::ConfigureVamGeneration(true, generation, evaluation, error, sumoProjection, abortExecutor),
             "VALID_SCHEDULER_RECONFIGURATION_ACCEPTED"))
     {
         std::cerr << "Reconfiguration error: " << error << '\n';
         return false;
     }
 
-    // Remove the active presence. The subject and mobility sample disappear,
-    // but the logical station identity remains reserved.
+    // The preceding regression deliberately deactivated this subject and
+    // proved that a repeated UPSERT does not reactivate it. Restore the
+    // explicit role/VBS policy here so the fault-injection phase can produce
+    // a real candidate. This is an explicit state transition, not an
+    // automatic side effect of SUMO UPSERT.
+    const auto faultRoleActivation =
+        SimulationController::ActivateVruSubject("runtime-vru");
+    if (!Check(
+            faultRoleActivation.has_value() &&
+                *faultRoleActivation == VruTransitionResult::Applied,
+            "FAULT_FIXTURE_ROLE_REACTIVATED"))
+    {
+        return false;
+    }
+
+    const auto faultVbsActivation =
+        SimulationController::SetVruSubjectVbsState(
+            "runtime-vru", VbsState::ActiveStandalone);
+    if (!Check(
+            faultVbsActivation.has_value() &&
+                *faultVbsActivation == VruTransitionResult::Applied,
+            "FAULT_FIXTURE_VBS_REACTIVATED"))
+    {
+        return false;
+    }
+
+    // VAM_ABORT_FAULT_FIXTURE_ROLE_REACTIVATION_V3
+    // Arm deterministic failures only after explicit policy activation.
+    abortFaultState->enabled = true;
+    if (!Check(
+            abortFaultState->attempts == 0,
+            "ABORT_FAULT_INJECTION_ARMED"))
+    {
+        return false;
+    }
+
+    if (!Check(
+            SendDatagram(
+                cleanup.senderFd,
+                localPort,
+                "SUMO_STEP_END,300000"),
+            "UDP_OLD_PRESENCE_FAULT_STEP_END_SENT"))
+    {
+        return false;
+    }
+
+    const auto oldPresencePending =
+        SimulationController::GetPendingVamGenerationCandidates();
+    if (!Check(
+            abortFaultState->attempts == 1 &&
+                oldPresencePending.size() == 1 &&
+                oldPresencePending.front().egoPersonId == "runtime-vru",
+            "OLD_PRESENCE_CANDIDATE_ABORT_FAILED_AND_RETAINED"))
+    {
+        return false;
+    }
+
     if (!Check(
             SendDatagram(
                 cleanup.senderFd,
@@ -595,8 +1008,10 @@ bool RunIntegration()
     }
 
     const auto identityAfterRemove =
-        authority.FindStationId(scenarioOwner);
-
+        ItsStationIdentityAuthority::Instance().FindStationId(
+            ItsStationIdentityOwner{
+                ItsStationIdentityOwnerKind::ItsStation,
+                "vam-vru:runtime-vru"});
     if (!Check(
             identityAfterRemove.has_value() &&
                 *identityAfterRemove == kScenarioStationId,
@@ -605,13 +1020,20 @@ bool RunIntegration()
         return false;
     }
 
-    // Re-entry creates a new OFF/IDLE subject first; the scenario declaration
-    // must then be reapplied and the scheduler must resolve the same stationId.
+    if (!Check(
+            abortFaultState->attempts == 2,
+            "REMOVE_RETAINED_OLD_PRESENCE_RUNTIME"))
+    {
+        return false;
+    }
+
+    // Re-entry uses a different presence epoch while the old retired runtime
+    // and endpoint remain owned by the scheduler/controller.
     if (!Check(
             SendDatagram(
                 cleanup.senderFd,
                 localPort,
-                "SUMO_PERSON,UPSERT,runtime-vru,2,0,1,90,3000,pedestrian"),
+                "SUMO_PERSON,UPSERT,runtime-vru,20376.270,9640.360,1,90,5000,pedestrian"),
             "UDP_PERSON_REENTRY_UPSERT_SENT"))
     {
         return false;
@@ -624,6 +1046,7 @@ bool RunIntegration()
 
     if (!Check(
             reenteredPerson.has_value() &&
+                reenteredPerson->firstObservedAtUs == 5000 &&
                 reenteredSubject.has_value() &&
                 reenteredSubject->profile == VruProfile::Pedestrian &&
                 reenteredSubject->roleState.role == VruRoleStatus::On &&
@@ -638,18 +1061,41 @@ bool RunIntegration()
             SendDatagram(
                 cleanup.senderFd,
                 localPort,
-                "SUMO_STEP_END,200000"),
-            "UDP_REENTRY_STEP_END_SENT"))
+                "SUMO_STEP_END,400000"),
+            "UDP_RETIRED_RETRY_STEP_END_SENT"))
     {
         return false;
     }
 
     if (!Check(
-            SimulationController::GetPendingVamGenerationCandidates().empty(),
-            "REENTRY_EVALUATION_ONLY_CANDIDATE_ABORTED"))
+            abortFaultState->attempts == 3 &&
+                reenteredPerson.has_value() &&
+                reenteredPerson->firstObservedAtUs == 5000,
+            "RETIRED_RUNTIME_RETRY_STILL_QUARANTINED"))
     {
         return false;
     }
+
+    if (!Check(
+            SendDatagram(
+                cleanup.senderFd,
+                localPort,
+                "SUMO_STEP_END,500000"),
+            "UDP_RETIRED_RECOVERY_STEP_END_SENT"))
+    {
+        return false;
+    }
+
+    if (!Check(
+            abortFaultState->attempts == 5 &&
+                SimulationController::GetPendingVamGenerationCandidates().empty(),
+            "RETIRED_RUNTIME_RECOVERY_COMPLETED"))
+    {
+        return false;
+    }
+
+    std::cout << "VAM_ABORT_FAULT_INJECTION_ATTEMPTS="
+              << abortFaultState->attempts << '\n';
 
     std::cout << "VAM_SCENARIO_UDP_RUNTIME=PASS\n";
     return true;

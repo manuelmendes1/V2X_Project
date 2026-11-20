@@ -6,6 +6,7 @@
 #include "ns3/wifi-module.h"
 #include "ns3/ipv4-address-helper.h"
 
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -14,6 +15,7 @@
 #include "vanetza_integration/context/simulation_context/simulation_context.h"
 #include "vanetza_integration/context/vehicle_factory/vehicle_factory.h"
 #include "vanetza_integration/sumo_adapter/sumo_adapter.h"
+#include "vanetza_integration/sumo_adapter/sumo_network_projection_loader.h"
 #include "vanetza_integration/context/its_station_identity/its_station_identity_authority.h"
 #include "vanetza_integration/vam/scenario/vam_scenario_subjects.h"
 
@@ -48,6 +50,8 @@ int main(int argc, char* argv[]) {
     std::string cpmPkiDir;
 
     std::string itsStartTime;
+    std::string sumoNetFile;
+    std::optional<SumoUtmWgs84ProjectionConfig> sumoProjection;
 
     bool enableCpm = false;
     uint32_t cpmStationId = 0;
@@ -125,6 +129,11 @@ int main(int argc, char* argv[]) {
         "(formatos aceites: YYYY-MM-DDTHH:MM:SS ou "
         "YYYY-MM-DD HH:MM:SS; sem sufixo Z ou offset)",
         itsStartTime);
+
+    cmd.AddValue(
+        "sumoNetFile",
+        "Ficheiro de rede SUMO (.net.xml) com projeção UTM/WGS84",
+        sumoNetFile);
 
     cmd.AddValue("enableCpm",
         "Ativa a construção de CpmInput; sem transmissão", enableCpm);
@@ -253,6 +262,39 @@ int main(int argc, char* argv[]) {
 
     cmd.Parse(argc, argv);
 
+    // Load the optional network projection exactly once, before configuring
+    // the VAM scheduler. An explicitly supplied but invalid file fails
+    // startup; omission preserves Cartesian-only VAM evaluation.
+    if (!sumoNetFile.empty())
+    {
+        SumoUtmWgs84ProjectionConfig projection{};
+        std::string projectionError;
+
+        if (!SumoNetworkProjectionLoader::LoadUtmWgs84(
+                sumoNetFile,
+                projection,
+                projectionError))
+        {
+            std::cerr
+                << "[SUMO_PROJECTION] invalid network projection; "
+                   "startup aborted: "
+                << projectionError << '\n';
+            return 2;
+        }
+
+        sumoProjection = projection;
+
+        std::cout
+            << "[SUMO_PROJECTION] loaded"
+            << " net_file=" << sumoNetFile
+            << " utm_zone=" << projection.zone
+            << " hemisphere="
+            << (projection.northernHemisphere ? "north" : "south")
+            << " net_offset_x_m=" << projection.netOffsetXMeters
+            << " net_offset_y_m=" << projection.netOffsetYMeters
+            << '\n';
+    }
+
     if (enableVamEvaluationScenario && !enableVamGeneration)
     {
         std::cerr
@@ -316,7 +358,8 @@ int main(int argc, char* argv[]) {
             enableVamGeneration,
             vamGenerationConfig,
             vamEvaluationConfig,
-            vamConfigurationError))
+            vamConfigurationError,
+            sumoProjection))
     {
         std::cerr
             << "[VAM_GENERATION] invalid configuration; startup aborted: "

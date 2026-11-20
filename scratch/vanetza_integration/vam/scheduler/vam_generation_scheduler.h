@@ -6,12 +6,14 @@
 #include <map>
 #include <optional>
 #include <string>
+#include <tuple>
 #include <vector>
 
 #include "vanetza_integration/vam/generation/vam_generation_manager.h"
 #include "vanetza_integration/vam/perception/vam_generation_evaluation_adapter.h"
 #include "vanetza_integration/vam/types/vam_identity_types.h"
 #include "vanetza_integration/vam/types/vam_input.h"
+#include "vanetza_integration/sumo_adapter/sumo_geodetic_transform.h"
 
 namespace ns3
 {
@@ -36,6 +38,10 @@ struct VamGenerationSchedulerConfig
 
     VamGenerationConfig generation{};
     VamGenerationEvaluationAdapterConfig evaluation{};
+
+    // Optional, explicit WGS84 projection extracted from the SUMO .net.xml.
+    // Absence preserves the existing Cartesian-only evaluation behavior.
+    std::optional<ns3::SumoUtmWgs84ProjectionConfig> sumoProjection;
 };
 
 using VamGenerationAbortExecutor = std::function<bool(
@@ -109,6 +115,22 @@ public:
         const VamGenerationTransactionHandle& handle,
         std::string& error);
 
+    // Transfer an evaluated candidate to the asynchronous transport path.
+    // Direct ConfirmGeneration/AbortGeneration calls are rejected afterwards.
+    bool MarkGenerationSubmitted(
+        const VamGenerationTransactionHandle& handle,
+        std::string& error);
+
+    // Resolve only the submitted transaction identified by the complete handle.
+    bool CompleteGeneration(
+        const VamGenerationTransactionHandle& handle,
+        bool success,
+        std::int64_t confirmedAtMs,
+        std::string& error);
+
+    // Number of submitted transactions still awaiting a transport callback.
+    std::size_t GetInFlightTransactionCount() const noexcept;
+
     // Invalidate one accepted SUMO presence. A failed abort moves the
     // runtime and candidate to the retired ledger and quarantines personId.
     bool InvalidatePersonPresence(
@@ -123,6 +145,12 @@ public:
     std::size_t GetRetiredTransactionCount() const noexcept;
     bool IsPersonQuarantined(
         const std::string& personId) const noexcept;
+
+    // True while any scheduler ledger still owns runtime state for this exact
+    // SUMO presence epoch, including retired aborts and submitted transactions.
+    bool HasRetainedRuntimeForPresence(
+        const std::string& personId,
+        VamPersonPresenceEpoch presenceEpoch) const;
 
     bool HasValidInstanceIdentity() const noexcept;
 
@@ -142,7 +170,25 @@ private:
 
         std::optional<VamGenerationScheduledCandidate>
             pendingCandidate;
+
+        // submitted means the transport owns this generation transaction.
+        // A terminal result is retained if GenerationManager resolution fails,
+        // allowing DrainTransactions() to retry without treating it as in-flight.
+        bool submitted{false};
+        std::optional<bool> terminalTransportSuccess;
+        std::optional<std::int64_t> terminalConfirmedAtMs;
     };
+
+    using SubmittedTransactionKey = std::tuple<
+        std::uint64_t, std::string, std::uint64_t, std::uint64_t>;
+
+    static SubmittedTransactionKey MakeSubmittedTransactionKey(
+        const VamGenerationTransactionHandle& handle);
+
+    bool ResolveSubmittedRuntime(
+        SubjectRuntime& runtime,
+        const VamGenerationTransactionHandle& handle,
+        std::string& error);
 
     bool AbortRuntimeCandidate(
         SubjectRuntime& runtime,
@@ -160,6 +206,7 @@ private:
         const ns3::SumoPersonState& personState,
         const ns3::SumoVruSubjectSnapshot& subject,
         VamStationId stationId,
+        const std::optional<ns3::SumoUtmWgs84ProjectionConfig>& sumoProjection,
         VamInput& output,
         std::string& error);
 
@@ -168,9 +215,14 @@ private:
 
     std::map<std::string, SubjectRuntime> m_subjectRuntimeByPerson;
 
-    // Failed REMOVE aborts retain the original manager and candidate here.
+    // Failed REMOVE aborts retain evaluated (not submitted) candidates here.
     // Presence quarantine is represented by membership in this ledger.
     std::map<std::string, SubjectRuntime> m_retiredRuntimeByPerson;
+
+    // Removed submitted runtimes are keyed by their complete transaction identity.
+    // Multiple presence epochs for one personId may coexist until completion.
+    std::map<SubmittedTransactionKey, SubjectRuntime>
+        m_inFlightRuntimeByHandle;
 
     // Empty injection selects the production GenerationManager abort.
     VamGenerationAbortExecutor m_abortExecutor;

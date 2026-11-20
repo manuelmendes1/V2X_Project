@@ -15,6 +15,7 @@
 #include "vanetza_integration/context/sumo_vru_subject_registry/sumo_vru_subject_registry.h"
 #include "vanetza_integration/vam/cluster/vam_cluster_lifecycle_state_machine.h"
 #include "vanetza_integration/vam/scheduler/vam_generation_scheduler.h"
+#include "vanetza_integration/vam/emitter/vam_vru_emitter_endpoint_store.h"
 #include "vanetza_integration/vru/role/types/vru_role_types.h"
 
 class CpmVehiclePerceptionSource;
@@ -24,6 +25,7 @@ namespace ns3
 
 class CpmEmitterEndpoint;
 class CpmRsuRuntime;
+class VamVruEmitterEndpoint;
 
 struct SumoTrafficLightState;
 class SpatemEmitterEndpoint;
@@ -82,7 +84,9 @@ public:
         bool enabled,
         const vanetza_integration::vam::VamGenerationConfig& generation,
         const vanetza_integration::vam::VamGenerationEvaluationAdapterConfig& evaluation,
-        std::string& error);
+        std::string& error,
+        std::optional<ns3::SumoUtmWgs84ProjectionConfig> sumoProjection = std::nullopt,
+        vanetza_integration::vam::VamGenerationAbortExecutor abortExecutor = {}); // CONTROLLER_ABORT_FAULT_INJECTION_V2
 
     // Explicit external identity assignment. Never derive stationId from
     // SUMO person ID, ns-3 Node ID, or MAC address.
@@ -184,6 +188,7 @@ private:
     static bool EnsureCpmRuntime();
     static void RunCpmPerception(std::uint64_t referenceTimeUs);
     static void RunVamGeneration(std::uint64_t referenceTimeUs);
+    static void PruneRetiredVamVruEndpoints();
     static void HandleSumoStepComplete(std::uint64_t referenceTimeUs);
     static void HandlePersonUpdateFromSumo(const SumoPersonDatagram& datagram);
     static bool ApplyVamVruScenarioSubjectConfiguration(
@@ -195,6 +200,9 @@ private:
     static std::unique_ptr<vanetza_integration::vam::VamGenerationScheduler> m_vamGenerationScheduler;
     static std::map<std::string, VamVruScenarioSubjectConfig>
         m_vamVruScenarioSubjects;
+    // Active network resources are separate from scenario declarations and
+    // the authoritative SUMO/person and derived VRU subject registries.
+    static VamVruEmitterEndpointStore m_vamVruEndpointStore;
 
     static bool m_camEnabled;
     static bool m_denmEnabled;

@@ -12,6 +12,7 @@ namespace ns3
 
 class SpatemEmitterEndpoint;
 class CpmEmitterEndpoint;
+class VamVruEmitterEndpoint;
 
 struct VehicleState;
 
@@ -31,6 +32,11 @@ public:
 
     static bool InitializeCpmEmitter(
         CpmEmitterEndpoint& endpoint);
+
+    // Reuse the active 802.11p channel and advancing IPv4 allocator for a
+    // non-vehicle VAM pedestrian ITS station.
+    static bool InitializeVamVruEmitter(
+        VamVruEmitterEndpoint& endpoint);
 
     static Ptr<Socket> Build(
         Ptr<Node> node);

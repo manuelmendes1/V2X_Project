@@ -6,6 +6,7 @@
 #include "vanetza_integration/context/sumo_vehicle_lifecycle_registry/sumo_vehicle_lifecycle_registry.h"
 #include "vanetza_integration/context/vehicle_registry/vehicle_registry.h"
 
+#include <cmath>
 #include <cstdint>
 #include <iostream>
 #include <string>
@@ -48,12 +49,13 @@ bool AddPerson(
     const std::string& personId,
     std::uint64_t timeUs,
     double x,
-    bool activate)
+    bool activate,
+    double y = 0.0)
 {
     SumoPersonDatagram datagram{};
     datagram.eventType = SumoPersonEventType::Upsert;
     datagram.personId = personId;
-    datagram.sample = SumoPersonSample{x, 0.0, 1.0, 90.0};
+    datagram.sample = SumoPersonSample{x, y, 1.0, 90.0};
     datagram.simulationTimeUs = timeUs;
     datagram.sumoVClass = "pedestrian";
 
@@ -527,6 +529,268 @@ bool TestDrainPreservesIdentity()
     return ok;
 }
 
+
+bool TestConfiguredProjectionBuildsWgs84PotiReference()
+{
+    ItsStationIdentityAuthority::Instance().Clear();
+    VehicleRegistry::Instance().Clear();
+    SumoVehicleLifecycleRegistry::Instance().Clear();
+
+    SumoPersonRegistry persons;
+    SumoVruSubjectRegistry subjects;
+
+    auto config = Config();
+    config.sumoProjection = SumoUtmWgs84ProjectionConfig{
+        29,
+        true,
+        -526913.640,
+        -4576484.190
+    };
+
+    VamGenerationScheduler scheduler(config);
+
+    bool ok = AddPerson(
+        persons,
+        subjects,
+        "ped-geodetic",
+        0,
+        20374.270,
+        true,
+        9640.360);
+
+    ok &= Check(
+        RegisterIdentity(scheduler, "ped-geodetic", 6101),
+        "GEODETIC_FIXTURE_HAS_EXPLICIT_STATION_ID");
+
+    VamGenerationContext context{};
+    std::vector<VamGenerationScheduledCandidate> candidates;
+    VamGenerationSchedulerReport report{};
+    std::string error;
+
+    ok &= RunStep(
+        scheduler,
+        100000,
+        persons,
+        subjects,
+        context,
+        candidates,
+        report,
+        error);
+
+    const bool hasCandidate = candidates.size() == 1;
+    ok &= Check(
+        hasCandidate,
+        "CONFIGURED_PROJECTION_GENERATES_CANDIDATE");
+
+    if (hasCandidate)
+    {
+        const auto& input = candidates.front().input;
+
+        const bool validPosition =
+            input.referencePosition.latitudeDeg.has_value() &&
+            input.referencePosition.longitudeDeg.has_value() &&
+            std::abs(*input.referencePosition.latitudeDeg -
+                     41.425290000) <= 1e-7 &&
+            std::abs(*input.referencePosition.longitudeDeg -
+                     (-8.434076200)) <= 1e-7;
+
+        ok &= Check(
+            validPosition,
+            "CONFIGURED_PROJECTION_POPULATES_WGS84_REFERENCE_POSITION");
+
+        ok &= Check(
+            input.referencePositionTimeIts ==
+                std::chrono::microseconds{kItsStartClockUs} &&
+            input.generationTimeIts ==
+                std::chrono::microseconds{kItsStartClockUs + 100000},
+            "CONFIGURED_PROJECTION_USES_VALIDATED_POTI_TIME_REFERENCE");
+    }
+
+    std::string drainError;
+    ok &= Check(
+        scheduler.DrainTransactions(drainError) && drainError.empty(),
+        "GEODETIC_FIXTURE_DRAINS_PENDING_TRANSACTION");
+
+    return ok;
+}
+
+
+bool TestProjectionFailureIsAtomicAcrossSubjects()
+{
+    ItsStationIdentityAuthority::Instance().Clear();
+    VehicleRegistry::Instance().Clear();
+    SumoVehicleLifecycleRegistry::Instance().Clear();
+
+    SumoPersonRegistry persons;
+    SumoVruSubjectRegistry subjects;
+
+    auto config = Config();
+    config.sumoProjection = SumoUtmWgs84ProjectionConfig{
+        29,
+        true,
+        -526913.640,
+        -4576484.190
+    };
+
+    VamGenerationScheduler scheduler(config);
+
+    bool ok = AddPerson(
+        persons, subjects, "ped-a-valid", 0,
+        20374.270, true, 9640.360);
+
+    ok &= AddPerson(
+        persons, subjects, "ped-b-invalid", 0,
+        2000000.0, true, 9640.360);
+
+    ok &= Check(
+        RegisterIdentity(scheduler, "ped-a-valid", 6201) &&
+        RegisterIdentity(scheduler, "ped-b-invalid", 6202),
+        "ATOMIC_GEO_FIXTURE_IDENTITIES_REGISTERED");
+
+    VamGenerationContext context{};
+    std::vector<VamGenerationScheduledCandidate> candidates;
+
+    VamGenerationScheduledCandidate sentinel{};
+    sentinel.egoPersonId = "preexisting-output";
+    candidates.push_back(sentinel);
+
+    VamGenerationSchedulerReport report{};
+    report.evaluatedSubjects = 777;
+
+    std::string error;
+
+    const bool accepted = RunStep(
+        scheduler,
+        100000,
+        persons,
+        subjects,
+        context,
+        candidates,
+        report,
+        error);
+
+    ok &= Check(
+        !accepted &&
+        !error.empty() &&
+        candidates.size() == 1 &&
+        candidates.front().egoPersonId == "preexisting-output" &&
+        report.evaluatedSubjects == 777,
+        "PROJECTION_FAILURE_REJECTS_STEP_WITHOUT_PARTIAL_OUTPUT");
+
+    ok &= Check(
+        scheduler.GetPendingCandidates().empty(),
+        "PROJECTION_FAILURE_DOES_NOT_COMMIT_STAGED_RUNTIME");
+
+    // Repair the second sample at a later source timestamp, but retry the
+    // exact same scheduler reference time. A failed step must not commit
+    // cadence or logical-time state.
+    SumoPersonDatagram repaired{};
+    repaired.eventType = SumoPersonEventType::Upsert;
+    repaired.personId = "ped-b-invalid";
+    repaired.sample = SumoPersonSample{
+        21374.270, 9640.360, 1.0, 90.0
+    };
+    repaired.simulationTimeUs = 1000;
+    repaired.sumoVClass = "pedestrian";
+
+    ok &= Check(
+        persons.Apply(repaired),
+        "INVALID_GEO_SAMPLE_CAN_BE_REPLACED");
+
+    candidates.clear();
+    report = {};
+    error.clear();
+
+    const bool retried = RunStep(
+        scheduler,
+        100000,
+        persons,
+        subjects,
+        context,
+        candidates,
+        report,
+        error);
+
+    ok &= Check(
+        retried &&
+        error.empty() &&
+        report.evaluatedSubjects == 2 &&
+        candidates.size() == 2,
+        "PROJECTION_FAILURE_CAN_RETRY_SAME_LOGICAL_STEP");
+
+    std::string drainError;
+    ok &= Check(
+        scheduler.DrainTransactions(drainError) && drainError.empty(),
+        "ATOMIC_GEO_RETRY_DRAINS_PENDING_TRANSACTIONS");
+
+    return ok;
+}
+
+
+bool TestConfiguredProjectionRejectsPositionAgeBoundary()
+{
+    ItsStationIdentityAuthority::Instance().Clear();
+    VehicleRegistry::Instance().Clear();
+    SumoVehicleLifecycleRegistry::Instance().Clear();
+
+    SumoPersonRegistry persons;
+    SumoVruSubjectRegistry subjects;
+
+    auto config = Config();
+    config.sumoProjection = SumoUtmWgs84ProjectionConfig{
+        29,
+        true,
+        -526913.640,
+        -4576484.190
+    };
+
+    VamGenerationScheduler scheduler(config);
+
+    bool ok = AddPerson(
+        persons,
+        subjects,
+        "ped-stale-geodetic",
+        0,
+        20374.270,
+        true,
+        9640.360);
+
+    ok &= Check(
+        RegisterIdentity(scheduler, "ped-stale-geodetic", 6301),
+        "STALE_GEO_FIXTURE_HAS_EXPLICIT_STATION_ID");
+
+    VamGenerationContext context{};
+    std::vector<VamGenerationScheduledCandidate> candidates;
+    VamGenerationSchedulerReport report{};
+    report.evaluatedSubjects = 888;
+    std::string error;
+
+    const bool accepted = RunStep(
+        scheduler,
+        32767000,
+        persons,
+        subjects,
+        context,
+        candidates,
+        report,
+        error);
+
+    ok &= Check(
+        !accepted &&
+        error.find("position age must be strictly below 32767 ms") !=
+            std::string::npos,
+        "EXACT_32767_MS_POSITION_AGE_IS_REJECTED");
+
+    ok &= Check(
+        candidates.empty() &&
+        report.evaluatedSubjects == 888 &&
+        scheduler.GetPendingCandidates().empty(),
+        "STALE_POSITION_REJECTION_PRESERVES_OUTPUT_AND_RUNTIME");
+
+    return ok;
+}
+
+
 } // namespace
 
 int main()
@@ -542,6 +806,9 @@ int main()
     ok &= TestCadenceAndTimeRegression();
     ok &= TestRemovalAndReentry();
     ok &= TestDrainPreservesIdentity();
+    ok &= TestConfiguredProjectionBuildsWgs84PotiReference();
+    ok &= TestProjectionFailureIsAtomicAcrossSubjects();
+    ok &= TestConfiguredProjectionRejectsPositionAgeBoundary();
 
     std::cout << "VAM_GENERATION_SCHEDULER="
               << (ok ? "PASS" : "FAIL") << '\n';

@@ -18,12 +18,14 @@ namespace ns3
 Ns3DccAdapter::Ns3DccAdapter(
     Ns3AccessAdapter& access,
     vanetza::ManualRuntime& runtime,
+    vanetza::Clock::time_point itsStartTime,
     std::string endpointId,
     uint32_t nodeId,
     uint32_t stationId,
     std::string identityLabel)
     : m_access(access),
       m_runtime(runtime),
+      m_itsStartTime(itsStartTime),
       m_endpointId(std::move(endpointId)),
       m_identityLabel(std::move(identityLabel)),
       m_nodeId(nodeId),
@@ -101,6 +103,25 @@ Ns3DccAdapter::~Ns3DccAdapter()
                 "DCC_DROP",
                 "reason=dcc_adapter_shutdown");
         }
+    }
+}
+
+void
+Ns3DccAdapter::AdvanceRuntimeToSimulatorNow()
+{
+    const auto simulationOffset =
+        std::chrono::microseconds(
+            static_cast<vanetza::Clock::rep>(
+                Simulator::Now().GetMicroSeconds()));
+
+    const auto targetTime =
+        m_itsStartTime + simulationOffset;
+
+    // ManualRuntime::trigger() also executes callbacks whose deadlines
+    // have expired. Never move its clock backwards.
+    if (targetTime > m_runtime.now())
+    {
+        m_runtime.trigger(targetTime);
     }
 }
 
@@ -205,6 +226,18 @@ Ns3DccAdapter::OnPacketDrop(
 void
 Ns3DccAdapter::SynchronizeRuntimeScheduler()
 {
+    ScheduleNextRuntimeEvent();
+}
+
+void
+Ns3DccAdapter::SynchronizeRuntimeForTransmit()
+{
+    // Advance the absolute ITS clock before Router::request() builds
+    // the GeoNetworking source position vector.
+    AdvanceRuntimeToSimulatorNow();
+
+    // Advancing ManualRuntime may execute callbacks and change its
+    // earliest deadline. Keep the ns-3 scheduler aligned afterwards.
     ScheduleNextRuntimeEvent();
 }
 
@@ -424,6 +457,8 @@ Ns3DccAdapter::request(
      * FlowControl decides whether to transmit immediately or queue.
      * The registry retains the context/completion pair while queued.
      */
+    AdvanceRuntimeToSimulatorNow();
+
     m_flowControl.request(
         dccRequest,
         std::move(packet));
@@ -439,6 +474,8 @@ Ns3DccAdapter::UpdateChannelLoad()
     {
         return;
     }
+
+    AdvanceRuntimeToSimulatorNow();
 
     const auto channelLoad =
         m_channelLoadProbe->Measure();
@@ -518,6 +555,10 @@ Ns3DccAdapter::UpdateChannelLoad()
         delayUs(runtimeNextBefore);
 
     m_flowControl.reschedule();
+
+    // FlowControl may have replaced its pending callback. Keep the ns-3
+    // EventId aligned with the new earliest ManualRuntime deadline.
+    ScheduleNextRuntimeEvent();
 
     const auto runtimeNextAfter =
         m_runtime.next();

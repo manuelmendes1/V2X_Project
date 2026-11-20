@@ -160,6 +160,7 @@ CpmRsuRuntime::Initialize()
     m_dccAdapter = std::make_unique<Ns3DccAdapter>(
         *m_access,
         *m_runtime,
+        itsStartTime,
         m_endpoint.LogicalId(),
         station.node->GetId(),
         m_endpoint.StationId(),
@@ -216,6 +217,11 @@ CpmRsuRuntime::Send(
     {
         return false;
     }
+
+    // Refresh ITS time and the local GeoNetworking position before
+    // CpmService reaches Router::request() and constructs the SHB.
+    m_dccAdapter->SynchronizeRuntimeForTransmit();
+    m_router->update_position(m_position->position_fix());
 
     const CpmTransportGateway gateway(
         [this](

@@ -98,9 +98,9 @@ class TestVamRemoveControllerWiring(unittest.TestCase):
             "VAM abort failure must not prevent accepted REMOVE synchronization",
         )
         self.assertEqual(
-            handler.count("InvalidatePersonPresence"),
+            handler.count("->InvalidatePersonPresence("),
             1,
-            "Presence invalidation must be scoped to the accepted REMOVE path",
+            "Exactly one scheduler presence-invalidation call must exist in the handler",
         )
 
 

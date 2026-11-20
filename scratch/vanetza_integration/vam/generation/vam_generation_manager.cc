@@ -511,6 +511,7 @@ bool VamGenerationManager::Evaluate(
     next.shouldGenerate = true;
     next.reason = reason;
     next.includeLowFrequencyContainer =
+        activation ||
         !m_lastLowFrequencyContainerAtMs.has_value() ||
         ElapsedAtLeast(nowMs, *m_lastLowFrequencyContainerAtMs,
                        m_config.tGenVamLfMinMs);

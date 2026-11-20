@@ -175,6 +175,8 @@ add_library(vanetza_cam_encoder_obj OBJECT
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/sumo_adapter/sumo_parser.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/sumo_adapter/sumo_vehicle_datagram.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/sumo_adapter/sumo_person_datagram.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/sumo_adapter/sumo_geodetic_transform.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/sumo_adapter/sumo_network_projection_loader.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/vru/profile/sumo_vru_profile_mapper.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/vru/role/state_machine/vru_role_state_machine.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/vru/role/policy/vru_role_policy.cc
@@ -194,6 +196,10 @@ add_library(vanetza_cam_encoder_obj OBJECT
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/vanetza_runtime/vanetza_runtime.cc
 
 )
+
+find_package(LibXml2 REQUIRED)
+target_link_libraries(vanetza_cam_encoder_obj LibXml2::LibXml2)
+
 
 #include "vanetza_integration/context/simulation_step/simulation_step.h"
 
@@ -350,13 +356,26 @@ add_library(vanetza_vam_obj OBJECT
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/vam/perception/vam_proximity_provider.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/vam/perception/vam_proximity_snapshot_builder.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/vam/perception/vam_generation_evaluation_adapter.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/vam/poti/vam_poti_validation.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/vam/poti/vam_poti_temporal_transform.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/vam/codec/vam_header_validator.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/vam/codec/vam_uper_encoder.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/vam/transport/vam_rx_boundary.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/vam/scheduler/vam_generation_scheduler.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/vam/scenario/vam_scenario_subjects.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/vam/emitter/vam_vru_emitter_endpoint.cc
 )
 
 target_include_directories(vanetza_vam_obj PUBLIC
     ${CMAKE_SOURCE_DIR}/scratch
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration
+    ${V2X_VANETZA_ROOT}/include
+    ${V2X_VANETZA_ROOT}/include/vanetza/asn1/its/r2
+    ${V2X_VANETZA_ROOT}/include/vanetza/asn1/support
+)
+
+target_link_libraries(vanetza_vam_obj PRIVATE
+    ${VANETZA_LIBS}
 )
 
 # =========================================================

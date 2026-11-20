@@ -1,0 +1,13 @@
+BitStringDefault DEFINITIONS ::= BEGIN
+
+EndEntityType ::= BIT STRING {
+    app   (0),
+    enrol (1)
+} (SIZE (8))
+
+Probe ::= SEQUENCE {
+    mandatory NULL,
+    eeType EndEntityType DEFAULT '80'H
+}
+
+END

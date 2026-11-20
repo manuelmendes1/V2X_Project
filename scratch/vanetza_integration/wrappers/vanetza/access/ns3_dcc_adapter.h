@@ -6,6 +6,7 @@
 
 #include "ns3/nstime.h"
 
+#include <vanetza/common/clock.hpp>
 #include <vanetza/common/manual_runtime.hpp>
 #include <vanetza/dcc/channel_load.hpp>
 #include <vanetza/dcc/flow_control.hpp>
@@ -28,6 +29,7 @@ public:
     Ns3DccAdapter(
         Ns3AccessAdapter& access,
         vanetza::ManualRuntime& runtime,
+        vanetza::Clock::time_point itsStartTime,
         std::string endpointId,
         uint32_t nodeId,
         uint32_t stationId,
@@ -47,6 +49,9 @@ public:
     // Runtime callbacks, e.g. CBF forwarding timers.
     void SynchronizeRuntimeScheduler();
 
+    // Advance ITS time before the Router constructs a TX packet.
+    void SynchronizeRuntimeForTransmit();
+
 private:
     void OnPacketTransmit(
         vanetza::access::AccessCategory category,
@@ -55,6 +60,9 @@ private:
     void OnPacketDrop(
         vanetza::access::AccessCategory category,
         const vanetza::ChunkPacket* packet);
+
+    // Advance Vanetza's absolute ITS clock to the current ns-3 time.
+    void AdvanceRuntimeToSimulatorNow();
 
     void ScheduleNextRuntimeEvent();
 
@@ -66,6 +74,9 @@ private:
     Ns3AccessAdapter& m_access;
 
     vanetza::ManualRuntime& m_runtime;
+
+    // Absolute ITS clock corresponding to ns-3 simulation time zero.
+    const vanetza::Clock::time_point m_itsStartTime;
 
     // Diagnostic label and identifier; neither is an identity authority.
     std::string m_endpointId;

@@ -1,0 +1,69 @@
+## feature/vam-etapa11-7-profile1-tx...origin/main [ahead 2]
+ M scratch/CMakeLists.txt
+ M scratch/test/Red/CPM/test_cpm_synthetic_e2e.cc
+ M scratch/test/Red/CPM/test_cpm_synthetic_e2e.py
+ M scratch/test/Red/VAM/test_vam_generation_manager.cc
+ M scratch/test/Red/VAM/test_vam_generation_scheduler.cc
+ M scratch/test/Red/VAM/test_vam_generation_scheduler.py
+ M scratch/test/Red/VAM/test_vam_generation_scheduler_controller_wiring.py
+ M scratch/test/Red/VAM/test_vam_remove_controller_wiring.py
+ M scratch/test/Red/VAM/test_vam_scenario_subject_runtime_udp.cc
+ M scratch/test/Red/VAM/test_vam_scenario_subject_runtime_udp.py
+ M scratch/test/Red/VAM/test_vam_transaction_lifecycle.cc
+ M scratch/test/Red/VAM/test_vam_transaction_lifecycle.py
+ M scratch/v2x/v2x_sumo.cc
+ M scratch/vanetza_integration/context/packet/packet_types.cc
+ M scratch/vanetza_integration/context/packet/packet_types.h
+ M scratch/vanetza_integration/context/simulation_controller/simulation_controller.cc
+ M scratch/vanetza_integration/context/simulation_controller/simulation_controller.h
+ M scratch/vanetza_integration/context/vehicle_network/vehicle_network_builder.cc
+ M scratch/vanetza_integration/context/vehicle_network/vehicle_network_builder.h
+ M scratch/vanetza_integration/cpm/transport/cpm_transport_gateway.h
+ M scratch/vanetza_integration/vam/generation/vam_generation_manager.cc
+ M scratch/vanetza_integration/vam/scheduler/vam_generation_scheduler.cc
+ M scratch/vanetza_integration/vam/scheduler/vam_generation_scheduler.h
+ M scratch/vanetza_integration/vanetza_runtime/vanetza_runtime.cc
+ M sumo/current/integration/v2x_bridge_16.py
+?? scratch/test/Green/VAM/
+?? scratch/test/Red/VAM/test_sumo_geodetic_transform.cc
+?? scratch/test/Red/VAM/test_sumo_geodetic_transform.py
+?? scratch/test/Red/VAM/test_sumo_network_projection_loader.cc
+?? scratch/test/Red/VAM/test_sumo_network_projection_loader.py
+?? scratch/test/Red/VAM/test_vam_btp_adapter_tx_capture.cc
+?? scratch/test/Red/VAM/test_vam_btp_adapter_tx_capture.py
+?? scratch/test/Red/VAM/test_vam_dcc_cbr_reschedule.cc
+?? scratch/test/Red/VAM/test_vam_dcc_cbr_reschedule.py
+?? scratch/test/Red/VAM/test_vam_dcc_queue_teardown.cc
+?? scratch/test/Red/VAM/test_vam_dcc_queue_teardown.py
+?? scratch/test/Red/VAM/test_vam_port_dispatcher.cc
+?? scratch/test/Red/VAM/test_vam_port_dispatcher.py
+?? scratch/test/Red/VAM/test_vam_real_dcc_access.cc
+?? scratch/test/Red/VAM/test_vam_real_dcc_access.py
+?? scratch/test/Red/VAM/test_vam_rx_boundary.cc
+?? scratch/test/Red/VAM/test_vam_rx_boundary.py
+?? scratch/test/Red/VAM/test_vam_rx_dispatch_wiring.py
+?? scratch/test/Red/VAM/test_vam_transport_gateway.cc
+?? scratch/test/Red/VAM/test_vam_transport_gateway.py
+?? scratch/test/Red/VAM/test_vam_transport_gateway_completion.cc
+?? scratch/test/Red/VAM/test_vam_transport_gateway_completion.py
+?? scratch/test/Red/VAM/test_vam_transport_policy.cc
+?? scratch/test/Red/VAM/test_vam_transport_policy.py
+?? scratch/test/Red/VAM/test_vam_uper_encoder.cc
+?? scratch/test/Red/VAM/test_vam_uper_encoder.py
+?? scratch/test/Red/VAM/test_vam_vru_emitter_endpoint.cc
+?? scratch/test/Red/VAM/test_vam_vru_emitter_endpoint.py
+?? scratch/test/Red/VAM/test_vam_vru_endpoint_lifecycle.cc
+?? scratch/test/Red/VAM/test_vam_vru_endpoint_lifecycle.py
+?? scratch/test/tools/
+?? scratch/vanetza_integration/sumo_adapter/sumo_geodetic_transform.cc
+?? scratch/vanetza_integration/sumo_adapter/sumo_geodetic_transform.h
+?? scratch/vanetza_integration/sumo_adapter/sumo_network_projection_loader.cc
+?? scratch/vanetza_integration/sumo_adapter/sumo_network_projection_loader.h
+?? scratch/vanetza_integration/test_dcc_flow_control_stale_callbacks.cc
+?? scratch/vanetza_integration/vam/codec/vam_uper_encoder.cc
+?? scratch/vanetza_integration/vam/codec/vam_uper_encoder.h
+?? scratch/vanetza_integration/vam/emitter/
+?? scratch/vanetza_integration/vam/transport/
+?? scratch/vanetza_integration/wrappers/vanetza/btp/btp_tx_metadata.h
+?? sumo/current/integration/tests/test_v2x_bridge_16_dispatch_contract.py
+?? sumo/current/integration/tests/test_v2x_bridge_16_udp_contract.py

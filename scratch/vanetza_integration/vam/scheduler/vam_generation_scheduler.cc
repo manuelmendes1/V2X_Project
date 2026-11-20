@@ -1,5 +1,10 @@
 #include "vanetza_integration/vam/scheduler/vam_generation_scheduler.h"
 
+#include "vanetza_integration/vam/poti/vam_poti_sample.h"
+#include "vanetza_integration/vam/poti/vam_poti_temporal_transform.h"
+
+#include <chrono>
+
 #include <atomic>
 #include <chrono>
 #include <limits>
@@ -162,6 +167,13 @@ VamGenerationScheduler::AbortRuntimeCandidate(
             "Cannot abort a VAM runtime without a pending candidate");
     }
 
+    if (runtime.submitted)
+    {
+        return Reject(
+            error,
+            "Cannot abort a VAM candidate already submitted to transport");
+    }
+
     const auto& candidate = *runtime.pendingCandidate;
 
     if (candidate.egoPersonId != personId ||
@@ -239,6 +251,34 @@ VamGenerationScheduler::InvalidatePersonPresence(
 
     if (!runtimeIt->second.pendingCandidate.has_value())
     {
+        m_subjectRuntimeByPerson.erase(runtimeIt);
+        error.clear();
+        return true;
+    }
+
+    if (runtimeIt->second.submitted)
+    {
+        const auto& candidate = *runtimeIt->second.pendingCandidate;
+        if (!candidate.transactionHandle.has_value())
+        {
+            return Reject(
+                error,
+                "Submitted VAM candidate has no transaction handle");
+        }
+
+        const auto key = MakeSubmittedTransactionKey(
+            *candidate.transactionHandle);
+        if (m_inFlightRuntimeByHandle.find(key) !=
+            m_inFlightRuntimeByHandle.end())
+        {
+            return Reject(
+                error,
+                "Submitted VAM transaction already exists in the in-flight ledger");
+        }
+
+        m_inFlightRuntimeByHandle.emplace(
+            key,
+            std::move(runtimeIt->second));
         m_subjectRuntimeByPerson.erase(runtimeIt);
         error.clear();
         return true;
@@ -361,6 +401,7 @@ VamGenerationScheduler::BuildInput(
     const ns3::SumoPersonState& personState,
     const ns3::SumoVruSubjectSnapshot& subject,
     VamStationId stationId,
+    const std::optional<ns3::SumoUtmWgs84ProjectionConfig>& sumoProjection,
     VamInput& output,
     std::string& error)
 {
@@ -377,29 +418,86 @@ VamGenerationScheduler::BuildInput(
     candidate.vruProfile = subject.profile;
     candidate.vruRole = subject.roleState;
 
-    if (!ComposeItsTime(
-            itsStartClockUs,
-            referenceTimeUs,
-            candidate.generationTimeIts,
-            error,
-            "VAM generation time"))
+    if (sumoProjection.has_value())
     {
-        return false;
-    }
+        // SUMO x/y are projected network coordinates. Convert them only
+        // when an explicit, validated network projection is available.
+        ns3::SumoWgs84Position geodeticPosition{};
 
-    if (!ComposeItsTime(
-            itsStartClockUs,
-            personState.simulationTimeUs,
-            candidate.referencePositionTimeIts,
-            error,
-            "VAM reference position time"))
+        if (!ns3::SumoGeodeticTransform::ToWgs84(
+                *sumoProjection,
+                ns3::SumoProjectedPosition{
+                    personState.sample.x,
+                    personState.sample.y
+                },
+                geodeticPosition,
+                error))
+        {
+            return false;
+        }
+
+        // Build and validate a complete PoTi sample before publishing any
+        // geodetic field into the candidate.
+        VamPotiSample potiSample{};
+        potiSample.latitudeDeg = geodeticPosition.latitudeDeg;
+        potiSample.longitudeDeg = geodeticPosition.longitudeDeg;
+        potiSample.speedMps = personState.sample.speed;
+        potiSample.headingDeg = personState.sample.angleDeg;
+        potiSample.positionTimeSimulationUs =
+            personState.simulationTimeUs;
+        potiSample.generationTimeSimulationUs = referenceTimeUs;
+
+        // Altitude and acceleration remain unavailable: the SUMO person
+        // feed does not provide validated observations for either field.
+
+        VamPotiTimeReference potiTimeReference{};
+
+        if (!VamPotiTemporalTransform::BuildReference(
+                itsStartClockUs,
+                potiSample,
+                potiTimeReference,
+                error))
+        {
+            return false;
+        }
+
+        candidate.generationTimeIts =
+            std::chrono::microseconds{
+                potiTimeReference.generationTimestampItsUs};
+
+        candidate.referencePositionTimeIts =
+            std::chrono::microseconds{
+                potiTimeReference.positionTimestampItsUs};
+
+        candidate.referencePosition.latitudeDeg =
+            potiSample.latitudeDeg;
+        candidate.referencePosition.longitudeDeg =
+            potiSample.longitudeDeg;
+    }
+    else
     {
-        return false;
-    }
+        // No network projection: preserve the existing temporal behavior
+        // and leave latitude/longitude explicitly unavailable.
+        if (!ComposeItsTime(
+                itsStartClockUs,
+                referenceTimeUs,
+                candidate.generationTimeIts,
+                error,
+                "VAM generation time"))
+        {
+            return false;
+        }
 
-    // SUMO Person x/y são coordenadas projetadas da rede.
-    // Não as converter nem reinterpretar como latitude/longitude WGS84.
-    // A posição geodésica permanece explicitamente indisponível.
+        if (!ComposeItsTime(
+                itsStartClockUs,
+                personState.simulationTimeUs,
+                candidate.referencePositionTimeIts,
+                error,
+                "VAM reference position time"))
+        {
+            return false;
+        }
+    }
 
     candidate.highFrequencyState.speedMps =
         personState.sample.speed;
@@ -594,6 +692,7 @@ VamGenerationScheduler::EvaluateStep(
                 personState,
                 *subject,
                 VamStationId{*reservedStationId},
+                m_config.sumoProjection,
                 input,
                 error))
         {
@@ -679,6 +778,232 @@ VamGenerationScheduler::EvaluateStep(
     return true;
 }
 
+VamGenerationScheduler::SubmittedTransactionKey
+VamGenerationScheduler::MakeSubmittedTransactionKey(
+    const VamGenerationTransactionHandle& handle)
+{
+    return SubmittedTransactionKey{
+        handle.SchedulerInstanceId().value,
+        handle.PersonId(),
+        handle.PresenceEpoch().value,
+        handle.TransactionId()
+    };
+}
+
+bool
+VamGenerationScheduler::MarkGenerationSubmitted(
+    const VamGenerationTransactionHandle& handle,
+    std::string& error)
+{
+    if (!m_schedulerInstanceId.has_value() ||
+        handle.SchedulerInstanceId() != *m_schedulerInstanceId)
+    {
+        return Reject(
+            error,
+            "VAM transaction handle belongs to a different scheduler instance");
+    }
+
+    if (handle.TransactionId() == 0 || handle.PersonId().empty())
+    {
+        return Reject(error, "VAM transaction handle is invalid");
+    }
+
+    const auto runtimeIt =
+        m_subjectRuntimeByPerson.find(handle.PersonId());
+    if (runtimeIt == m_subjectRuntimeByPerson.end() ||
+        !runtimeIt->second.pendingCandidate.has_value())
+    {
+        return Reject(
+            error,
+            "No active pending VAM candidate exists for submission");
+    }
+
+    auto& runtime = runtimeIt->second;
+    const auto& candidate = *runtime.pendingCandidate;
+    if (runtime.presenceEpoch != handle.PresenceEpoch() ||
+        candidate.egoPersonId != handle.PersonId() ||
+        !candidate.transactionHandle.has_value() ||
+        *candidate.transactionHandle != handle ||
+        !candidate.decision.transactionId.has_value() ||
+        *candidate.decision.transactionId != handle.TransactionId())
+    {
+        return Reject(
+            error,
+            "VAM transaction handle does not match the active pending candidate");
+    }
+
+    if (runtime.submitted ||
+        runtime.terminalTransportSuccess.has_value() ||
+        runtime.terminalConfirmedAtMs.has_value())
+    {
+        return Reject(
+            error,
+            "VAM generation transaction has already been submitted");
+    }
+
+    // Mark before BTP: its failure paths may invoke completion synchronously.
+    runtime.submitted = true;
+    error.clear();
+    return true;
+}
+
+bool
+VamGenerationScheduler::ResolveSubmittedRuntime(
+    SubjectRuntime& runtime,
+    const VamGenerationTransactionHandle& handle,
+    std::string& error)
+{
+    if (!runtime.submitted ||
+        !runtime.pendingCandidate.has_value() ||
+        !runtime.terminalTransportSuccess.has_value() ||
+        !runtime.terminalConfirmedAtMs.has_value())
+    {
+        return Reject(
+            error,
+            "Submitted VAM transaction has no retained terminal transport result");
+    }
+
+    const auto& candidate = *runtime.pendingCandidate;
+    if (runtime.presenceEpoch != handle.PresenceEpoch() ||
+        candidate.egoPersonId != handle.PersonId() ||
+        !candidate.transactionHandle.has_value() ||
+        *candidate.transactionHandle != handle ||
+        !candidate.decision.transactionId.has_value() ||
+        *candidate.decision.transactionId != handle.TransactionId())
+    {
+        return Reject(
+            error,
+            "VAM terminal result does not match its retained transaction");
+    }
+
+    bool resolved = false;
+    if (*runtime.terminalTransportSuccess)
+    {
+        resolved = runtime.generationManager.ConfirmGeneration(
+            handle.TransactionId(),
+            *runtime.terminalConfirmedAtMs,
+            error);
+    }
+    else
+    {
+        // Failed manager aborts retain the terminal outcome for drain retry.
+        resolved = m_abortExecutor(
+            runtime.generationManager,
+            handle.TransactionId(),
+            error);
+    }
+
+    if (!resolved)
+    {
+        return false;
+    }
+
+    runtime.pendingCandidate.reset();
+    runtime.submitted = false;
+    runtime.terminalTransportSuccess.reset();
+    runtime.terminalConfirmedAtMs.reset();
+    error.clear();
+    return true;
+}
+
+bool
+VamGenerationScheduler::CompleteGeneration(
+    const VamGenerationTransactionHandle& handle,
+    bool success,
+    std::int64_t confirmedAtMs,
+    std::string& error)
+{
+    if (!m_schedulerInstanceId.has_value() ||
+        handle.SchedulerInstanceId() != *m_schedulerInstanceId)
+    {
+        return Reject(
+            error,
+            "VAM transaction handle belongs to a different scheduler instance");
+    }
+
+    if (handle.TransactionId() == 0 || handle.PersonId().empty())
+    {
+        return Reject(error, "VAM transaction handle is invalid");
+    }
+
+    SubjectRuntime* runtime = nullptr;
+    auto inFlightIt = m_inFlightRuntimeByHandle.find(
+        MakeSubmittedTransactionKey(handle));
+    const bool isRetiredInFlight =
+        inFlightIt != m_inFlightRuntimeByHandle.end();
+
+    // Prefer the full-handle ledger: an older presence may coexist with a
+    // newer active presence carrying the same personId.
+    if (isRetiredInFlight)
+    {
+        runtime = &inFlightIt->second;
+    }
+    else
+    {
+        const auto runtimeIt =
+            m_subjectRuntimeByPerson.find(handle.PersonId());
+        if (runtimeIt == m_subjectRuntimeByPerson.end())
+        {
+            return Reject(
+                error,
+                "No active or in-flight VAM transaction matches this handle");
+        }
+        runtime = &runtimeIt->second;
+    }
+
+    if (!runtime->submitted || !runtime->pendingCandidate.has_value())
+    {
+        return Reject(
+            error,
+            "VAM transaction was not submitted or is already resolved");
+    }
+
+    const auto& candidate = *runtime->pendingCandidate;
+    if (runtime->presenceEpoch != handle.PresenceEpoch() ||
+        candidate.egoPersonId != handle.PersonId() ||
+        !candidate.transactionHandle.has_value() ||
+        *candidate.transactionHandle != handle ||
+        !candidate.decision.transactionId.has_value() ||
+        *candidate.decision.transactionId != handle.TransactionId())
+    {
+        return Reject(
+            error,
+            "VAM completion handle does not match the submitted candidate");
+    }
+
+    // A repeated identical call can retry a failed manager resolution; a
+    // conflicting terminal result is always rejected.
+    if (runtime->terminalTransportSuccess.has_value())
+    {
+        if (*runtime->terminalTransportSuccess != success ||
+            !runtime->terminalConfirmedAtMs.has_value() ||
+            *runtime->terminalConfirmedAtMs != confirmedAtMs)
+        {
+            return Reject(
+                error,
+                "Conflicting terminal result for submitted VAM transaction");
+        }
+    }
+    else
+    {
+        runtime->terminalTransportSuccess = success;
+        runtime->terminalConfirmedAtMs = confirmedAtMs;
+    }
+
+    if (!ResolveSubmittedRuntime(*runtime, handle, error))
+    {
+        return false;
+    }
+
+    if (isRetiredInFlight)
+    {
+        m_inFlightRuntimeByHandle.erase(inFlightIt);
+    }
+
+    error.clear();
+    return true;
+}
+
 bool
 VamGenerationScheduler::ConfirmGeneration(
     const VamGenerationTransactionHandle& handle,
@@ -711,6 +1036,13 @@ VamGenerationScheduler::ConfirmGeneration(
 
     const auto& runtime = runtimeIt->second;
     const auto& candidate = *runtime.pendingCandidate;
+
+    if (runtime.submitted)
+    {
+        return Reject(
+            error,
+            "Submitted VAM transactions must be resolved by CompleteGeneration");
+    }
 
     if (runtime.presenceEpoch != handle.PresenceEpoch() ||
         candidate.egoPersonId != handle.PersonId() ||
@@ -769,6 +1101,13 @@ VamGenerationScheduler::AbortGeneration(
     const auto& runtime = runtimeIt->second;
     const auto& candidate = *runtime.pendingCandidate;
 
+    if (runtime.submitted)
+    {
+        return Reject(
+            error,
+            "Submitted VAM transactions must be resolved by CompleteGeneration");
+    }
+
     if (runtime.presenceEpoch != handle.PresenceEpoch() ||
         candidate.egoPersonId != handle.PersonId() ||
         !candidate.transactionHandle.has_value() ||
@@ -781,7 +1120,11 @@ VamGenerationScheduler::AbortGeneration(
             "VAM transaction handle does not match the pending candidate");
     }
 
-    if (!runtimeIt->second.generationManager.AbortGeneration(
+    // Keep explicit candidate aborts on the same injectable resolution path
+    // as presence invalidation, retired retries and drain. The production
+    // executor still delegates to GenerationManager::AbortGeneration().
+    if (!m_abortExecutor(
+            runtimeIt->second.generationManager,
             handle.TransactionId(),
             error))
     {
@@ -797,9 +1140,20 @@ VamGenerationScheduler::AbortGeneration(
 bool
 VamGenerationScheduler::DrainTransactions(std::string& error)
 {
+    const std::size_t awaitingTransport =
+        GetInFlightTransactionCount();
+    if (awaitingTransport != 0)
+    {
+        error =
+            "VAM transaction drain blocked; transport completions pending=" +
+            std::to_string(awaitingTransport);
+        return false;
+    }
+
     const bool hadTransientState =
         !m_subjectRuntimeByPerson.empty() ||
-        !m_retiredRuntimeByPerson.empty();
+        !m_retiredRuntimeByPerson.empty() ||
+        !m_inFlightRuntimeByHandle.empty();
 
     bool allResolved = true;
     std::string firstFailure;
@@ -821,6 +1175,68 @@ VamGenerationScheduler::DrainTransactions(std::string& error)
             }
         };
 
+    // Retry terminal outcomes whose transport callback has arrived.
+    // This ledger is keyed by full handle and may coexist with a new presence.
+    for (auto it = m_inFlightRuntimeByHandle.begin();
+         it != m_inFlightRuntimeByHandle.end();)
+    {
+        auto& runtime = it->second;
+        if (!runtime.pendingCandidate.has_value() ||
+            !runtime.submitted ||
+            !runtime.terminalTransportSuccess.has_value() ||
+            !runtime.terminalConfirmedAtMs.has_value() ||
+            !runtime.pendingCandidate->transactionHandle.has_value())
+        {
+            recordFailure(
+                runtime.pendingCandidate.has_value()
+                    ? runtime.pendingCandidate->egoPersonId
+                    : std::string("unknown"),
+                "in-flight ledger contains an invalid or unresolved transaction");
+            ++it;
+            continue;
+        }
+
+        const auto handle = *runtime.pendingCandidate->transactionHandle;
+        std::string resolveError;
+        if (ResolveSubmittedRuntime(runtime, handle, resolveError))
+        {
+            it = m_inFlightRuntimeByHandle.erase(it);
+        }
+        else
+        {
+            recordFailure(handle.PersonId(), resolveError);
+            ++it;
+        }
+    }
+
+    // Retry terminal results retained on active submitted candidates. Never
+    // reinterpret them as unsent work and invoke AbortRuntimeCandidate().
+    for (auto& [personId, runtime] : m_subjectRuntimeByPerson)
+    {
+        if (!runtime.submitted)
+        {
+            continue;
+        }
+
+        if (!runtime.pendingCandidate.has_value() ||
+            !runtime.terminalTransportSuccess.has_value() ||
+            !runtime.terminalConfirmedAtMs.has_value() ||
+            !runtime.pendingCandidate->transactionHandle.has_value())
+        {
+            recordFailure(
+                personId,
+                "active submitted transaction has no terminal transport result");
+            continue;
+        }
+
+        const auto handle = *runtime.pendingCandidate->transactionHandle;
+        std::string resolveError;
+        if (!ResolveSubmittedRuntime(runtime, handle, resolveError))
+        {
+            recordFailure(personId, resolveError);
+        }
+    }
+
     // First retry transactions already retained by an earlier REMOVE or
     // drain. A malformed entry remains retained fail-closed.
     for (auto it = m_retiredRuntimeByPerson.begin();
@@ -831,6 +1247,15 @@ VamGenerationScheduler::DrainTransactions(std::string& error)
             recordFailure(
                 it->first,
                 "retired transaction has no pending candidate");
+            ++it;
+            continue;
+        }
+
+        if (it->second.submitted)
+        {
+            recordFailure(
+                it->first,
+                "submitted transaction cannot enter the retired-abort ledger");
             ++it;
             continue;
         }
@@ -898,6 +1323,15 @@ VamGenerationScheduler::DrainTransactions(std::string& error)
             continue;
         }
 
+        if (it->second.submitted)
+        {
+            recordFailure(
+                personId,
+                "active submitted transaction remains unresolved");
+            ++it;
+            continue;
+        }
+
         // Active and retired entries for the same person would violate the
         // one-runtime-per-presence invariant. Preserve both rather than
         // allowing an insertion collision to discard either manager.
@@ -945,7 +1379,8 @@ VamGenerationScheduler::DrainTransactions(std::string& error)
         }
     }
 
-    if (!m_retiredRuntimeByPerson.empty())
+    if (!m_retiredRuntimeByPerson.empty() ||
+        !m_inFlightRuntimeByHandle.empty())
     {
         allResolved = false;
     }
@@ -993,12 +1428,80 @@ VamGenerationScheduler::GetRetiredTransactionCount() const noexcept
     return m_retiredRuntimeByPerson.size();
 }
 
+std::size_t
+VamGenerationScheduler::GetInFlightTransactionCount() const noexcept
+{
+    std::size_t count = 0;
+    const auto awaitingTransport = [](const SubjectRuntime& runtime)
+    {
+        return runtime.submitted &&
+            !runtime.terminalTransportSuccess.has_value();
+    };
+
+    for (const auto& [personId, runtime] : m_subjectRuntimeByPerson)
+    {
+        (void)personId;
+        if (awaitingTransport(runtime))
+        {
+            ++count;
+        }
+    }
+
+    for (const auto& [key, runtime] : m_inFlightRuntimeByHandle)
+    {
+        (void)key;
+        if (awaitingTransport(runtime))
+        {
+            ++count;
+        }
+    }
+
+    return count;
+}
+
 bool
 VamGenerationScheduler::IsPersonQuarantined(
     const std::string& personId) const noexcept
 {
     return m_retiredRuntimeByPerson.find(personId) !=
         m_retiredRuntimeByPerson.end();
+}
+
+bool
+VamGenerationScheduler::HasRetainedRuntimeForPresence(
+    const std::string& personId,
+    VamPersonPresenceEpoch presenceEpoch) const
+{
+    if (personId.empty())
+    {
+        return false;
+    }
+
+    const auto activeIt = m_subjectRuntimeByPerson.find(personId);
+    if (activeIt != m_subjectRuntimeByPerson.end() &&
+        activeIt->second.presenceEpoch == presenceEpoch)
+    {
+        return true;
+    }
+
+    const auto retiredIt = m_retiredRuntimeByPerson.find(personId);
+    if (retiredIt != m_retiredRuntimeByPerson.end() &&
+        retiredIt->second.presenceEpoch == presenceEpoch)
+    {
+        return true;
+    }
+
+    for (const auto& entry : m_inFlightRuntimeByHandle)
+    {
+        const auto& key = entry.first;
+        if (std::get<1>(key) == personId &&
+            std::get<2>(key) == presenceEpoch.value)
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 bool

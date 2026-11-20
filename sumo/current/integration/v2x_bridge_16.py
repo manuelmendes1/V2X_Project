@@ -4,6 +4,7 @@ import math
 import traci
 import socket
 import time
+from dataclasses import dataclass
 from datetime import datetime
 
 # ===============================
@@ -17,11 +18,24 @@ STEP_LENGTH = float(os.environ.get("V2X_SUMO_STEP_LENGTH", "0.1"))
 SIM_TIME = float(os.environ.get("V2X_SUMO_SIM_TIME", "30"))
 NS3_UDP_IP = "127.0.0.1"
 NS3_UDP_PORT = 7400
+SUMO_BRIDGE_IP = "127.0.0.1"
+SUMO_BRIDGE_PORT = 7000
 NS3_TIMEOUT = 0.1
 
 # ===============================
 # FUNÇÕES AUXILIARES
 # ===============================
+def create_bridge_socket():
+    """Create the UDP socket on the stable ns-3 return endpoint."""
+    bridge_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        bridge_socket.bind((SUMO_BRIDGE_IP, SUMO_BRIDGE_PORT))
+    except OSError:
+        bridge_socket.close()
+        raise
+    return bridge_socket
+
+
 def log(msg):
     now = datetime.now().strftime("%H:%M:%S.%f")[:-3]
     print(f"[{now}] {msg}")
@@ -432,21 +446,117 @@ def send_vehicle_to_ns3(sock, vid, simulation_time_us=None):
     sock.sendto(msg.encode(), (NS3_UDP_IP, NS3_UDP_PORT))
     log(f"SUMO -> NS3 | {msg}")
 
+@dataclass(frozen=True)
+class Ns3VehicleState:
+    """Validated vehicle-state snapshot exported by the ns-3 serializer."""
+
+    vehicle_id: str
+    x: float
+    y: float
+    speed: float
+    heading: float
+    accel: float
+
+
+def parse_ns3_vehicle_state(message: str) -> Ns3VehicleState:
+    """
+    Parse the six-field SumoSerializer contract:
+    vehicle_id,x,y,speed,heading,accel.
+
+    The return protocol has no timestamp or geographic-coordinate fields.
+    """
+    if not isinstance(message, str):
+        raise ValueError("Vehicle-state message must be a string")
+
+    fields = message.split(",")
+    if len(fields) != 6:
+        raise ValueError(
+            f"Expected exactly 6 vehicle-state fields, received {len(fields)}"
+        )
+
+    vehicle_id = fields[0].strip()
+    if not vehicle_id:
+        raise ValueError("Vehicle ID must not be empty")
+
+    numeric_names = ("x", "y", "speed", "heading", "accel")
+    numeric_values = []
+
+    for name, raw_value in zip(numeric_names, fields[1:]):
+        try:
+            value = float(raw_value)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                f"Vehicle-state field '{name}' must be numeric"
+            ) from exc
+
+        if not math.isfinite(value):
+            raise ValueError(
+                f"Vehicle-state field '{name}' must be finite"
+            )
+
+        numeric_values.append(value)
+
+    return Ns3VehicleState(
+        vehicle_id=vehicle_id,
+        x=numeric_values[0],
+        y=numeric_values[1],
+        speed=numeric_values[2],
+        heading=numeric_values[3],
+        accel=numeric_values[4],
+    )
+
+
+def handle_ns3_vehicle_state(state: Ns3VehicleState):
+    """
+    Observation-only handler for an ns-3 vehicle-state snapshot.
+
+    This deliberately does not modify SUMO/TraCI vehicle state. SUMO remains
+    the authoritative mobility source until an explicit control protocol
+    defines otherwise.
+    """
+    log(
+        "NS3 vehicle state accepted | "
+        f"vehicle_id={state.vehicle_id},"
+        f"x={state.x:.6f},"
+        f"y={state.y:.6f},"
+        f"speed={state.speed:.6f},"
+        f"heading={state.heading:.6f},"
+        f"accel={state.accel:.6f}"
+    )
+
+
 def receive_from_ns3(sock):
-    """Drena apenas os datagramas já disponíveis do NS3."""
+    """Drain available ns-3 datagrams and dispatch valid vehicle snapshots."""
     sock.setblocking(False)
     received = []
 
+    # Drain the socket before dispatching so one invalid message cannot
+    # prevent later datagrams in the same batch from being received.
     while True:
         try:
             data, addr = sock.recvfrom(1024)
         except BlockingIOError:
             break
 
-        received.append(data.decode())
+        try:
+            message = data.decode("utf-8")
+        except UnicodeDecodeError:
+            log("NS3 -> SUMO | rejected datagram: invalid UTF-8")
+            continue
+
+        received.append(message)
 
     for msg in received:
+        # Preserve the established raw log contract used by E2E evidence.
         log(f"NS3 -> SUMO | {msg}")
+
+        try:
+            state = parse_ns3_vehicle_state(msg)
+        except ValueError as exc:
+            log(f"NS3 vehicle state rejected | reason={exc}")
+            continue
+
+        handle_ns3_vehicle_state(state)
 
 
 def send_denm_event(sock, event):
@@ -753,7 +863,7 @@ def main():
         ]
     )
 
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock = None
     step_length_us = int(round(STEP_LENGTH * 1_000_000))
     if step_length_us <= 0:
         raise ValueError("V2X_SUMO_STEP_LENGTH must be at least one microsecond")
@@ -767,6 +877,7 @@ def main():
     previous_person_ids = set()
 
     try:
+        sock = create_bridge_socket()
         tls_ids = traci.trafficlight.getIDList()
         selected_tls = resolve_traffic_light_id(tls_ids, TLS_ID)
 
@@ -864,6 +975,9 @@ def main():
         )
         log(f"SUMO -> NS3 | {step_end_message}")
 
+        # Drain responses generated by ns-3 during the final SUMO step.
+        receive_from_ns3(sock)
+
     except KeyboardInterrupt:
         log("Simulation interrupted by user")
 
@@ -871,7 +985,8 @@ def main():
         try:
             traci.close()
         finally:
-            sock.close()
+            if sock is not None:
+                sock.close()
             if selected_tls is not None:
                 log(f"[SUMO_TLS] TLS_RECORDS_SENT={tls_records_sent}")
             log("Bridge terminated cleanly")

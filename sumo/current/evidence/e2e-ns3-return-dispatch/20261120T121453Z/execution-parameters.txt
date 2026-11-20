@@ -1,0 +1,11 @@
+Scenario=/home/mmendes/final/ns-3.47/sumo/current/scenario/georeferenced/vila-nova-de-famalicao/famalicao-demo.sumocfg
+SUMO_BINARY=sumo
+V2X_SUMO_STEP_LENGTH=0.1
+V2X_SUMO_SIM_TIME=4.0
+V2X_TLS_ID=11645226075
+NS3_SIM_DURATION=45
+NS3_ENABLE_CAM=false
+NS3_UDP_DESTINATION=127.0.0.1:7000
+PYTHON_BRIDGE_BIND=127.0.0.1:7000
+SUMO_TO_NS3_UDP_DESTINATION=127.0.0.1:7400
+Original_runtime_directory=/tmp/sumo-ns3-dispatch-e2e.4RatYy
