@@ -1,4 +1,5 @@
 #include <limits>
+#include <cstdlib>
 
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
@@ -47,6 +48,7 @@ int main(int argc, char* argv[]) {
     uint64_t denmInitialTxDelayUs = 0;
 
     std::string denmPkiDir;
+    std::string spatemPkiDir;
     std::string cpmPkiDir;
 
     std::string itsStartTime;
@@ -120,7 +122,7 @@ int main(int argc, char* argv[]) {
 
     cmd.AddValue(
         "denmPkiDir",
-        "Diretorio contendo os certificados e chaves ETSI ITS Security V3 para DENM",
+        "Diretorio PKI V3 partilhado pelos tickets de veículo CAM (AID 36) e DENM (AID 37)",
         denmPkiDir);
 
     cmd.AddValue(
@@ -158,6 +160,11 @@ int main(int argc, char* argv[]) {
         "enableSpatem",
         "Ativa a inicialização do endpoint de rede RSU SPATEM",
         enableSpatem);
+
+    cmd.AddValue(
+        "spatemPkiDir",
+        "Diretorio PKI V3 da RSU SPATEM (spatem-root.cert, spatem-aa.cert, ticket e chave)",
+        spatemPkiDir);
 
     cmd.AddValue(
         "spatemStationId",
@@ -262,6 +269,15 @@ int main(int argc, char* argv[]) {
 
     cmd.Parse(argc, argv);
 
+    if (denmPkiDir.empty())
+    {
+        const char* envPkiDir = std::getenv("V2X_DENM_PKI_DIR");
+        if (envPkiDir != nullptr && *envPkiDir != '\0')
+        {
+            denmPkiDir = envPkiDir;
+        }
+    }
+
     // Load the optional network projection exactly once, before configuring
     // the VAM scheduler. An explicitly supplied but invalid file fails
     // startup; omission preserves Cartesian-only VAM evaluation.
@@ -308,6 +324,23 @@ int main(int argc, char* argv[]) {
         vamScenarioSubjects = MakeVamEvaluationScenarioSubjects();
     }
 
+    if (denmPkiDir.empty())
+    {
+        std::cerr
+            << "[V2X_SECURITY] VEHICLE_PKIDIR_REQUIRED: "
+               "--denmPkiDir or V2X_DENM_PKI_DIR is mandatory; "
+               "vehicle GeoNetworking has no dummy/self-signed fallback\n";
+        return 2;
+    }
+
+    if (enableSpatem && spatemPkiDir.empty())
+    {
+        std::cerr
+            << "[SPATEM_SECURITY] SPATEM_PKIDIR_REQUIRED: "
+               "--spatemPkiDir is mandatory when --enableSpatem=true\n";
+        return 2;
+    }
+
     if (enableCpm && cpmPkiDir.empty())
     {
         std::cerr << "[CPM_SECURITY] CPM_PKIDIR_REQUIRED: "
@@ -326,6 +359,8 @@ int main(int argc, char* argv[]) {
         spatemNs3Y);
 
     SimulationContext::itsStartTime = itsStartTime;
+    SimulationContext::denmPkiDirectory = denmPkiDir;
+    SimulationContext::spatemPkiDirectory = spatemPkiDir;
     SimulationContext::cpmPkiDirectory = cpmPkiDir;
     SimulationContext::sumoProjection = sumoProjection;
 

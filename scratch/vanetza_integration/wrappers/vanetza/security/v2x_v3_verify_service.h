@@ -20,6 +20,8 @@ public:
     V2xV3VerifyService(
         const vanetza::Runtime& runtime,
         vanetza::PositionProvider& position,
+        const std::string& vehiclePkiDirectory,
+        const std::string& spatemPkiDirectory,
         const std::string& cpmPkiDirectory);
 
     ~V2xV3VerifyService() override;
@@ -31,7 +33,8 @@ public:
         const vanetza::security::VerifyRequest& request) override;
 
 private:
-    std::unique_ptr<vanetza::security::VerifyService> m_denmVerifier;
+    std::unique_ptr<vanetza::security::VerifyService> m_vehicleVerifier;
+    std::unique_ptr<vanetza::security::VerifyService> m_spatemVerifier;
     std::unique_ptr<vanetza::security::VerifyService> m_cpmVerifier;
 };
 

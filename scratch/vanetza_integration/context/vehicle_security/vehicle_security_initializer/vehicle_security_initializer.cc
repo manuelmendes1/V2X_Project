@@ -1,6 +1,7 @@
 #include "vehicle_security_initializer.h"
 
-#include "vanetza_integration/security/vehicle_crypto/vehicle_crypto.h"
+#include <openssl/evp.h>
+#include <openssl/x509.h>
 
 #include <algorithm>
 #include <cstdlib>
@@ -177,16 +178,27 @@ void
 VehicleSecurityInitializer::Initialize(
     VehicleState& state)
 {
-    // Reset the credential selection state so initialization is
-    // deterministic even if a VehicleState is initialized again.
+    // Reset the selected ticket and its OpenSSL compatibility material.
     state.security.credentialPool.SetCredentials({});
+    if (state.security.privateKey != nullptr)
+    {
+        EVP_PKEY_free(state.security.privateKey);
+        state.security.privateKey = nullptr;
+    }
+    if (state.security.certificate != nullptr)
+    {
+        X509_free(state.security.certificate);
+        state.security.certificate = nullptr;
+    }
+    state.security.certFile.clear();
+    state.security.keyFile.clear();
 
     // ----------------------------------------------------------------------
     // Real ETSI ITS Security V3 credential paths.
     //
-    // The active VehicleCredential is the common credential source for
-    // DENM and CAM. DENM consumes the ETSI V3 material through its resolver;
-    // CAM consumes the same credential's private key through OpenSSL.
+    // The active VehicleCredential is the common ETSI V3 credential source
+    // for CAM and DENM. Missing PKI material is not replaced by an ad-hoc
+    // self-signed certificate.
     // ----------------------------------------------------------------------
     std::string pkiDir =
         g_denmPkiDirectory;
@@ -223,27 +235,11 @@ VehicleSecurityInitializer::Initialize(
             state.security.credentialPool.SetCredentials({});
         }
 
-        // Preserve the previous explicit path contract even when
-        // discovery finds no usable credential pair.
-        state.security.certFile =
-            pkiDir + "/" +
-            state.identity.vehId +
-            "-ticket.cert";
-
-        state.security.keyFile =
-            pkiDir + "/" +
-            state.identity.vehId +
-            "-ticket.pem";
     }
 
-    // No usable PKI credential was selected. Preserve the legacy CAM
-    // generation path for simulations without a discovered credential.
-    auto [key, cert] =
-        GenerateEcdsaKeyAndCert(
-            state.identity.vehId);
-
-    state.security.privateKey = key;
-    state.security.certificate = cert;
+    // No self-signed credential is synthesized. The GeoNetworking runtime
+    // fails initialization unless a real V3 ticket/key pair was discovered
+    // and validated above.
 }
 
 } // namespace ns3

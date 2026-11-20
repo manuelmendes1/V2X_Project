@@ -172,6 +172,25 @@ if (!Decode(
     return;
 }
 
+// Bind the CAM semantic stationId to the identity resolved at the
+// GeoNetworking receive boundary.
+if (message.stationId == 0 ||
+    message.stationId != ctx.senderStationId)
+{
+    ctx.MarkDrop();
+    ctx.reason = "cam_sender_station_id_mismatch";
+
+    V2XWriteLog(
+        ctx,
+        V2XLogLevel::WARN,
+        "SECURITY",
+        "CAM_STATION_ID_BINDING_FAIL",
+        "payload_station=" + std::to_string(message.stationId) +
+        " geonet_sender_station=" +
+            std::to_string(ctx.senderStationId));
+    return;
+}
+
 if (!Validate(
         ctx,
         *sender))
