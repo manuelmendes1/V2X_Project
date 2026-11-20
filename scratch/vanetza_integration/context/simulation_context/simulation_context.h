@@ -15,6 +15,8 @@ namespace SimulationContext
     // Configured ITS absolute start time for the simulation.
     // Empty means no explicit ITS time has been configured.
     extern std::string itsStartTime;
+    extern std::string denmPkiDirectory;
+    extern std::string spatemPkiDirectory;
     extern std::string cpmPkiDirectory;
 
     // Optional authoritative projection metadata loaded from SUMO <location>.
