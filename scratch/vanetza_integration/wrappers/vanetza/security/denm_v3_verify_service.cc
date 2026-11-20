@@ -1,136 +1,147 @@
 #include "denm_v3_verify_service.h"
 
+#include <cstdint>
+#include <filesystem>
+#include <stdexcept>
+
+#include <ns3/log.h>
+
 #include <vanetza/common/its_aid.hpp>
+#include <vanetza/common/position_provider.hpp>
 #include <vanetza/common/runtime.hpp>
 #include <vanetza/security/backend.hpp>
 #include <vanetza/security/certificate_validity.hpp>
 #include <vanetza/security/straight_verify_service.hpp>
-#include <vanetza/security/verify_service.hpp>
 #include <vanetza/security/v3/certificate_cache.hpp>
 #include <vanetza/security/v3/certificate_validator.hpp>
-#include <vanetza/security/v3/secured_message.hpp>
-
-#include <ns3/log.h>
+#include <vanetza/security/v3/issuer_memory_lookup.hpp>
+#include <vanetza/security/v3/location_checker.hpp>
+#include <vanetza/security/v3/persistence.hpp>
+#include <vanetza/security/v3/trust_store.hpp>
 
 #include "vanetza_integration/context/rx_bridge/rx_bridge_context.h"
 
-#include <stdexcept>
-
 namespace ns3
 {
-
 namespace
 {
+constexpr vanetza::ItsAid kCamItsAid = 36;
+constexpr vanetza::ItsAid kDenmItsAid = 37;
 
-const char*
-VerificationReportToString(
-    vanetza::security::VerificationReport report)
+std::filesystem::path
+RequirePkiFile(const std::filesystem::path& directory, const char* filename)
 {
-    using vanetza::security::VerificationReport;
-
-    switch (report)
+    const auto path = directory / filename;
+    std::error_code ec;
+    if (!std::filesystem::is_regular_file(path, ec) || ec)
     {
-    case VerificationReport::Success:
-        return "SUCCESS";
-
-    case VerificationReport::False_Signature:
-        return "FALSE_SIGNATURE";
-
-    case VerificationReport::Invalid_Certificate:
-        return "INVALID_CERTIFICATE";
-
-    case VerificationReport::Revoked_Certificate:
-        return "REVOKED_CERTIFICATE";
-
-    case VerificationReport::Inconsistent_Chain:
-        return "INCONSISTENT_CHAIN";
-
-    case VerificationReport::Invalid_Timestamp:
-        return "INVALID_TIMESTAMP";
-
-    case VerificationReport::Duplicate_Message:
-        return "DUPLICATE_MESSAGE";
-
-    case VerificationReport::Invalid_Mobility_Data:
-        return "INVALID_MOBILITY_DATA";
-
-    case VerificationReport::Unsigned_Message:
-        return "UNSIGNED_MESSAGE";
-
-    case VerificationReport::Signer_Certificate_Not_Found:
-        return "SIGNER_CERTIFICATE_NOT_FOUND";
-
-    case VerificationReport::Unsupported_Signer_Identifier_Type:
-        return "UNSUPPORTED_SIGNER_IDENTIFIER_TYPE";
-
-    case VerificationReport::Incompatible_Protocol:
-        return "INCOMPATIBLE_PROTOCOL";
-
-    case VerificationReport::Configuration_Problem:
-        return "CONFIGURATION_PROBLEM";
+        throw std::runtime_error(
+            "vehicle CAM/DENM PKI configuration is incomplete");
     }
-
-    return "UNKNOWN";
+    return path;
 }
 
+vanetza::security::VerifyConfirm
+MakeConfigurationFailure(vanetza::ItsAid aid)
+{
+    return {
+        vanetza::security::VerificationReport::Configuration_Problem,
+        aid,
+        {},
+        vanetza::security::CertificateValidity::valid(),
+        {}
+    };
+}
+
+void
+RecordVerification(
+    vanetza::ItsAid aid,
+    vanetza::security::VerificationReport report)
+{
+    PacketContext* context = RxBridgeContext::Current();
+    if (context == nullptr)
+    {
+        NS_LOG_UNCOND(
+            "[VEHICLE_V3_VERIFY] ERROR RxBridgeContext is null");
+        return;
+    }
+
+    context->verificationPerformed = true;
+    context->verificationSucceeded =
+        report == vanetza::security::VerificationReport::Success;
+    context->verificationReport = static_cast<std::uint32_t>(report);
+    context->verifiedItsAid = static_cast<std::uint32_t>(aid);
+}
 } // namespace
 
 struct DenmV3VerifyService::Impl
 {
     std::unique_ptr<vanetza::security::Backend> backend;
-
     vanetza::security::v3::CertificateCache certificateCache;
-
+    vanetza::security::v3::TrustStore trustStore;
+    vanetza::security::v3::IssuerMemoryLookup issuerLookup;
+    vanetza::security::v3::DefaultLocationChecker locationChecker;
     vanetza::security::v3::DefaultCertificateValidator certificateValidator;
+    std::unique_ptr<vanetza::security::StraightVerifyService> verifier;
 
-    std::unique_ptr<vanetza::security::StraightVerifyService> realVerifier;
-
-    std::unique_ptr<vanetza::security::DummyVerifyService> fallbackVerifier;
-
-    explicit Impl(
-        const vanetza::Runtime& runtime)
+    Impl(
+        const vanetza::Runtime& runtime,
+        vanetza::PositionProvider& position,
+        const std::string& pkiDirectory)
     {
-        backend =
-            vanetza::security::create_backend("default");
+        if (pkiDirectory.empty())
+        {
+            throw std::runtime_error(
+                "vehicle CAM/DENM PKI directory is required");
+        }
 
+        const std::filesystem::path directory(pkiDirectory);
+        const auto rootPath = RequirePkiFile(directory, "denm-root.cert");
+        const auto aaPath = RequirePkiFile(directory, "denm-aa.cert");
+
+        const auto root =
+            vanetza::security::v3::load_certificate_from_file(rootPath.string());
+        const auto aa =
+            vanetza::security::v3::load_certificate_from_file(aaPath.string());
+
+        if (!issuerLookup.insert(aa) || !issuerLookup.insert(root))
+        {
+            throw std::runtime_error(
+                "vehicle CAM/DENM PKI issuer configuration is invalid");
+        }
+
+        // Only the configured root is trusted. The AA is an issuer, not
+        // an independent trust anchor.
+        trustStore.insert(root);
+
+        backend = vanetza::security::create_backend("default");
         if (!backend)
         {
             throw std::runtime_error(
-                "Unable to create Vanetza default security backend");
+                "Unable to create vehicle V3 security backend");
         }
 
-        // V3 verification must evaluate certificate validity against
-        // the receiver's runtime. Location validation remains disabled
-        // here because geographic policy is outside this service's
-        // cryptographic verification contract.
+        // Keep default temporal and geographic checks enabled. Missing
+        // runtime/position inputs must not result in a permissive downgrade.
         certificateValidator.use_runtime(&runtime);
-        certificateValidator.disable_time_checks(false);
-        certificateValidator.disable_location_checks(true);
+        certificateValidator.use_position_provider(&position);
+        certificateValidator.use_location_checker(&locationChecker);
+        certificateValidator.use_issuer_lookup(&issuerLookup);
+        certificateValidator.use_trust_store(&trustStore);
 
-        realVerifier =
-            std::make_unique<
-                vanetza::security::StraightVerifyService>(
-                    runtime,
-                    *backend);
-
-        realVerifier->use_certificate_cache(
-            &certificateCache);
-
-        realVerifier->use_certificate_validator(
-            &certificateValidator);
-
-        // Preserve existing CAM / non-DENM behavior.
-        fallbackVerifier =
-            std::make_unique<
-                vanetza::security::DummyVerifyService>(
-                    vanetza::security::VerificationReport::Success,
-                    vanetza::security::CertificateValidity::valid());
+        verifier =
+            std::make_unique<vanetza::security::StraightVerifyService>(
+                runtime, *backend, position);
+        verifier->use_certificate_cache(&certificateCache);
+        verifier->use_certificate_validator(&certificateValidator);
     }
 };
 
 DenmV3VerifyService::DenmV3VerifyService(
-    const vanetza::Runtime& runtime) :
-    m_impl(std::make_unique<Impl>(runtime))
+    const vanetza::Runtime& runtime,
+    vanetza::PositionProvider& position,
+    const std::string& pkiDirectory)
+    : m_impl(std::make_unique<Impl>(runtime, position, pkiDirectory))
 {
 }
 
@@ -141,111 +152,30 @@ DenmV3VerifyService::verify(
     const vanetza::security::VerifyRequest& request)
 {
     const vanetza::ItsAid aid =
-        vanetza::security::get_its_aid(
-            request.secured_message);
+        vanetza::security::get_its_aid(request.secured_message);
 
-    NS_LOG_UNCOND(
-        "[DENM_V3_VERIFY_ENTRY] aid="
-        << aid);
-
-    //----------------------------------------------------------------------
-    // DENM / AID 37
-    //
-    // Real ETSI Security V3 verification.
-    //----------------------------------------------------------------------
-    if (aid == 37)
-{
-    struct SignerDiagnosticVisitor
+    if (aid != kCamItsAid && aid != kDenmItsAid)
     {
-        using result_type = void;
-
-        void operator()(
-            const vanetza::security::v2::SecuredMessage&) const
-        {
-            NS_LOG_UNCOND(
-                "[DENM_V3_SIGNER] ERROR unexpected_v2_message");
-        }
-
-        void operator()(
-            const vanetza::security::v3::SecuredMessage& message) const
-        {
-            const auto signer_identifier =
-                message.signer_identifier();
-
-            const bool hasCertificate =
-                vanetza::security::v3::contains_certificate(
-                    signer_identifier);
-
-            const auto certificateId =
-                vanetza::security::v3::get_certificate_id(
-                    signer_identifier);
-
-            NS_LOG_UNCOND(
-                "[DENM_V3_SIGNER] "
-                "contains_certificate="
-                << (hasCertificate ? 1 : 0)
-                << " "
-                "certificate_id="
-                << (certificateId ? 1 : 0));
-        }
-    };
-
-    SignerDiagnosticVisitor signerVisitor;
-    request.secured_message.apply_visitor(signerVisitor);
-
-    auto confirm =
-        m_impl->realVerifier->verify(request);
-
-    // resto do código permanece igual
-
-        PacketContext* ctx =
-            RxBridgeContext::Current();
-
-        if (ctx)
-        {
-            ctx->verificationPerformed = true;
-            ctx->verificationSucceeded =
-                confirm.report ==
-                vanetza::security::VerificationReport::Success;
-
-            ctx->verificationReport =
-                static_cast<uint32_t>(confirm.report);
-
-            ctx->verifiedItsAid =
-                static_cast<uint32_t>(aid);
-        }
-        else
-        {
-            NS_LOG_UNCOND(
-                "[DENM_V3_VERIFY] ERROR "
-                "RxBridgeContext is null");
-        }
-
+        RecordVerification(
+            aid,
+            vanetza::security::VerificationReport::Configuration_Problem);
         NS_LOG_UNCOND(
-            "[DENM_V3_VERIFY] "
-            "protocol_version=3 "
-            "aid=37 "
-            "report="
-            << VerificationReportToString(confirm.report)
-            << " "
-            "cryptographic="
-            << (confirm.report ==
-                    vanetza::security::VerificationReport::Success
-                    ? "PASS"
-                    : "FAIL")
-            << " "
-            "context="
-            << (ctx ? "BOUND" : "NULL"));
-
-        return confirm;
+            "[VEHICLE_V3_VERIFY] REJECT unsupported_its_aid=" << aid);
+        return MakeConfigurationFailure(aid);
     }
 
-    //----------------------------------------------------------------------
-    // CAM / other AIDs
-    //
-    // Keep the existing dummy behavior for the current baseline.
-    //----------------------------------------------------------------------
-    return m_impl->fallbackVerifier->verify(request);
+    auto confirm = m_impl->verifier->verify(request);
+    RecordVerification(aid, confirm.report);
+
+    NS_LOG_UNCOND(
+        "[VEHICLE_V3_VERIFY]"
+        << " aid=" << aid
+        << " report=" << static_cast<unsigned>(confirm.report)
+        << " cryptographic="
+        << (confirm.report == vanetza::security::VerificationReport::Success
+                ? "PASS"
+                : "FAIL"));
+    return confirm;
 }
 
 } // namespace ns3

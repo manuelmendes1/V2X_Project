@@ -103,6 +103,8 @@ CpmRsuRuntime::Initialize()
             std::make_unique<V2xV3VerifyService>(
                 *m_runtime,
                 *m_position,
+                SimulationContext::denmPkiDirectory,
+                SimulationContext::spatemPkiDirectory,
                 SimulationContext::cpmPkiDirectory);
 
         m_securityEntity =

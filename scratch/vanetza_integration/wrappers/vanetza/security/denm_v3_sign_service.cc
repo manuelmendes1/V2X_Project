@@ -32,9 +32,9 @@ namespace ns3 {
 
         m_certificateProvider(nullptr),
         m_signHeaderPolicy(nullptr),
+        m_locationChecker(),
         m_certificateValidator(),
         m_denmSigner(nullptr),
-        m_camFallback(runtime),
 
         m_credentialProvider(credentialProvider),
         m_materialResolver(materialResolver),
@@ -48,12 +48,11 @@ namespace ns3 {
                 "Unable to create Vanetza crypto backend");
         }
 
-        // Certificate temporal validity is evaluated against the same
-        // deterministic Vanetza ManualRuntime used by the DENM signer.
+        // Validate certificate time and geographic constraints against the
+        // same deterministic runtime and WGS84 position used to sign packets.
         m_certificateValidator.use_runtime(&m_runtime);
-
-        // DENM location restriction is not used by this local ECC test PKI.
-        m_certificateValidator.disable_location_checks(true);
+        m_certificateValidator.use_position_provider(&m_position);
+        m_certificateValidator.use_location_checker(&m_locationChecker);
 
         if (!ReloadActiveCredential())
         {
@@ -101,13 +100,21 @@ namespace ns3 {
          * This keeps temporal/policy failures at rotation time instead
          * of allowing an unusable signer to become active.
          */
-        const auto credentialVerdict =
+        // A vehicle ticket can authorize CAM (AID 36), DENM (AID 37), or
+        // both. StraightSignService still checks the requested AID on every
+        // transmission; initialization rejects tickets authorized for neither.
+        const auto camVerdict =
+            m_certificateValidator.valid_for_signing(
+                material->certificate,
+                static_cast<vanetza::ItsAid>(36));
+        const auto denmVerdict =
             m_certificateValidator.valid_for_signing(
                 material->certificate,
                 vanetza::aid::DEN);
-
-        if (credentialVerdict !=
-            vanetza::security::v3::CertificateValidator::Verdict::Valid)
+        using Verdict =
+            vanetza::security::v3::CertificateValidator::Verdict;
+        if (camVerdict != Verdict::Valid &&
+            denmVerdict != Verdict::Valid)
         {
             return false;
         }
@@ -162,7 +169,8 @@ namespace ns3 {
     DenmV3SignService::sign(
         vanetza::security::SignRequest&& request)
     {
-        if (request.its_aid == vanetza::aid::DEN)
+        if (request.its_aid == vanetza::aid::DEN ||
+            request.its_aid == static_cast<vanetza::ItsAid>(36))
         {
             // -----------------------------------------------------------------
             // Logical SIGN stage for the common V2X taxonomy.
@@ -237,7 +245,7 @@ namespace ns3 {
                     }
 
                     NS_LOG_UNCOND(
-                        "[DENM_V3_SIGNER_TX] "
+                        "[V2X_V3_SIGNER_TX] "
                         "contains_certificate="
                         << (hasCertificate ? 1 : 0)
                         << " "
@@ -270,7 +278,7 @@ namespace ns3 {
                     }
 
                     NS_LOG_UNCOND(
-                        "[DENM_V3_SIGN] "
+                        "[V2X_V3_SIGN] "
                         "protocol_version=" << static_cast<unsigned>(
                             v3Message->protocol_version())
                         << " aid=" << v3Message->its_aid()
@@ -295,7 +303,7 @@ namespace ns3 {
                     }
 
                     NS_LOG_UNCOND(
-                        "[DENM_V3_SIGN] ERROR unexpected_non_v3_secured_message");
+                        "[V2X_V3_SIGN] ERROR unexpected_non_v3_secured_message");
                 }
             }
             else
@@ -319,17 +327,20 @@ namespace ns3 {
                 }
 
                 NS_LOG_UNCOND(
-                    "[DENM_V3_SIGN] ERROR sign_failed error="
+                    "[V2X_V3_SIGN] ERROR sign_failed error="
                     << static_cast<int>(confirm.error));
             }
 
             return confirm;
         }
 
-        // CAM and any other current application retain
-        // the previous dummy behaviour.
-        return m_camFallback.sign(
-            std::move(request));
+        // Unsupported AIDs are never silently downgraded to a dummy
+        // signature. The caller receives an explicit signing failure.
+        NS_LOG_UNCOND(
+            "[V2X_V3_SIGN] ERROR unsupported_its_aid="
+            << request.its_aid);
+        return vanetza::security::SignConfirm::failure(
+            vanetza::security::SignConfirmError::No_Certificate);
     }
 
 } // namespace ns3
