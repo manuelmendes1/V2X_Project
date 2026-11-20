@@ -6,11 +6,11 @@ import unittest
 def repository_root(start: Path) -> Path:
     for candidate in (start.resolve(), *start.resolve().parents):
         if (
-            (candidate / "ns3").is_file()
-            and (candidate / "scratch" / "CMakeLists.txt").is_file()
+            (candidate / "scratch" / "CMakeLists.txt").is_file()
+            and (candidate / "scripts" / "problem-tests.sh").is_file()
         ):
             return candidate
-    raise RuntimeError("Raiz do repositório ns-3 não encontrada")
+    raise RuntimeError("Raiz do repositório do projeto V2X não encontrada")
 
 
 def strip_cpp_comments(source: str) -> str:
