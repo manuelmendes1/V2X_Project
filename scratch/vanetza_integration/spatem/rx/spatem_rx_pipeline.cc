@@ -132,9 +132,8 @@ SpatemRxPipeline::Process(PacketContext& context,
     //----------------------------------------------------------------------
     // VERIFY
     //
-    // Cryptographic verification is intentionally deferred to 9.9.
-    // Here we verify the transport identity required for a SPATEM
-    // application indication.
+    // The Vanetza SecurityEntity has already verified the V3 envelope.
+    // Require that neutral result before decoding or delivering SPATEM.
     //----------------------------------------------------------------------
     context.AdvancePipeline(
         PipelineStage::VERIFY);
@@ -159,6 +158,27 @@ SpatemRxPipeline::Process(PacketContext& context,
         return false;
     }
 
+    if (!context.verificationPerformed ||
+        !context.verificationSucceeded ||
+        context.verifiedItsAid != 137)
+    {
+        context.MarkDrop();
+        context.reason =
+            !context.verificationPerformed
+                ? "spatem_v3_verification_missing"
+                : (!context.verificationSucceeded
+                    ? "spatem_v3_verification_failed"
+                    : "spatem_v3_verified_aid_mismatch");
+
+        V2XWriteLog(
+            context,
+            V2XLogLevel::WARN,
+            "SECURITY",
+            "SPATEM_CRYPTO_VERIFY_FAIL",
+            context.reason);
+        return false;
+    }
+
     context.MarkSuccess();
 
     V2XWriteLog(
@@ -166,7 +186,7 @@ SpatemRxPipeline::Process(PacketContext& context,
         V2XLogLevel::DEBUG,
         "SPATEM",
         "SPATEM_VERIFY_OK",
-        "aid=137");
+        "aid=137 cryptographic=PASS");
 
     //----------------------------------------------------------------------
     // DECODE

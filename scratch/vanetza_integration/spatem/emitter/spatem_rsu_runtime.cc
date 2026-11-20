@@ -3,6 +3,8 @@
 #include "vanetza_integration/wrappers/vanetza/access/ns3_access_adapter.h"
 #include "vanetza_integration/wrappers/vanetza/access/ns3_dcc_adapter.h"
 #include "vanetza_integration/wrappers/vanetza/btp/vanetza_btp_adapter.h"
+#include "vanetza_integration/wrappers/vanetza/security/spatem_v3_sign_service.h"
+#include "vanetza_integration/wrappers/vanetza/security/spatem_v3_verify_service.h"
 
 
 #include <utility>
@@ -16,7 +18,6 @@
 #include <vanetza/geonet/router.hpp>
 #include <vanetza/security/delegating_security_entity.hpp>
 #include <vanetza/security/sign_service.hpp>
-#include <vanetza/security/v3/sign_service.hpp>
 
 #include "vanetza_integration/context/its_time/its_start_time_parser.h"
 #include "vanetza_integration/context/simulation_context/simulation_context.h"
@@ -25,7 +26,6 @@
 #include "vanetza_integration/spatem/emitter/spatem_rsu_position_provider.h"
 #include "vanetza_integration/spatem/service/spatem_service.h"
 #include "vanetza_integration/spatem/transport/spatem_transport_gateway.h"
-#include "vanetza_integration/wrappers/vanetza/security/denm_v3_verify_service.h"
 
 namespace ns3
 {
@@ -89,19 +89,41 @@ SpatemRsuRuntime::Initialize()
             m_endpoint.LatitudeDeg(),
             m_endpoint.LongitudeDeg());
 
-    // Match the existing GeoNetworking runtime's dummy signer policy.
-    // This provides a transmission path, not proof of production PKI signing.
-    auto signService =
-        std::make_unique<vanetza::security::v3::DummySignService>(
-            *m_runtime);
+    if (SimulationContext::spatemPkiDirectory.empty())
+    {
+        NS_LOG_UNCOND(
+            "[SPATEM_RSU_RUNTIME] ERROR --spatemPkiDir is required for SPATEM V3 signing");
+        Shutdown();
+        return false;
+    }
 
-    auto verifyService =
-        std::make_unique<DenmV3VerifyService>(*m_runtime);
+    try
+    {
+        auto signService =
+            std::make_unique<SpatemV3SignService>(
+                *m_runtime,
+                *m_position,
+                SimulationContext::spatemPkiDirectory);
 
-    m_securityEntity =
-        std::make_unique<vanetza::security::DelegatingSecurityEntity>(
-            std::move(signService),
-            std::move(verifyService));
+        auto verifyService =
+            std::make_unique<SpatemV3VerifyService>(
+                *m_runtime,
+                *m_position,
+                SimulationContext::spatemPkiDirectory);
+
+        m_securityEntity =
+            std::make_unique<vanetza::security::DelegatingSecurityEntity>(
+                std::move(signService),
+                std::move(verifyService));
+    }
+    catch (const std::exception& error)
+    {
+        NS_LOG_UNCOND(
+            "[SPATEM_RSU_RUNTIME] ERROR V3 security initialization failed: "
+            << error.what());
+        Shutdown();
+        return false;
+    }
 
     m_mib = std::make_unique<vanetza::geonet::MIB>();
     m_mib->vanetzaDisableBeaconing = false;
@@ -171,7 +193,7 @@ SpatemRsuRuntime::Initialize()
         << " logical_id=" << m_endpoint.LogicalId()
         << " station_id=" << m_endpoint.StationId()
         << " node_id=" << station.node->GetId()
-        << " signer=DUMMY");
+        << " signer=ETSI_V3_SPATEM");
 
     return true;
 }
