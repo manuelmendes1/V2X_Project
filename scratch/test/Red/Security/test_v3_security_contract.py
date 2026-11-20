@@ -29,6 +29,7 @@ class TestV2xV3SecurityContract(unittest.TestCase):
             return (cls.integration / relative).read_text(encoding="utf-8")
 
         cls.vehicle_signer = read("wrappers/vanetza/security/denm_v3_sign_service.cc")
+        cls.vehicle_signer_header = read("wrappers/vanetza/security/denm_v3_sign_service.h")
         cls.vehicle_verifier = read("wrappers/vanetza/security/denm_v3_verify_service.cc")
         cls.dispatcher = read("wrappers/vanetza/security/v2x_v3_verify_service.cc")
         cls.profile_header = read("wrappers/vanetza/security/v2x_v3_security_profile.h")
@@ -64,8 +65,6 @@ class TestV2xV3SecurityContract(unittest.TestCase):
             "use_runtime",
             "use_position_provider",
             "use_location_checker",
-            "TrustStore",
-            "IssuerMemoryLookup",
             "use_trust_store",
             "use_issuer_lookup",
             "denm-root.cert",
@@ -74,6 +73,8 @@ class TestV2xV3SecurityContract(unittest.TestCase):
         ):
             with self.subTest(required=token):
                 self.assertIn(token, self.vehicle_signer)
+        self.assertIn("TrustStore", self.vehicle_signer_header)
+        self.assertIn("IssuerMemoryLookup", self.vehicle_signer_header)
         self.assertNotIn("DummySignService", strip_cpp_comments(self.vehicle_signer))
         self.assertNotIn("disable_location_checks", self.vehicle_signer)
         self.assertNotIn("m_camFallback", self.vehicle_signer)
