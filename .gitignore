@@ -241,3 +241,9 @@ scratch/sumo/**/*.pfx
 /scratch/test-results/
 
 # END V2X RELOCATION ALLOWLIST
+
+# Documentacao organizada por protocolo e etapa
+!/scratch/docs/CPM/Etapa/
+!/scratch/docs/CPM/Etapa/*.md
+!/scratch/docs/SPATEM/Etapa/
+!/scratch/docs/SPATEM/Etapa/*.txt
