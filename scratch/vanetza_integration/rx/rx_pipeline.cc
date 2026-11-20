@@ -172,8 +172,8 @@ if (!Decode(
     return;
 }
 
-// Bind the CAM semantic stationId to the identity established by the
-// authenticated GeoNetworking receive boundary.
+// Bind the CAM semantic stationId to the identity resolved at the
+// GeoNetworking receive boundary.
 if (message.stationId == 0 ||
     message.stationId != ctx.senderStationId)
 {
@@ -186,7 +186,7 @@ if (message.stationId == 0 ||
         "SECURITY",
         "CAM_STATION_ID_BINDING_FAIL",
         "payload_station=" + std::to_string(message.stationId) +
-        " authenticated_sender_station=" +
+        " geonet_sender_station=" +
             std::to_string(ctx.senderStationId));
     return;
 }

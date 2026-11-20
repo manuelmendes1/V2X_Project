@@ -51,7 +51,7 @@ Mantém o contrato CPM já existente: `cpm-root.cert`, `cpm-aa.cert`, `cpm-rsu-t
 
 Os verificadores V3 usam `StraightVerifyService`, cache de certificados, trust store com a raiz explicitamente confiada, issuer lookup, runtime ITS e posição WGS84. As verificações temporal e geográfica não são desactivadas. Os campos neutros `verificationPerformed`, `verificationSucceeded` e `verifiedItsAid` transportam o veredicto até ao pipeline de aplicação.
 
-CAM e SPATEM recusam a entrega quando falta a prova V3 ou quando o AID verificado não coincide com o perfil esperado. CAM compara ainda o `stationId` ASN.1 com a identidade do emissor resolvida no boundary GeoNetworking. A assinatura OpenSSL CAM preexistente continua depois desse gate como integridade adicional. O X.509 local criado a partir da chave do ticket não é uma trust anchor nem uma alternativa à cadeia V3.
+CAM e SPATEM recusam a entrega quando falta a prova V3 ou quando o AID verificado não coincide com o perfil esperado. CAM compara ainda o `stationId` ASN.1 com a identidade do emissor resolvida no boundary GeoNetworking através do MID e do `VehicleRegistry`; isto é uma verificação de consistência entre identidades, não uma afirmação de revogação nem uma validação independente da associação certificado-MID. A assinatura OpenSSL CAM preexistente continua depois desse gate como integridade adicional. O X.509 local criado a partir da chave do ticket não é uma trust anchor nem uma alternativa à cadeia V3.
 
 A verificação CPM existente mantém-se separada, com domínio PKI próprio.
 
