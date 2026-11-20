@@ -1,6 +1,7 @@
 #include "denm_builder.h"
 
 #include "vanetza_integration/context/simulation_context/simulation_context.h"
+#include "vanetza_integration/sumo_adapter/sumo_geodetic_transform.h"
 #include "vanetza_integration/core/v2x_log.h"
 
 #include "ns3/simulator.h"
@@ -102,19 +103,32 @@ DenmBuilder::Build(
     // by CAM. Conversion/quantization into ETSI ASN.1 belongs to the codec.
     //----------------------------------------------------------------------
 
-    // SUMO/ns-3 mobility uses local Cartesian metres:
-    //   x = east  -> longitude
-    //   y = north -> latitude
-    //
-    // GeoNetworking/DENM uses geographic degrees.
-    // Keep the same conversion contract as Ns3PositionProvider.
-    constexpr double meters_per_degree = 111320.0;
+    // Resolve the event using the same WGS84 authority as CAM and
+    // GeoNetworking. Local Cartesian metres must never be treated as degrees.
+    Wgs84Position geodetic{};
+    std::string geodeticError;
+    if (!SumoGeodeticTransform::ResolveWgs84(
+            request.geodeticPosition,
+            SimulationContext::sumoProjection,
+            SumoProjectedPosition{request.x, request.y},
+            geodetic,
+            geodeticError))
+    {
+        pkt.MarkFailure();
+        pkt.reason = "invalid_event_geodetic_position";
+        context.denmInput.actionId.sequenceNumber = 0;
 
-    context.denmInput.eventPosition.latitude =
-        request.y / meters_per_degree;
+        V2XWriteLog(
+            pkt,
+            V2XLogLevel::ERROR,
+            "DENM",
+            "POSITION_RESOLUTION_FAIL",
+            geodeticError);
+        return context;
+    }
 
-    context.denmInput.eventPosition.longitude =
-        request.x / meters_per_degree;
+    context.denmInput.eventPosition.latitude = geodetic.latitudeDeg;
+    context.denmInput.eventPosition.longitude = geodetic.longitudeDeg;
 
     //----------------------------------------------------------------------
     // Minimal valid SituationContainer baseline.

@@ -61,6 +61,7 @@ DenmScenarioEventSource::Evaluate(uint64_t nowUs)
 
         request.x = scheduled.event.x;
         request.y = scheduled.event.y;
+        request.geodeticPosition = scheduled.event.geodeticPosition;
 
         request.causeCode = scheduled.event.causeCode;
         request.relevanceDistanceMeters =

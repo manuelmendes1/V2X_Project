@@ -95,6 +95,10 @@ TestScenarioEventWaitsUntilTriggerTime()
     event.triggerTimeUs = 4510000;
     event.x = 10.5;
     event.y = 20.5;
+    event.geodeticPosition = ns3::Wgs84Position{
+        41.425290000,
+        -8.434076200
+    };
     event.causeCode = 94;
     event.relevanceDistanceMeters = 100.0;
     event.validityDurationMs = 5000;
@@ -137,6 +141,13 @@ TestScenarioEventWaitsUntilTriggerTime()
 
     Check(ns3::g_testSubmittedRequests.size() == 1,
           "scheduler receives exactly one scenario request");
+    Check(
+        ns3::g_testSubmittedRequests.back().geodeticPosition.has_value() &&
+            ns3::g_testSubmittedRequests.back().geodeticPosition->latitudeDeg ==
+                41.425290000 &&
+            ns3::g_testSubmittedRequests.back().geodeticPosition->longitudeDeg ==
+                -8.434076200,
+        "scenario event WGS84 is preserved into its DENM trigger");
 
     Check(source.PendingEventCount() == 0,
           "scenario event is no longer pending after submission");

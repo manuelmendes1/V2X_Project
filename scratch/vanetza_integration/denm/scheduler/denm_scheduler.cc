@@ -257,6 +257,16 @@ DenmScheduler::Run(
                 triggerRequest.y =
                     vehicle.mobility.position.y;
 
+                if (vehicle.mobility.geodeticPosition.has_value())
+                {
+                    const auto& sample =
+                        *vehicle.mobility.geodeticPosition;
+                    triggerRequest.geodeticPosition = Wgs84Position{
+                        sample.latitudeDeg,
+                        sample.longitudeDeg
+                    };
+                }
+
                 triggerRequest.causeCode =
                     94;
 

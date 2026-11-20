@@ -1,5 +1,7 @@
 #include "denm_trigger.h"
 
+#include "vanetza_integration/sumo_adapter/sumo_geodetic_transform.h"
+
 #include <cmath>
 #include <utility>
 
@@ -49,6 +51,18 @@ DenmTrigger::Validate(const DenmTriggerRequest& request, std::string& error)
     {
         error = "invalid_event_position";
         return false;
+    }
+
+    if (request.geodeticPosition.has_value())
+    {
+        std::string geodeticError;
+        if (!SumoGeodeticTransform::ValidateWgs84(
+                *request.geodeticPosition,
+                geodeticError))
+        {
+            error = "invalid_geodetic_event_position";
+            return false;
+        }
     }
 
     if (request.causeCode == 0)

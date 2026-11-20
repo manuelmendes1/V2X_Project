@@ -9,5 +9,6 @@ namespace SimulationContext
 
     std::string itsStartTime;
     std::string cpmPkiDirectory;
+    std::optional<ns3::SumoUtmWgs84ProjectionConfig> sumoProjection;
 
 }

@@ -327,6 +327,7 @@ int main(int argc, char* argv[]) {
 
     SimulationContext::itsStartTime = itsStartTime;
     SimulationContext::cpmPkiDirectory = cpmPkiDir;
+    SimulationContext::sumoProjection = sumoProjection;
 
 
     vanetza_integration::vam::VamGenerationConfig vamGenerationConfig{};

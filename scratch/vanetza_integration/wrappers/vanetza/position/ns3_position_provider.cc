@@ -1,9 +1,14 @@
 #include "ns3_position_provider.h"
 #include "vanetza_integration/context/vehicle_state.h"
+#include "vanetza_integration/context/simulation_context/simulation_context.h"
+#include "vanetza_integration/sumo_adapter/sumo_geodetic_transform.h"
 
 #include <vanetza/units/angle.hpp>
 
 #include "ns3/simulator.h"
+
+#include <chrono>
+#include <stdexcept>
 
 namespace ns3 {
 
@@ -18,13 +23,38 @@ namespace ns3 {
 
         m_fix.timestamp = vanetza::Clock::time_point{std::chrono::microseconds(now_us)};
 
-        // SUMO: coordenadas cartesianas locais (x, y) em metros.
-        // Conversão aproximada para graus (unidade nativa do GeoAngle).
-        const double meters_per_degree = 111320.0;
+        std::optional<Wgs84Position> suppliedGeodetic;
+        if (m_vehicle.mobility.geodeticPosition.has_value())
+        {
+            const auto& sample = *m_vehicle.mobility.geodeticPosition;
+            suppliedGeodetic = Wgs84Position{
+                sample.latitudeDeg,
+                sample.longitudeDeg
+            };
+        }
 
-        m_fix.latitude = vanetza::units::GeoAngle::from_value(m_vehicle.mobility.position.y / meters_per_degree);
+        Wgs84Position geodetic{};
+        std::string error;
+        if (!SumoGeodeticTransform::ResolveWgs84(
+                suppliedGeodetic,
+                SimulationContext::sumoProjection,
+                SumoProjectedPosition{
+                    m_vehicle.mobility.position.x,
+                    m_vehicle.mobility.position.y
+                },
+                geodetic,
+                error))
+        {
+            throw std::runtime_error(
+                "Cannot provide GeoNetworking position without valid WGS84: " +
+                error);
+        }
 
-        m_fix.longitude = vanetza::units::GeoAngle::from_value(m_vehicle.mobility.position.x / meters_per_degree);
+        m_fix.latitude =
+            vanetza::units::GeoAngle::from_value(geodetic.latitudeDeg);
+
+        m_fix.longitude =
+            vanetza::units::GeoAngle::from_value(geodetic.longitudeDeg);
 
         // Altitude e confiança — valores por omissão
         m_fix.confidence = vanetza::PositionConfidence();

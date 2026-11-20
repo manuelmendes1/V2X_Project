@@ -2,6 +2,7 @@
 
 #include "vanetza_integration/context/simulation_context/simulation_context.h"
 #include "vanetza_integration/cam/validation/cam_validator.h"
+#include "vanetza_integration/sumo_adapter/sumo_geodetic_transform.h"
 
 #include "ns3/simulator.h"
 
@@ -12,16 +13,31 @@ namespace ns3 {
     std::optional<CamGenerationContext>
     CamBuilder::Build(const VehicleState& vehicle) {
 
-        if (!vehicle.mobility.geodeticPosition.has_value()) {
-            return std::nullopt;
+        std::optional<Wgs84Position> suppliedGeodetic;
+        if (vehicle.mobility.geodeticPosition.has_value())
+        {
+            const auto& sample = *vehicle.mobility.geodeticPosition;
+            suppliedGeodetic = Wgs84Position{
+                sample.latitudeDeg,
+                sample.longitudeDeg
+            };
         }
 
-        const auto& geodetic =
-            *vehicle.mobility.geodeticPosition;
-
-        if (!CamValidator::ValidateWgs84(
+        Wgs84Position geodetic{};
+        std::string geodeticError;
+        if (!SumoGeodeticTransform::ResolveWgs84(
+                suppliedGeodetic,
+                SimulationContext::sumoProjection,
+                SumoProjectedPosition{
+                    vehicle.mobility.position.x,
+                    vehicle.mobility.position.y
+                },
+                geodetic,
+                geodeticError) ||
+            !CamValidator::ValidateWgs84(
                 geodetic.latitudeDeg,
-                geodetic.longitudeDeg)) {
+                geodetic.longitudeDeg))
+        {
             return std::nullopt;
         }
 
