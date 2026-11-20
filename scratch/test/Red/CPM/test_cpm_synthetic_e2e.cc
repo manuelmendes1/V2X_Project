@@ -32,6 +32,8 @@
 #include "vanetza_integration/cpm/perception/cpm_synthetic_perception_source.h"
 #include "vanetza_integration/rx/rx_callback/rx_callback.h"
 
+#include "vanetza_integration/context/its_time/its_start_time_parser.h"
+
 namespace
 {
 using namespace ns3;
@@ -341,14 +343,18 @@ int main(int argc, char** argv)
     SimulationContext::cpmPkiDirectory = argv[1];
     SimulationContext::simulationStep = 0;
 
-    std::string normalizedStart = SimulationContext::itsStartTime;
-    const auto separator = normalizedStart.find('T');
-    if (separator != std::string::npos)
+    vanetza::Clock::time_point itsStart{};
+    std::string itsStartTimeError;
+    if (!ItsStartTimeParser::ParseUtc(
+            SimulationContext::itsStartTime,
+            itsStart,
+            itsStartTimeError))
     {
-        normalizedStart[separator] = ' ';
+        std::cerr << "CPM_SYNTHETIC_E2E_FAIL=invalid ITS start time: "
+                  << itsStartTimeError << '\n';
+        return 3;
     }
 
-    const auto itsStart = vanetza::Clock::at(normalizedStart);
     g_referenceTimeItsMs =
         std::chrono::duration_cast<std::chrono::milliseconds>(
             itsStart.time_since_epoch()).count() + 1000;

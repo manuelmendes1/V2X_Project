@@ -2,6 +2,7 @@
 #include "vanetza_integration/core/phy_audit/phy_audit.h"
 #include "vanetza_integration/spatem/emitter/spatem_emitter_endpoint.h"
 #include "vanetza_integration/cpm/emitter/cpm_emitter_endpoint.h"
+#include "vanetza_integration/vam/emitter/vam_vru_emitter_endpoint.h"
 #include "vanetza_integration/context/station_registry/station_endpoint_registry.h"
 
 #include "vanetza_integration/context/vehicle_state.h"
@@ -77,6 +78,26 @@ VehicleNetworkBuilder::InitializeCpmEmitter(
     // Reuse the active allocator; do not duplicate already assigned IPv4s.
     Callback<void, Ptr<Socket>> noReceiveCallback;
 
+    return endpoint.InitializeNetwork(
+        m_channel,
+        m_ipv4,
+        noReceiveCallback);
+}
+
+bool
+VehicleNetworkBuilder::InitializeVamVruEmitter(
+    VamVruEmitterEndpoint& endpoint)
+{
+    if (m_channel == nullptr)
+    {
+        NS_LOG_UNCOND(
+            "[NET] Cannot initialize VAM VRU emitter: Wi-Fi channel is null");
+        return false;
+    }
+
+    // The endpoint is an ITS pedestrian, not a VehicleState. Keep it on the
+    // same active channel and allocator without registering it as a vehicle.
+    Callback<void, Ptr<Socket>> noReceiveCallback;
     return endpoint.InitializeNetwork(
         m_channel,
         m_ipv4,

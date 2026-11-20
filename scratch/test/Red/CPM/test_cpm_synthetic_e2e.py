@@ -235,6 +235,7 @@ class TestCpmSyntheticEndToEnd(unittest.TestCase):
                 "CPM_ENCODE_OK",
                 "CPM_BTP_RX_OK",
                 "CPM_RX] BTP handler",
+                "[GEONET_SHB_TX]",
             )
             for line in output.splitlines():
                 if any(marker in line for marker in relevant):

@@ -1672,9 +1672,12 @@ bool TestU3PartialDrainPreservesResolvedPeerManager()
         {
             ++abortCalls;
 
-            // The first manager (ped-a) aborts successfully.
-            // ped-b and its retries fail until recovery is enabled.
-            if (!allowRecovery && abortCalls >= 2)
+            // Call 1 resolves ped-a during the first drain.
+            // Calls 2 and 3 fail ped-b's initial and retired abort attempts.
+            // Call 4 is ped-a's explicit follow-up abort and must succeed.
+            // Call 5 recovers ped-b after allowRecovery is enabled.
+            if (!allowRecovery &&
+                (abortCalls == 2 || abortCalls == 3))
             {
                 abortError = "injected abort failure for ped-b";
                 return false;
@@ -1812,7 +1815,7 @@ bool TestU3PartialDrainPreservesResolvedPeerManager()
     // Resolve A's follow-up candidate before retrying B.
     error.clear();
     ok &= Check(
-        scheduler.AbortGeneration(newHandleA, error),
+        scheduler.AbortGeneration(newHandleA, error) && abortCalls == 4,
         "PARTIAL_DRAIN_RESOLVES_PEER_FOLLOWUP_CANDIDATE");
 
     // B remains active with the same SUMO presence epoch. Once its retired
@@ -1827,7 +1830,8 @@ bool TestU3PartialDrainPreservesResolvedPeerManager()
         candidates, report, error);
 
     ok &= Check(
-        recoveryStep && !scheduler.IsPersonQuarantined("ped-b"),
+        recoveryStep && abortCalls == 5 &&
+            !scheduler.IsPersonQuarantined("ped-b"),
         "PARTIAL_DRAIN_RECOVERY_RESTORES_SAME_PRESENCE_MANAGER");
 
     const auto recoveredPending = scheduler.GetPendingCandidates();
@@ -2145,6 +2149,619 @@ bool TestU3TransactionDrain()
 }
 
 
+
+
+template <typename Scheduler>
+constexpr bool HasSubmittedTransactionApi()
+{
+    return requires(
+        Scheduler& scheduler,
+        const VamGenerationTransactionHandle& handle,
+        std::string& error)
+    {
+        { scheduler.MarkGenerationSubmitted(handle, error) }
+            -> std::convertible_to<bool>;
+
+        { scheduler.CompleteGeneration(
+              handle, true, std::int64_t{}, error) }
+            -> std::convertible_to<bool>;
+
+        { scheduler.GetInFlightTransactionCount() }
+            -> std::convertible_to<std::size_t>;
+    };
+}
+
+
+template <typename Scheduler>
+bool TestSubmittedTransactionLifecycleForScheduler()
+{
+    if constexpr (!HasSubmittedTransactionApi<Scheduler>())
+    {
+        return Check(
+            false,
+            "VAM_SUBMITTED_TRANSACTION_API_AVAILABLE");
+    }
+    else
+    {
+        bool ok = Check(
+            true,
+            "VAM_SUBMITTED_TRANSACTION_API_AVAILABLE");
+
+        // --------------------------------------------------------------
+        // Fixture A: submit, REMOVE, reentry and late completion.
+        // --------------------------------------------------------------
+        {
+            auto& authority = ItsStationIdentityAuthority::Instance();
+            authority.Clear();
+            VehicleRegistry::Instance().Clear();
+            SumoVehicleLifecycleRegistry::Instance().Clear();
+
+            SumoPersonRegistry persons;
+            SumoVruSubjectRegistry subjects;
+            Scheduler scheduler(Config());
+
+            if (!AddPerson(
+                    persons, subjects, "submitted-reentry", 0, 0.0, true) ||
+                !RegisterIdentity(scheduler, "submitted-reentry", 7001))
+            {
+                return Check(
+                    false,
+                    "SUBMITTED_REENTRY_FIXTURE_INITIALIZED");
+            }
+
+            VamGenerationContext context{};
+            std::vector<VamGenerationScheduledCandidate> candidates;
+            VamGenerationSchedulerReport report{};
+            std::string error;
+
+            if (!RunStep(
+                    scheduler, 0, persons, subjects, context,
+                    candidates, report, error) ||
+                candidates.size() != 1 ||
+                !candidates.front().transactionHandle.has_value())
+            {
+                return Check(
+                    false,
+                    "SUBMITTED_REENTRY_FIXTURE_HAS_INITIAL_HANDLE");
+            }
+
+            const auto oldHandle =
+                *candidates.front().transactionHandle;
+
+            error.clear();
+            const bool firstSubmit =
+                scheduler.MarkGenerationSubmitted(oldHandle, error);
+
+            error.clear();
+            const bool duplicateSubmit =
+                scheduler.MarkGenerationSubmitted(oldHandle, error);
+
+            ok &= Check(
+                firstSubmit &&
+                    !duplicateSubmit &&
+                    scheduler.GetInFlightTransactionCount() == 1,
+                "MARK_SUBMITTED_IS_EXACTLY_ONCE");
+
+            // Once the transport owns the operation, the legacy direct
+            // resolution APIs must not bypass its terminal callback.
+            error.clear();
+            const bool directConfirm =
+                scheduler.ConfirmGeneration(oldHandle, 0, error);
+
+            error.clear();
+            const bool directAbort =
+                scheduler.AbortGeneration(oldHandle, error);
+
+            ok &= Check(
+                !directConfirm &&
+                    !directAbort &&
+                    scheduler.GetPendingCandidates().size() == 1 &&
+                    scheduler.GetInFlightTransactionCount() == 1,
+                "SUBMITTED_DIRECT_CONFIRM_ABORT_REJECTED");
+
+            SumoPersonDatagram removal{};
+            removal.eventType = SumoPersonEventType::Remove;
+            removal.personId = "submitted-reentry";
+            removal.simulationTimeUs = 50000;
+
+            const bool personRemoved = persons.Apply(removal);
+
+            error.clear();
+            const bool presenceInvalidated =
+                personRemoved &&
+                scheduler.InvalidatePersonPresence(
+                    "submitted-reentry", error);
+
+            const bool subjectRemoved =
+                subjects.Remove("submitted-reentry");
+
+            ok &= Check(
+                personRemoved &&
+                    presenceInvalidated &&
+                    subjectRemoved &&
+                    scheduler.GetPendingCandidates().empty() &&
+                    scheduler.GetInFlightTransactionCount() == 1 &&
+                    !scheduler.IsPersonQuarantined("submitted-reentry"),
+                "REMOVE_RETIRES_SUBMITTED_WITHOUT_ABORT");
+
+            // Reentry keeps the logical station identity but creates a
+            // distinct presence and generation manager.
+            ok &= Check(
+                AddPerson(
+                    persons, subjects, "submitted-reentry",
+                    200000, 5.0, true),
+                "SUBMITTED_REENTRY_ACCEPTED");
+
+            candidates.clear();
+            report = {};
+            error.clear();
+
+            const bool reentryEvaluated =
+                RunStep(
+                    scheduler, 200000, persons, subjects, context,
+                    candidates, report, error);
+
+            if (!reentryEvaluated ||
+                candidates.size() != 1 ||
+                !candidates.front().transactionHandle.has_value())
+            {
+                return Check(
+                    false,
+                    "SUBMITTED_REENTRY_HAS_NEW_PENDING_HANDLE");
+            }
+
+            const auto newHandle =
+                *candidates.front().transactionHandle;
+
+            ok &= Check(
+                oldHandle.PersonId() == newHandle.PersonId() &&
+                    oldHandle.SchedulerInstanceId() ==
+                        newHandle.SchedulerInstanceId() &&
+                    oldHandle.PresenceEpoch() !=
+                        newHandle.PresenceEpoch() &&
+                    oldHandle != newHandle &&
+                    candidates.front().stationId.value == 7001,
+                "REENTRY_COEXISTS_WITH_OLD_IN_FLIGHT_HANDLE");
+
+            // The old completion must resolve only the old manager.
+            error.clear();
+            const bool oldCompleted =
+                scheduler.CompleteGeneration(
+                    oldHandle, true, 200, error);
+
+            const auto pendingAfterOldCompletion =
+                scheduler.GetPendingCandidates();
+
+            ok &= Check(
+                oldCompleted &&
+                    scheduler.GetInFlightTransactionCount() == 0 &&
+                    pendingAfterOldCompletion.size() == 1 &&
+                    pendingAfterOldCompletion.front().transactionHandle ==
+                        std::optional<VamGenerationTransactionHandle>{
+                            newHandle},
+                "LATE_COMPLETION_RESOLVES_ONLY_OLD_PRESENCE");
+
+            error.clear();
+            const bool duplicateCompletion =
+                scheduler.CompleteGeneration(
+                    oldHandle, true, 200, error);
+
+            const auto pendingAfterDuplicate =
+                scheduler.GetPendingCandidates();
+
+            ok &= Check(
+                !duplicateCompletion &&
+                    pendingAfterDuplicate.size() == 1 &&
+                    pendingAfterDuplicate.front().transactionHandle ==
+                        std::optional<VamGenerationTransactionHandle>{
+                            newHandle},
+                "DUPLICATE_COMPLETION_CANNOT_MUTATE_REENTRY");
+
+            // A terminal transport failure aborts the new manager's
+            // candidate instead of committing its generation baseline.
+            error.clear();
+            const bool newSubmitted =
+                scheduler.MarkGenerationSubmitted(newHandle, error);
+
+            error.clear();
+            const bool newFailed =
+                scheduler.CompleteGeneration(
+                    newHandle, false, 200, error);
+
+            ok &= Check(
+                newSubmitted &&
+                    newFailed &&
+                    scheduler.GetInFlightTransactionCount() == 0 &&
+                    scheduler.GetPendingCandidates().empty(),
+                "FAILED_SUBMISSION_ABORTS_GENERATION");
+        }
+
+        // --------------------------------------------------------------
+        // Fixture B: drain must not abort an active submitted candidate.
+        // --------------------------------------------------------------
+        {
+            auto& authority = ItsStationIdentityAuthority::Instance();
+            authority.Clear();
+            VehicleRegistry::Instance().Clear();
+            SumoVehicleLifecycleRegistry::Instance().Clear();
+
+            SumoPersonRegistry persons;
+            SumoVruSubjectRegistry subjects;
+            Scheduler scheduler(Config());
+
+            if (!AddPerson(
+                    persons, subjects, "submitted-drain", 0, 0.0, true) ||
+                !RegisterIdentity(scheduler, "submitted-drain", 7002))
+            {
+                return Check(
+                    false,
+                    "SUBMITTED_DRAIN_FIXTURE_INITIALIZED");
+            }
+
+            VamGenerationContext context{};
+            std::vector<VamGenerationScheduledCandidate> candidates;
+            VamGenerationSchedulerReport report{};
+            std::string error;
+
+            if (!RunStep(
+                    scheduler, 0, persons, subjects, context,
+                    candidates, report, error) ||
+                candidates.size() != 1 ||
+                !candidates.front().transactionHandle.has_value())
+            {
+                return Check(
+                    false,
+                    "SUBMITTED_DRAIN_FIXTURE_HAS_PENDING_HANDLE");
+            }
+
+            const auto handle =
+                *candidates.front().transactionHandle;
+
+            error.clear();
+            const bool submitted =
+                scheduler.MarkGenerationSubmitted(handle, error);
+
+            error.clear();
+            const bool prematureDrain =
+                scheduler.DrainTransactions(error);
+
+            const auto pendingAfterDrain =
+                scheduler.GetPendingCandidates();
+
+            ok &= Check(
+                submitted &&
+                    !prematureDrain &&
+                    scheduler.GetInFlightTransactionCount() == 1 &&
+                    pendingAfterDrain.size() == 1 &&
+                    pendingAfterDrain.front().transactionHandle ==
+                        std::optional<VamGenerationTransactionHandle>{
+                            handle},
+                "DRAIN_BLOCKS_WITHOUT_ABORTING_SUBMITTED_TRANSACTION");
+
+            // Resolve the actual transport operation, then retry shutdown.
+            error.clear();
+            const bool completed =
+                scheduler.CompleteGeneration(
+                    handle, true, 100, error);
+
+            error.clear();
+            const bool finalDrain =
+                scheduler.DrainTransactions(error);
+
+            ok &= Check(
+                completed &&
+                    finalDrain &&
+                    scheduler.GetInFlightTransactionCount() == 0 &&
+                    scheduler.GetPendingCandidates().empty(),
+                "DRAIN_COMPLETES_AFTER_TERMINAL_CALLBACK");
+
+            error.clear();
+            ok &= Check(
+                !scheduler.ConfirmGeneration(handle, 100, error),
+                "DRAIN_INVALIDATES_COMPLETED_SUBMITTED_HANDLE");
+        }
+
+        return ok;
+    }
+}
+
+
+bool TestPresenceRuntimeOwnershipQuery()
+{
+    using namespace vanetza_integration::vam;
+
+    bool ok = true;
+
+    // An active runtime belongs only to its exact SUMO presence epoch.
+    {
+        ItsStationIdentityAuthority::Instance().Clear();
+        VehicleRegistry::Instance().Clear();
+        SumoVehicleLifecycleRegistry::Instance().Clear();
+
+        SumoPersonRegistry persons;
+        SumoVruSubjectRegistry subjects;
+        VamGenerationScheduler scheduler(Config());
+        VamGenerationContext context{};
+        std::vector<VamGenerationScheduledCandidate> candidates;
+        VamGenerationSchedulerReport report{};
+        std::string error;
+
+        if (!AddPerson(persons, subjects, "presence-query-active", 0, 0.0, true) ||
+            !RegisterIdentity(scheduler, "presence-query-active", 7801) ||
+            !RunStep(scheduler, 0, persons, subjects, context, candidates, report, error) ||
+            candidates.size() != 1 ||
+            !candidates.front().transactionHandle.has_value())
+        {
+            return Check(false, "PRESENCE_QUERY_ACTIVE_FIXTURE_READY");
+        }
+
+        const VamPersonPresenceEpoch activeEpoch{0};
+        ok &= Check(
+            scheduler.HasRetainedRuntimeForPresence("presence-query-active", activeEpoch) &&
+                !scheduler.HasRetainedRuntimeForPresence(
+                    "presence-query-active", VamPersonPresenceEpoch{1}),
+            "ACTIVE_RUNTIME_LOOKUP_MATCHES_EXACT_PRESENCE_EPOCH");
+
+        SumoPersonDatagram removal{};
+        removal.eventType = SumoPersonEventType::Remove;
+        removal.personId = "presence-query-active";
+        removal.simulationTimeUs = 1;
+        const bool removed = persons.Apply(removal);
+        error.clear();
+        const bool invalidated = removed &&
+            scheduler.InvalidatePersonPresence("presence-query-active", error);
+
+        ok &= Check(
+            invalidated &&
+                !scheduler.HasRetainedRuntimeForPresence(
+                    "presence-query-active", activeEpoch),
+            "SUCCESSFUL_REMOVE_ABORT_RELEASES_ACTIVE_PRESENCE_RUNTIME");
+    }
+
+    // A failed REMOVE abort is retained in the retired ledger and remains
+    // discoverable until a later drain successfully resolves it.
+    {
+        ItsStationIdentityAuthority::Instance().Clear();
+        VehicleRegistry::Instance().Clear();
+        SumoVehicleLifecycleRegistry::Instance().Clear();
+
+        SumoPersonRegistry persons;
+        SumoVruSubjectRegistry subjects;
+        bool allowAbort = false;
+        VamGenerationAbortExecutor abortExecutor =
+            [&allowAbort](
+                VamGenerationManager& manager,
+                std::uint64_t transactionId,
+                std::string& abortError)
+            {
+                if (!allowAbort)
+                {
+                    abortError = "injected presence-query abort failure";
+                    return false;
+                }
+                return manager.AbortGeneration(transactionId, abortError);
+            };
+        VamGenerationScheduler scheduler(Config(), abortExecutor);
+        VamGenerationContext context{};
+        std::vector<VamGenerationScheduledCandidate> candidates;
+        VamGenerationSchedulerReport report{};
+        std::string error;
+
+        if (!AddPerson(persons, subjects, "presence-query-retired", 0, 0.0, true) ||
+            !RegisterIdentity(scheduler, "presence-query-retired", 7802) ||
+            !RunStep(scheduler, 0, persons, subjects, context, candidates, report, error) ||
+            candidates.size() != 1)
+        {
+            return Check(false, "PRESENCE_QUERY_RETIRED_FIXTURE_READY");
+        }
+
+        SumoPersonDatagram removal{};
+        removal.eventType = SumoPersonEventType::Remove;
+        removal.personId = "presence-query-retired";
+        removal.simulationTimeUs = 1;
+        const bool removed = persons.Apply(removal);
+        error.clear();
+        const bool invalidated = removed &&
+            scheduler.InvalidatePersonPresence("presence-query-retired", error);
+
+        const VamPersonPresenceEpoch oldEpoch{0};
+        ok &= Check(
+            !invalidated &&
+                scheduler.HasRetainedRuntimeForPresence(
+                    "presence-query-retired", oldEpoch) &&
+                !scheduler.HasRetainedRuntimeForPresence(
+                    "presence-query-retired", VamPersonPresenceEpoch{2}),
+            "FAILED_ABORT_REMAINS_RETAINED_ONLY_FOR_OLD_PRESENCE");
+
+        allowAbort = true;
+        error.clear();
+        const bool drained = scheduler.DrainTransactions(error);
+        ok &= Check(
+            drained &&
+                !scheduler.HasRetainedRuntimeForPresence(
+                    "presence-query-retired", oldEpoch),
+            "RETIRED_ABORT_RECOVERY_RELEASES_OLD_PRESENCE_RUNTIME");
+    }
+
+    // A submitted transaction moved to the full-handle in-flight ledger
+    // remains attached to the old epoch while a new epoch becomes active.
+    {
+        ItsStationIdentityAuthority::Instance().Clear();
+        VehicleRegistry::Instance().Clear();
+        SumoVehicleLifecycleRegistry::Instance().Clear();
+
+        SumoPersonRegistry persons;
+        SumoVruSubjectRegistry subjects;
+        VamGenerationScheduler scheduler(Config());
+        VamGenerationContext context{};
+        std::vector<VamGenerationScheduledCandidate> candidates;
+        VamGenerationSchedulerReport report{};
+        std::string error;
+
+        if (!AddPerson(persons, subjects, "presence-query-inflight", 0, 0.0, true) ||
+            !RegisterIdentity(scheduler, "presence-query-inflight", 7803) ||
+            !RunStep(scheduler, 0, persons, subjects, context, candidates, report, error) ||
+            candidates.size() != 1 ||
+            !candidates.front().transactionHandle.has_value())
+        {
+            return Check(false, "PRESENCE_QUERY_INFLIGHT_FIXTURE_READY");
+        }
+
+        const auto oldHandle = *candidates.front().transactionHandle;
+        error.clear();
+        const bool submitted = scheduler.MarkGenerationSubmitted(oldHandle, error);
+
+        SumoPersonDatagram removal{};
+        removal.eventType = SumoPersonEventType::Remove;
+        removal.personId = "presence-query-inflight";
+        removal.simulationTimeUs = 1;
+        const bool removed = persons.Apply(removal);
+        error.clear();
+        const bool invalidated = removed &&
+            scheduler.InvalidatePersonPresence("presence-query-inflight", error);
+        const bool subjectRemoved = subjects.Remove("presence-query-inflight");
+        ok &= Check(
+            subjectRemoved,
+            "PRESENCE_QUERY_REMOVE_CLEARS_ACTIVE_SUBJECT");
+
+        const VamPersonPresenceEpoch oldEpoch{0};
+        const VamPersonPresenceEpoch newEpoch{200000};
+        ok &= Check(
+            submitted && invalidated && subjectRemoved &&
+                scheduler.HasRetainedRuntimeForPresence(
+                    "presence-query-inflight", oldEpoch) &&
+                !scheduler.HasRetainedRuntimeForPresence(
+                    "presence-query-inflight", newEpoch),
+            "SUBMITTED_REMOVE_RETAINS_EXACT_OLD_PRESENCE_RUNTIME");
+
+        if (!AddPerson(persons, subjects, "presence-query-inflight", 200000, 5.0, true))
+        {
+            return Check(false, "PRESENCE_QUERY_REENTRY_FIXTURE_READY");
+        }
+        candidates.clear();
+        report = {};
+        error.clear();
+        if (!RunStep(scheduler, 200000, persons, subjects, context, candidates, report, error) ||
+            candidates.size() != 1 ||
+            !candidates.front().transactionHandle.has_value())
+        {
+            return Check(false, "PRESENCE_QUERY_REENTRY_HAS_NEW_HANDLE");
+        }
+
+        const auto newHandle = *candidates.front().transactionHandle;
+        ok &= Check(
+            oldHandle.PresenceEpoch() != newHandle.PresenceEpoch() &&
+                scheduler.HasRetainedRuntimeForPresence(
+                    "presence-query-inflight", oldEpoch) &&
+                scheduler.HasRetainedRuntimeForPresence(
+                    "presence-query-inflight", newEpoch),
+            "OLD_INFLIGHT_AND_NEW_ACTIVE_PRESENCES_COEXIST");
+
+        error.clear();
+        const bool oldCompleted = scheduler.CompleteGeneration(oldHandle, true, 200, error);
+        ok &= Check(
+            oldCompleted &&
+                !scheduler.HasRetainedRuntimeForPresence(
+                    "presence-query-inflight", oldEpoch) &&
+                scheduler.HasRetainedRuntimeForPresence(
+                    "presence-query-inflight", newEpoch),
+            "OLD_COMPLETION_RELEASES_ONLY_OLD_PRESENCE_RUNTIME");
+
+        error.clear();
+        const bool newAborted = scheduler.AbortGeneration(newHandle, error);
+        ok &= Check(
+            newAborted &&
+                scheduler.HasRetainedRuntimeForPresence(
+                    "presence-query-inflight", newEpoch),
+            "NEW_PRESENCE_RUNTIME_REMAINS_ACTIVE_AFTER_CANDIDATE_ABORT");
+
+        // Aborting an individual candidate must preserve the active manager.
+        // The presence runtime is released only when that presence is invalidated.
+        error.clear();
+        const bool newInvalidated =
+            scheduler.InvalidatePersonPresence("presence-query-inflight", error);
+        ok &= Check(
+            newInvalidated &&
+                !scheduler.HasRetainedRuntimeForPresence(
+                    "presence-query-inflight", newEpoch),
+            "NEW_PRESENCE_RUNTIME_RELEASED_AFTER_ITS_OWN_REMOVE");
+    }
+
+    // A terminal transport result is still retained if manager resolution
+    // fails. Repeating the identical completion after recovery releases it.
+    {
+        ItsStationIdentityAuthority::Instance().Clear();
+        VehicleRegistry::Instance().Clear();
+        SumoVehicleLifecycleRegistry::Instance().Clear();
+
+        SumoPersonRegistry persons;
+        SumoVruSubjectRegistry subjects;
+        bool allowAbort = false;
+        VamGenerationAbortExecutor abortExecutor =
+            [&allowAbort](
+                VamGenerationManager& manager,
+                std::uint64_t transactionId,
+                std::string& abortError)
+            {
+                if (!allowAbort)
+                {
+                    abortError = "injected terminal-resolution failure";
+                    return false;
+                }
+                return manager.AbortGeneration(transactionId, abortError);
+            };
+        VamGenerationScheduler scheduler(Config(), abortExecutor);
+        VamGenerationContext context{};
+        std::vector<VamGenerationScheduledCandidate> candidates;
+        VamGenerationSchedulerReport report{};
+        std::string error;
+
+        if (!AddPerson(persons, subjects, "presence-query-terminal", 0, 0.0, true) ||
+            !RegisterIdentity(scheduler, "presence-query-terminal", 7804) ||
+            !RunStep(scheduler, 0, persons, subjects, context, candidates, report, error) ||
+            candidates.size() != 1 ||
+            !candidates.front().transactionHandle.has_value())
+        {
+            return Check(false, "PRESENCE_QUERY_TERMINAL_FIXTURE_READY");
+        }
+
+        const auto handle = *candidates.front().transactionHandle;
+        error.clear();
+        const bool submitted = scheduler.MarkGenerationSubmitted(handle, error);
+
+        SumoPersonDatagram removal{};
+        removal.eventType = SumoPersonEventType::Remove;
+        removal.personId = "presence-query-terminal";
+        removal.simulationTimeUs = 1;
+        const bool removed = persons.Apply(removal);
+        error.clear();
+        const bool invalidated = removed &&
+            scheduler.InvalidatePersonPresence("presence-query-terminal", error);
+
+        error.clear();
+        const bool firstCompletion =
+            scheduler.CompleteGeneration(handle, false, 1, error);
+        const VamPersonPresenceEpoch epoch{0};
+        ok &= Check(
+            submitted && invalidated && !firstCompletion &&
+                scheduler.HasRetainedRuntimeForPresence(
+                    "presence-query-terminal", epoch),
+            "TERMINAL_RESULT_WITH_FAILED_MANAGER_RESOLUTION_REMAINS_RETAINED");
+
+        allowAbort = true;
+        error.clear();
+        const bool retriedCompletion =
+            scheduler.CompleteGeneration(handle, false, 1, error);
+        ok &= Check(
+            retriedCompletion &&
+                !scheduler.HasRetainedRuntimeForPresence(
+                    "presence-query-terminal", epoch),
+            "RETRIED_TERMINAL_RESOLUTION_RELEASES_RETAINED_RUNTIME");
+    }
+
+    return ok;
+}
+
 } // namespace
 
 int main()
@@ -2171,7 +2788,17 @@ int main()
     ok &= TestU3PartialDrainPreservesResolvedPeerManager();
     ok &= TestU3RepeatedPartialDrainPreservesRetiredManager();
 
+    const bool presenceRuntimeOwnershipOk =
+        TestPresenceRuntimeOwnershipQuery();
+    ok &= presenceRuntimeOwnershipOk;
 
+    const bool submittedLifecycleOk =
+        TestSubmittedTransactionLifecycleForScheduler<VamGenerationScheduler>();
+    ok &= submittedLifecycleOk;
+
+
+    std::cout << "VAM_PRESENCE_RUNTIME_OWNERSHIP="
+              << (presenceRuntimeOwnershipOk ? "PASS" : "FAIL") << '\n';
     std::cout << "VAM_GENERATION_SCHEDULER="
               << (ok ? "PASS" : "FAIL") << '\n';
     std::cout << "VAM_TRANSACTION_LIFECYCLE="
@@ -2180,6 +2807,8 @@ int main()
               << (ok ? "PASS" : "FAIL") << '\n';
     std::cout << "VAM_TRANSACTION_DRAIN="
               << (ok ? "PASS" : "FAIL") << '\n';
+    std::cout << "VAM_SUBMITTED_TRANSACTION_LIFECYCLE="
+              << (submittedLifecycleOk ? "PASS" : "FAIL") << '\n';
 
     return ok ? 0 : 1;
 }

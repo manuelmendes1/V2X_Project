@@ -5,6 +5,8 @@
 #include "vanetza_integration/spatem/rx/spatem_rx_pipeline.h"
 #include "vanetza_integration/cpm/rx/cpm_rx_pipeline.h"
 #include "vanetza_integration/cpm/transport/cpm_transport_policy.h"
+#include "vanetza_integration/vam/transport/vam_transport_policy.h"
+#include "vanetza_integration/vam/transport/vam_rx_boundary.h"
 #include "vanetza_integration/context/packet/packet_id_manager.h"
 #include "vanetza_integration/core/packet_id_tag/packet_id_tag.h"
 #include "vanetza_integration/context/rx_bridge/rx_bridge_context.h"
@@ -646,6 +648,110 @@ VanetzaRuntime::Initialize()
                 << rx.payload.size()
                 << " aid="
                 << (rx.hasItsAid ? rx.itsAid : 0));
+        });
+
+    //=========================================================================
+    // VAM BTP RX boundary — Etapa 11.7
+    //
+    // Register the dedicated VRU Awareness port without replacing the
+    // existing CAM, DENM, CPM or SPATEM handlers. Decode, security policy,
+    // replay and LDM delivery belong to their later VAM RX stages.
+    //=========================================================================
+    m_geonet->SetBtpRxHandler(
+        kVamBtpPort,
+        [this](const VanetzaGeoNetAdapter::BtpRxData& rx)
+        {
+            PacketContext* ctx =
+                RxBridgeContext::Current();
+
+            if (!ctx)
+            {
+                NS_LOG_UNCOND(
+                    "[VAM_RX] ERROR: RxBridgeContext is null");
+                return;
+            }
+
+            ctx->btpDestinationPort = rx.destinationPort;
+
+            ctx->geonet.upperProtocol = rx.upperProtocol;
+            ctx->geonet.transportType = rx.transportType;
+
+            ctx->geonet.hasSourcePosition =
+                rx.hasSourcePosition;
+            if (rx.hasSourcePosition)
+            {
+                ctx->geonet.latitude = rx.latitude;
+                ctx->geonet.longitude = rx.longitude;
+            }
+
+            ctx->geonet.hasTrafficClass =
+                rx.hasTrafficClass;
+            if (rx.hasTrafficClass)
+            {
+                ctx->geonet.trafficClass = rx.trafficClass;
+            }
+
+            ctx->geonet.hasItsAid =
+                rx.hasItsAid;
+            if (rx.hasItsAid)
+            {
+                ctx->geonet.itsAid = rx.itsAid;
+            }
+
+            ctx->geonet.hasPermissions =
+                rx.hasPermissions;
+            if (rx.hasPermissions)
+            {
+                ctx->geonet.permissionsSize =
+                    rx.permissionsSize;
+            }
+
+            ctx->geonet.hasLifetime =
+                rx.hasLifetime;
+            if (rx.hasLifetime)
+            {
+                ctx->geonet.lifetimeMs = rx.lifetimeMs;
+            }
+
+            ctx->geonet.hasSenderMid =
+                rx.hasSourceMid;
+            if (rx.hasSourceMid)
+            {
+                ctx->geonet.senderMid = rx.sourceMid;
+            }
+
+            V2XWriteLog(
+                *ctx,
+                V2XLogLevel::INFO,
+                "VAM",
+                "VAM_RX_DISPATCH",
+                "port=" + std::to_string(rx.destinationPort) +
+                    " payload=" + std::to_string(rx.payload.size()) +
+                    " aid=" +
+                    std::to_string(rx.hasItsAid ? rx.itsAid : 0));
+
+            // Complete only the shared GeoNetworking/BTP RX boundary.
+            // VAM verification, decoding, replay and delivery remain in
+            // their dedicated later implementation stages.
+            const bool accepted =
+                VamRxBoundary::Process(*ctx, rx.payload);
+
+            V2XWriteLog(
+                *ctx,
+                accepted ? V2XLogLevel::INFO : V2XLogLevel::WARN,
+                "VAM",
+                "VAM_RX_BOUNDARY_RESULT",
+                accepted
+                    ? "BTP boundary accepted"
+                    : "BTP boundary rejected: " + ctx->reason);
+
+            NS_LOG_UNCOND(
+                "[VAM_RX] BTP boundary "
+                << (accepted ? "accepted" : "rejected")
+                << " receiver=" << m_vehicle.identity.vehId
+                << " port=" << rx.destinationPort
+                << " payload=" << rx.payload.size()
+                << " reason=" << ctx->reason);
         });
 
     //=========================================================================

@@ -251,5 +251,157 @@ class TestVamGenerationSchedulerControllerWiring(unittest.TestCase):
         )
 
 
+    def test_cli_loads_optional_sumo_network_projection_before_vam_configuration(self):
+        self.assertIn(
+            '#include "vanetza_integration/sumo_adapter/'
+            'sumo_network_projection_loader.h"',
+            self.main,
+            "SUMO_PROJECTION_LOADER_INCLUDE_MISSING",
+        )
+        self.assertIn(
+            "std::string sumoNetFile",
+            self.main,
+            "SUMO_NET_FILE_OPTION_STORAGE_MISSING",
+        )
+        self.assertIn(
+            '"sumoNetFile"',
+            self.main,
+            "SUMO_NET_FILE_CLI_OPTION_MISSING",
+        )
+        self.assertIn(
+            "SumoNetworkProjectionLoader::LoadUtmWgs84(",
+            self.main,
+            "SUMO_NETWORK_PROJECTION_LOAD_MISSING",
+        )
+
+        parse_position = self.main.find("cmd.Parse(argc, argv)")
+        load_position = self.main.find(
+            "SumoNetworkProjectionLoader::LoadUtmWgs84("
+        )
+        configure_position = self.main.find(
+            "SimulationController::ConfigureVamGeneration("
+        )
+
+        self.assertGreaterEqual(parse_position, 0)
+        self.assertGreater(load_position, parse_position)
+        self.assertGreater(configure_position, load_position)
+
+        optional_load = braced_block_after(
+            self.main,
+            "if (!sumoNetFile.empty())",
+        )
+        self.assertTrue(
+            optional_load,
+            "SUMO_NET_FILE_MUST_REMAIN_OPTIONAL",
+        )
+        self.assertIn("LoadUtmWgs84(", optional_load)
+        self.assertIn("return 2;", optional_load)
+        self.assertIn(
+            "[SUMO_PROJECTION]",
+            optional_load,
+            "SUMO_PROJECTION_STARTUP_DIAGNOSTIC_MISSING",
+        )
+
+    def test_controller_forwards_optional_projection_to_scheduler(self):
+        expected_parameter = (
+            "std::optional<ns3::SumoUtmWgs84ProjectionConfig>"
+            " sumoProjection = std::nullopt"
+        )
+        self.assertIn(
+            expected_parameter,
+            self.header,
+            "CONTROLLER_OPTIONAL_PROJECTION_API_MISSING",
+        )
+
+        method = braced_block_after(
+            self.controller,
+            "SimulationController::ConfigureVamGeneration(",
+        )
+        self.assertTrue(method, "VAM_CONFIGURATION_METHOD_MISSING")
+        self.assertIn(
+            "config.sumoProjection",
+            method,
+            "VAM_SCHEDULER_PROJECTION_FORWARDING_MISSING",
+        )
+        self.assertIn(
+            "sumoProjection",
+            method,
+            "VAM_SCHEDULER_PROJECTION_PARAMETER_UNUSED",
+        )
+
+        self.assertIn(
+            "vamEvaluationConfig,\n"
+            "            vamConfigurationError,\n"
+            "            sumoProjection)",
+            self.main,
+            "CLI_PROJECTION_NOT_PASSED_TO_CONTROLLER",
+        )
+
+    def test_existing_controller_callers_remain_source_compatible(self):
+        expected_default = (
+            "std::optional<ns3::SumoUtmWgs84ProjectionConfig>"
+            " sumoProjection = std::nullopt"
+        )
+        self.assertIn(
+            expected_default,
+            self.header,
+            "OPTIONAL_PROJECTION_DEFAULT_MISSING",
+        )
+
+        # Existing test/runtime callers use the original four-argument API.
+        self.assertIn(
+            "true, invalid, evaluation, error)",
+            self.controller
+            + (
+                ROOT / "scratch/test/Red/VAM/"
+                "test_vam_scenario_subject_runtime_udp.cc"
+            ).read_text(),
+            "FOUR_ARGUMENT_CONTROLLER_CALLERS_MUST_REMAIN_VALID",
+        )
+
+
+    def test_production_candidate_is_encoded_before_transaction_abort(self):
+        self.assertIn(
+            '#include "vanetza_integration/vam/codec/vam_uper_encoder.h"',
+            self.controller,
+            "PRODUCTION_VAM_ENCODER_INCLUDE_MISSING",
+        )
+
+        method = braced_block_after(
+            self.controller,
+            "SimulationController::RunVamGeneration(",
+        )
+        self.assertTrue(method, "VAM_RUNTIME_METHOD_MISSING")
+
+        encode_position = method.find("VamUperEncoder::Encode(")
+        abort_position = method.find("AbortVamGeneration(")
+
+        self.assertGreaterEqual(
+            encode_position, 0,
+            "PRODUCTION_CANDIDATE_MUST_REACH_UPER_ENCODER",
+        )
+        self.assertGreater(
+            abort_position, encode_position,
+            "EVALUATION_TRANSACTION_MUST_BE_ABORTED_AFTER_ENCODING",
+        )
+        self.assertNotIn(
+            "ConfirmVamGeneration(",
+            method,
+            "EVALUATION_ONLY_MUST_NOT_CONFIRM_GENERATION",
+        )
+        self.assertIn("candidate.input", method)
+        self.assertIn(
+            "candidate.decision.includeLowFrequencyContainer",
+            method,
+            "LF_DECISION_MUST_BE_FORWARDED_FROM_PRODUCTION_CANDIDATE",
+        )
+        self.assertIn(
+            "VamUperEncodeOptions",
+            method,
+            "PRODUCTION_ENCODER_OPTIONS_MISSING",
+        )
+
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

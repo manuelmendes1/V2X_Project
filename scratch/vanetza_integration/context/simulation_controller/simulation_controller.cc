@@ -1,3 +1,4 @@
+#include <string>
 #include <cmath>
 #include "vanetza_integration/context/vehicle_registry/vehicle_registry.h"
 #include "vanetza_integration/context/sumo_vehicle_lifecycle_registry/sumo_vehicle_lifecycle_registry.h"
@@ -7,6 +8,7 @@
 #include "simulation_controller.h"
 #include "vanetza_integration/cpm/perception/cpm_vehicle_perception_source.h"
 #include "vanetza_integration/cpm/emitter/cpm_emitter_endpoint.h"
+#include "vanetza_integration/vam/emitter/vam_vru_emitter_endpoint.h"
 #include "vanetza_integration/cpm/emitter/cpm_rsu_runtime.h"
 #include "vanetza_integration/context/packet/packet_id_manager.h"
 #include "vanetza_integration/context/vehicle_dispatcher/vehicle_dispatcher.h"
@@ -33,6 +35,7 @@
 #include "vanetza_integration/context/simulation_sync/simulation_sync.h"
 #include "vanetza_integration/core/v2x_log.h"
 #include "vanetza_integration/sumo_adapter/sumo_adapter.h"
+#include "vanetza_integration/vam/codec/vam_uper_encoder.h"
 
 #include "ns3/simulator.h"
 
@@ -83,6 +86,8 @@ std::unique_ptr<vanetza_integration::vam::VamGenerationScheduler>
     SimulationController::m_vamGenerationScheduler;
 std::map<std::string, VamVruScenarioSubjectConfig>
     SimulationController::m_vamVruScenarioSubjects{};
+VamVruEmitterEndpointStore
+    SimulationController::m_vamVruEndpointStore{};
 
 bool SimulationController::m_camEnabled = true;
 bool SimulationController::m_denmEnabled = false;
@@ -715,7 +720,9 @@ SimulationController::ConfigureVamGeneration(
     bool enabled,
     const vanetza_integration::vam::VamGenerationConfig& generation,
     const vanetza_integration::vam::VamGenerationEvaluationAdapterConfig& evaluation,
-    std::string& error)
+    std::string& error,
+    std::optional<ns3::SumoUtmWgs84ProjectionConfig> sumoProjection,
+    vanetza_integration::vam::VamGenerationAbortExecutor abortExecutor)
 {
     if (!enabled)
     {
@@ -734,6 +741,7 @@ SimulationController::ConfigureVamGeneration(
             m_vamGenerationScheduler.reset();
         }
 
+        PruneRetiredVamVruEndpoints();
         error.clear();
         NS_LOG_UNCOND("[VAM_GENERATION] DISABLED");
         return true;
@@ -794,13 +802,15 @@ SimulationController::ConfigureVamGeneration(
     config.itsStartClockUs = startClockUs;
     config.generation = generation;
     config.evaluation = evaluation;
+    config.sumoProjection = std::move(sumoProjection);
 
     // Build the replacement first. Construction failure or validation
     // rejection cannot destroy the currently active scheduler.
     auto replacementScheduler =
         std::make_unique<
             vanetza_integration::vam::VamGenerationScheduler>(
-                std::move(config));
+                std::move(config),
+                std::move(abortExecutor));
 
     // Exhaustion must fail closed. Keep the active scheduler untouched.
     if (!replacementScheduler->HasValidInstanceIdentity())
@@ -828,6 +838,9 @@ SimulationController::ConfigureVamGeneration(
     // scheduler. Scenario declarations remain owned by this controller.
     // swap is noexcept; the previous, fully drained scheduler is released afterwards.
     m_vamGenerationScheduler.swap(replacementScheduler);
+    // The previous scheduler was drained before the swap; its retired
+    // endpoint ownership can now be released safely.
+    PruneRetiredVamVruEndpoints();
 
     error.clear();
 
@@ -1088,6 +1101,7 @@ SimulationController::ShutdownVamGeneration()
 {
     if (!m_vamGenerationScheduler)
     {
+        m_vamVruEndpointStore.ClearAll();
         return true;
     }
 
@@ -1100,6 +1114,9 @@ SimulationController::ShutdownVamGeneration()
     }
 
     m_vamGenerationScheduler.reset();
+    // Endpoint destruction unregisters IPv4 station mappings but deliberately
+    // does not release the simulation-scoped ITS station identity.
+    m_vamVruEndpointStore.ClearAll();
     NS_LOG_UNCOND("[VAM_GENERATION] SHUTDOWN_COMPLETE");
     return true;
 }
@@ -1550,6 +1567,10 @@ SimulationController::HandlePersonUpdateFromSumo(
         return;
     }
 
+    // A failed invalidation is fail-closed: retain the endpoint while a
+    // scheduler transaction remains quarantined or unresolved.
+    bool vamPresenceInvalidated = true;
+
     // An accepted REMOVE terminates the VAM presence before the derived
     // VRU subject registry is synchronized. Abort failure is fail-closed:
     // the scheduler retains the transaction and quarantines only this person.
@@ -1562,6 +1583,7 @@ SimulationController::HandlePersonUpdateFromSumo(
                     datagram.personId,
                     vamInvalidationError))
             {
+                vamPresenceInvalidated = false;
                 NS_LOG_UNCOND(
                     "[VAM_GENERATION] CANDIDATE_ABORT_FAILED"
                     << " person_id=" << datagram.personId
@@ -1593,6 +1615,177 @@ SimulationController::HandlePersonUpdateFromSumo(
             << " person_id=" << datagram.personId
             << " simulation_time_us=" << datagram.simulationTimeUs);
         return;
+    }
+
+    // Only scenario-declared people own a VAM VRU network endpoint. Retire
+    // the exact endpoint presence that ended; the scheduler's ledger, not the
+    // InvalidatePersonPresence() return value alone, decides whether it lives on.
+    if (datagram.eventType == SumoPersonEventType::Remove)
+    {
+        auto* activeEndpoint =
+            m_vamVruEndpointStore.FindActive(datagram.personId);
+        if (activeEndpoint != nullptr)
+        {
+            const auto endpointEpoch = activeEndpoint->PresenceEpoch();
+            const bool schedulerRetainsRuntime =
+                m_vamGenerationScheduler &&
+                m_vamGenerationScheduler->HasRetainedRuntimeForPresence(
+                    datagram.personId, endpointEpoch);
+            // A failed invalidation is fail-closed for this event. A later
+            // scheduler boundary may prune it if no runtime was actually kept.
+            const bool retainEndpoint =
+                !vamPresenceInvalidated || schedulerRetainsRuntime;
+
+            if (m_vamVruEndpointStore.RetireActive(
+                    datagram.personId, retainEndpoint))
+            {
+                NS_LOG_UNCOND(
+                    "[VAM_VRU_ENDPOINT] REMOVE_ACCEPTED"
+                    << " person_id=" << datagram.personId
+                    << " presence_epoch_us=" << endpointEpoch.value
+                    << " runtime_retained="
+                    << (retainEndpoint ? "yes" : "no")
+                    << " station_identity_preserved=yes");
+            }
+            else
+            {
+                NS_LOG_UNCOND(
+                    "[VAM_VRU_ENDPOINT] REMOVE_OWNERSHIP_REJECTED"
+                    << " person_id=" << datagram.personId
+                    << " presence_epoch_us=" << endpointEpoch.value);
+            }
+        }
+    }
+    else
+    {
+        const auto scenarioIt =
+            m_vamVruScenarioSubjects.find(datagram.personId);
+        if (scenarioIt != m_vamVruScenarioSubjects.end())
+        {
+            const auto personState =
+                m_sumoPersonRegistry.Find(datagram.personId);
+            if (!personState.has_value())
+            {
+                NS_LOG_UNCOND(
+                    "[VAM_VRU_ENDPOINT] UPSERT_DEFERRED"
+                    << " person_id=" << datagram.personId
+                    << " reason=PERSON_SAMPLE_NOT_AVAILABLE");
+            }
+            else
+            {
+                const auto& sample = personState->sample;
+                constexpr double kPi =
+                    3.141592653589793238462643383279502884;
+                const double headingRad = sample.angleDeg * kPi / 180.0;
+                const Vector position(sample.x, sample.y, 0.0);
+                // SUMO heading is degrees clockwise from North; ns-3 x is
+                // East and y is North. Convert the complete sample atomically.
+                const Vector velocity(
+                    sample.speed * std::sin(headingRad),
+                    sample.speed * std::cos(headingRad),
+                    0.0);
+
+                const vanetza_integration::vam::VamPersonPresenceEpoch
+                    currentPresenceEpoch{personState->firstObservedAtUs};
+                auto* activeEndpoint =
+                    m_vamVruEndpointStore.FindActive(datagram.personId);
+                bool ownershipReady = true;
+
+                // Reconcile on every UPSERT. Do not use startsNewPresence as
+                // the endpoint ownership test: later samples in a new epoch
+                // must never update the endpoint of an older presence.
+                if (activeEndpoint != nullptr &&
+                    activeEndpoint->PresenceEpoch() != currentPresenceEpoch)
+                {
+                    const bool retainOldRuntime =
+                        m_vamGenerationScheduler &&
+                        m_vamGenerationScheduler->HasRetainedRuntimeForPresence(
+                            datagram.personId, activeEndpoint->PresenceEpoch());
+                    ownershipReady =
+                        m_vamVruEndpointStore.ReconcileActivePresence(
+                            datagram.personId,
+                            currentPresenceEpoch,
+                            retainOldRuntime);
+                    if (!ownershipReady)
+                    {
+                        NS_LOG_UNCOND(
+                            "[VAM_VRU_ENDPOINT] PRESENCE_RECONCILIATION_REJECTED"
+                            << " person_id=" << datagram.personId
+                            << " current_presence_epoch_us="
+                            << currentPresenceEpoch.value);
+                    }
+                    activeEndpoint =
+                        m_vamVruEndpointStore.FindActive(datagram.personId);
+                }
+
+                if (ownershipReady && activeEndpoint != nullptr)
+                {
+                    if (!activeEndpoint->UpdateMobility(position, velocity))
+                    {
+                        NS_LOG_UNCOND(
+                            "[VAM_VRU_ENDPOINT] MOBILITY_UPDATE_REJECTED"
+                            << " person_id=" << datagram.personId
+                            << " presence_epoch_us="
+                            << currentPresenceEpoch.value
+                            << " simulation_time_us=" << datagram.simulationTimeUs);
+                    }
+                }
+                else if (ownershipReady)
+                {
+                    VamVruEmitterConfig endpointConfig{};
+                    endpointConfig.personId = datagram.personId;
+                    endpointConfig.stationId = scenarioIt->second.stationId;
+                    endpointConfig.presenceEpoch = currentPresenceEpoch;
+                    endpointConfig.initialPosition = position;
+                    endpointConfig.initialVelocity = velocity;
+
+                    auto endpoint =
+                        VamVruEmitterEndpoint::Create(endpointConfig);
+                    if (!endpoint)
+                    {
+                        NS_LOG_UNCOND(
+                            "[VAM_VRU_ENDPOINT] CREATE_REJECTED"
+                            << " person_id=" << datagram.personId
+                            << " station_id=" << endpointConfig.stationId
+                            << " presence_epoch_us="
+                            << currentPresenceEpoch.value);
+                    }
+                    else if (!VehicleNetworkBuilder::InitializeVamVruEmitter(
+                                 *endpoint))
+                    {
+                        NS_LOG_UNCOND(
+                            "[VAM_VRU_ENDPOINT] NETWORK_INITIALIZATION_FAILED"
+                            << " person_id=" << datagram.personId
+                            << " station_id=" << endpointConfig.stationId
+                            << " presence_epoch_us="
+                            << currentPresenceEpoch.value);
+                    }
+                    else if (!m_vamVruEndpointStore.InsertActive(
+                                 std::move(endpoint)))
+                    {
+                        NS_LOG_UNCOND(
+                            "[VAM_VRU_ENDPOINT] ACTIVE_OWNERSHIP_INSERT_REJECTED"
+                            << " person_id=" << datagram.personId
+                            << " presence_epoch_us="
+                            << currentPresenceEpoch.value);
+                    }
+                    else
+                    {
+                        const auto* insertedEndpoint =
+                            m_vamVruEndpointStore.FindActive(datagram.personId);
+                        NS_LOG_UNCOND(
+                            "[VAM_VRU_ENDPOINT] ENDPOINT_READY"
+                            << " person_id=" << datagram.personId
+                            << " logical_id=" << insertedEndpoint->LogicalId()
+                            << " station_id=" << insertedEndpoint->StationId()
+                            << " presence_epoch_us="
+                            << insertedEndpoint->PresenceEpoch().value
+                            << " node_id=" << insertedEndpoint->GetNode()->GetId()
+                            << " ipv4=" << insertedEndpoint->GetIpv4Address());
+                    }
+                }
+            }
+        }
     }
 
     // Runtime audit is opt-in to avoid changing normal simulation logging.
@@ -1729,6 +1922,27 @@ SimulationController::ApplyVruSubjectClusterLifecycle(
 
 
 void
+SimulationController::PruneRetiredVamVruEndpoints()
+{
+    const std::size_t released = m_vamVruEndpointStore.PruneRetired(
+        [](const std::string& personId,
+           vanetza_integration::vam::VamPersonPresenceEpoch presenceEpoch)
+        {
+            return m_vamGenerationScheduler &&
+                m_vamGenerationScheduler->HasRetainedRuntimeForPresence(
+                    personId, presenceEpoch);
+        });
+
+    if (released != 0)
+    {
+        NS_LOG_UNCOND(
+            "[VAM_VRU_ENDPOINT] RETIRED_ENDPOINTS_PRUNED"
+            << " released=" << released);
+    }
+}
+
+
+void
 SimulationController::RunVamGeneration(std::uint64_t referenceTimeUs)
 {
     if (!m_vamGenerationScheduler)
@@ -1743,16 +1957,23 @@ SimulationController::RunVamGeneration(std::uint64_t referenceTimeUs)
     VamGenerationSchedulerReport report{};
     std::string error;
 
-    if (!m_vamGenerationScheduler->EvaluateStep(
-            referenceTimeUs,
-            m_sumoPersonRegistry,
-            m_sumoVruSubjectRegistry,
-            VehicleRegistry::Instance(),
-            SumoVehicleLifecycleRegistry::Instance(),
-            context,
-            candidates,
-            report,
-            error))
+    const bool evaluationAccepted = m_vamGenerationScheduler->EvaluateStep(
+        referenceTimeUs,
+        m_sumoPersonRegistry,
+        m_sumoVruSubjectRegistry,
+        VehicleRegistry::Instance(),
+        SumoVehicleLifecycleRegistry::Instance(),
+        context,
+        candidates,
+        report,
+        error);
+
+    // EvaluateStep may recover a retired abort before returning either a
+    // cadence skip or a later evaluation error. Reconcile endpoint ownership
+    // before every early return.
+    PruneRetiredVamVruEndpoints();
+
+    if (!evaluationAccepted)
     {
         NS_LOG_UNCOND(
             "[VAM_GENERATION] STEP_REJECTED"
@@ -1794,7 +2015,18 @@ SimulationController::RunVamGeneration(std::uint64_t referenceTimeUs)
             << " reason=" << static_cast<unsigned>(candidate.decision.reason)
             << " generation_time_its_us="
             << candidate.input.generationTimeIts.count()
-            << " role_on="
+
+        << " reference_latitude_deg="
+        << (candidate.input.referencePosition.latitudeDeg.has_value()
+                ? std::to_string(
+                      *candidate.input.referencePosition.latitudeDeg)
+                : std::string("unavailable"))
+        << " reference_longitude_deg="
+        << (candidate.input.referencePosition.longitudeDeg.has_value()
+                ? std::to_string(
+                      *candidate.input.referencePosition.longitudeDeg)
+                : std::string("unavailable"))
+        << " role_on="
             << (candidate.input.vruRole.role ==
                         vanetza_integration::vru::role::VruRoleStatus::On
                     ? "true" : "false")
@@ -1816,6 +2048,51 @@ SimulationController::RunVamGeneration(std::uint64_t referenceTimeUs)
             continue;
         }
 
+        // Encode the exact production candidate using the LF decision
+        // made by its generation transaction. UPER bytes are evaluation
+        // evidence only: they are not signed, transported or transmitted.
+        VamUperEncodeOptions encodeOptions{};
+        encodeOptions.includeLowFrequencyContainer =
+            candidate.decision.includeLowFrequencyContainer;
+
+        const VamUperEncodeResult encoded =
+            VamUperEncoder::Encode(candidate.input, encodeOptions);
+
+        if (encoded.success &&
+            !encoded.bytes.empty() &&
+            encoded.encodedBits > 0)
+        {
+            NS_LOG_UNCOND(
+                "[VAM_GENERATION] CANDIDATE_ENCODED"
+                << " person_id=" << candidate.egoPersonId
+                << " station_id=" << candidate.stationId.value
+                << " transaction_id=" << transactionId
+                << " include_low_frequency_container="
+                << (encodeOptions.includeLowFrequencyContainer
+                        ? "true" : "false")
+                << " encoded_bits=" << encoded.encodedBits
+                << " encoded_bytes=" << encoded.bytes.size()
+                << " mode=EVALUATION_ONLY");
+        }
+        else
+        {
+            NS_LOG_UNCOND(
+                "[VAM_GENERATION] CANDIDATE_ENCODE_FAILED"
+                << " person_id=" << candidate.egoPersonId
+                << " station_id=" << candidate.stationId.value
+                << " transaction_id=" << transactionId
+                << " include_low_frequency_container="
+                << (encodeOptions.includeLowFrequencyContainer
+                        ? "true" : "false")
+                << " reason="
+                << (encoded.error.empty()
+                        ? "encoder returned an empty or invalid result"
+                        : encoded.error)
+                << " mode=EVALUATION_ONLY");
+        }
+
+        // Encoding success is not transmission confirmation. Always abort
+        // this evaluation-only transaction so no generation baseline commits.
         std::string abortError;
         if (!AbortVamGeneration(
                 *candidate.transactionHandle,

@@ -331,6 +331,113 @@ bool TestLowFrequencyContainerPeriodicity()
     return ok && noEarlyLf && result.includeLowFrequencyContainer;
 }
 
+
+bool TestLowFrequencyContainerRestartsAfterVbsReactivation()
+{
+    VamGenerationManager manager;
+    auto input = PedestrianInput();
+    VamGenerationResult result{};
+    std::string error;
+
+    // 1. First activation: generate and confirm the initial LF container.
+    const bool initialAccepted =
+        Evaluate(manager, 0, input, {}, result, error);
+
+    const bool initialCandidate =
+        initialAccepted &&
+        result.outcome == VamGenerationOutcome::GenerationCandidate &&
+        result.transactionId.has_value();
+
+    const bool initialLf =
+        initialCandidate && result.includeLowFrequencyContainer;
+
+    const bool initialConfirmed =
+        initialCandidate && Confirm(manager, result, 0, error);
+
+    Check(
+        initialLf && initialConfirmed,
+        "INITIAL_LF_CONFIRMED_BEFORE_VBS_DEACTIVATION");
+
+    // 2. Deactivate the same VRU without removing its SUMO presence.
+    input.vruRole.role = VruRoleStatus::Off;
+    input.vruRole.vbs = VbsState::Idle;
+
+    error.clear();
+    const bool deactivationAccepted =
+        Evaluate(manager, 100, input, {}, result, error, TxBlocked());
+
+    const bool deactivated =
+        deactivationAccepted &&
+        result.outcome == VamGenerationOutcome::BlockedByPolicy &&
+        !result.shouldGenerate;
+
+    Check(
+        deactivated,
+        "VBS_DEACTIVATION_BLOCKS_GENERATION");
+
+    // 3. Reactivate before the 2000 ms LF periodicity has elapsed.
+    input.vruRole.role = VruRoleStatus::On;
+    input.vruRole.vbs = VbsState::ActiveStandalone;
+
+    error.clear();
+    const bool reactivationAccepted =
+        Evaluate(manager, 200, input, {}, result, error);
+
+    const bool reactivationCandidate =
+        reactivationAccepted &&
+        result.outcome == VamGenerationOutcome::GenerationCandidate &&
+        result.reason == VamGenerationReason::InitialActivation &&
+        result.transactionId.has_value();
+
+    const bool reactivationLf =
+        reactivationCandidate && result.includeLowFrequencyContainer;
+
+    Check(
+        reactivationCandidate && reactivationLf,
+        "LF_REINCLUDED_AFTER_VBS_REACTIVATION");
+
+    // 4. Abort the candidate. Abortion must not consume the LF obligation.
+    const bool reactivationAborted =
+        reactivationCandidate &&
+        manager.AbortGeneration(*result.transactionId, error);
+
+    Check(
+        reactivationAborted,
+        "VBS_REACTIVATION_CANDIDATE_ABORTED");
+
+    // 5. Retry while still inside the original LF periodicity window.
+    error.clear();
+    const bool retryAccepted =
+        Evaluate(manager, 300, input, {}, result, error);
+
+    const bool retryCandidate =
+        retryAccepted &&
+        result.outcome == VamGenerationOutcome::GenerationCandidate &&
+        result.reason == VamGenerationReason::InitialActivation &&
+        result.transactionId.has_value();
+
+    const bool retryLf =
+        retryCandidate && result.includeLowFrequencyContainer;
+
+    Check(
+        retryCandidate && retryLf,
+        "LF_REACTIVATION_ABORT_DOES_NOT_CONSUME_LF");
+
+    const bool retryConfirmed =
+        retryCandidate && Confirm(manager, result, 300, error);
+
+    Check(
+        retryConfirmed,
+        "LF_REACTIVATION_RETRY_CAN_BE_CONFIRMED");
+
+    return initialLf && initialConfirmed &&
+           deactivated &&
+           reactivationCandidate && reactivationLf &&
+           reactivationAborted &&
+           retryCandidate && retryLf &&
+           retryConfirmed;
+}
+
 bool TestDccIntervalClamping()
 {
     const auto checkInterval = [](std::optional<std::uint32_t> dcc,
@@ -1215,6 +1322,7 @@ int main()
     TestMaximumGenerationIntervalIsStrict();
     TestTrajectoryProbabilityUsesPercentagePoints();
     TestLowFrequencyContainerPeriodicity();
+    TestLowFrequencyContainerRestartsAfterVbsReactivation();
     TestDccIntervalClamping();
     TestRoleAndVbsPolicyGate();
     TestRedundancyPeerRequiresAllSimilarityConditions();
