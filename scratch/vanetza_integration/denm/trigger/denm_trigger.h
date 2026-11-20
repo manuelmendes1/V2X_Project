@@ -2,7 +2,10 @@
 
 #include <cstdint>
 #include <functional>
+#include <optional>
 #include <string>
+
+#include "vanetza_integration/sumo_adapter/sumo_geodetic_transform.h"
 
 namespace ns3
 {
@@ -35,6 +38,9 @@ struct DenmTriggerRequest
 
     double x = 0.0;
     double y = 0.0;
+
+    // Geographic position captured/resolved when the scenario event is ingested.
+    std::optional<Wgs84Position> geodeticPosition;
 
     uint32_t causeCode = 0;
     double relevanceDistanceMeters = 0.0;

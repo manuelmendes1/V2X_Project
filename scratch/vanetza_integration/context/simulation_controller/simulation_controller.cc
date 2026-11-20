@@ -31,6 +31,7 @@
 #include "vanetza_integration/context/its_time/its_start_time_parser.h"
 #include "vanetza_integration/context/its_station_identity/its_station_identity_authority.h"
 #include "vanetza_integration/context/simulation_context/simulation_context.h"
+#include "vanetza_integration/sumo_adapter/sumo_geodetic_transform.h"
 #include "vanetza_integration/context/simulation_step/simulation_step.h"
 #include "vanetza_integration/context/simulation_sync/simulation_sync.h"
 #include "vanetza_integration/core/v2x_log.h"
@@ -2152,7 +2153,59 @@ SimulationController::HandleDenmEventFromSumo(
         << " ingest_monotonic_us=" << ingestMonotonicUs
         << '\n';
 
-    m_denmScenarioEvents.AddEvent(event);
+    DenmScenarioEvent resolvedEvent = event;
+    std::optional<Wgs84Position> suppliedGeodetic =
+        event.geodeticPosition;
+
+    // The bridge publishes the vehicle state immediately before its DENM
+    // event. Reuse it only when that projected sample matches the event.
+    if (!suppliedGeodetic.has_value())
+    {
+        VehicleState* vehicle =
+            VehicleRegistry::Instance().GetByVehId(event.vehicleId);
+
+        if (vehicle != nullptr &&
+            std::abs(vehicle->mobility.position.x - event.x) <= 0.002 &&
+            std::abs(vehicle->mobility.position.y - event.y) <= 0.002 &&
+            vehicle->mobility.geodeticPosition.has_value())
+        {
+            const auto& sample = *vehicle->mobility.geodeticPosition;
+            suppliedGeodetic = Wgs84Position{
+                sample.latitudeDeg,
+                sample.longitudeDeg
+            };
+        }
+    }
+
+    Wgs84Position resolvedGeodetic{};
+    std::string geodeticError;
+    if (!SumoGeodeticTransform::ResolveWgs84(
+            suppliedGeodetic,
+            SimulationContext::sumoProjection,
+            SumoProjectedPosition{event.x, event.y},
+            resolvedGeodetic,
+            geodeticError))
+    {
+        std::cout
+            << "[DENM_EVENT_REJECTED]"
+            << " vehicle=" << event.vehicleId
+            << " event=" << event.eventId
+            << " reason=INVALID_GEODETIC_POSITION"
+            << " detail=" << geodeticError
+            << '\\n';
+        return;
+    }
+
+    resolvedEvent.geodeticPosition = resolvedGeodetic;
+    if (!m_denmScenarioEvents.AddEvent(resolvedEvent))
+    {
+        std::cout
+            << "[DENM_EVENT_REJECTED]"
+            << " vehicle=" << event.vehicleId
+            << " event=" << event.eventId
+            << " reason=EVENT_SOURCE_REJECTED"
+            << '\\n';
+    }
 }
 
 std::size_t

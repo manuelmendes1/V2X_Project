@@ -1,0 +1,56 @@
+name: Problem resolution gates
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch fix/c-NN-<slug> a validar"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: problem-resolution-\${{ github.event.pull_request.number || inputs.branch }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Problem-specific RED/GREEN and regression gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PROBLEM_BRANCH: \${{ github.event_name == 'pull_request' && github.head_ref || inputs.branch }}
+    steps:
+      - name: Checkout problem branch
+        uses: actions/checkout@v4
+        with:
+          ref: \${{ github.event_name == 'pull_request' && github.head_ref || inputs.branch }}
+          fetch-depth: 0
+
+      - name: Install focused native dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends \
+            g++ libgeographiclib-dev libxml2-dev pkg-config python3
+
+      - name: Verify branch and problem profile
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$PROBLEM_BRANCH" =~ ^fix/c-[0-9]+- ]] || {
+            echo "Expected branch fix/c-NN-<slug>, got: $PROBLEM_BRANCH" >&2
+            exit 2
+          }
+          test -x scripts/problem-tests.sh
+
+      - name: Run problem-specific validation profile
+        run: scripts/problem-tests.sh "$PROBLEM_BRANCH"
+
+      - name: Check patch whitespace
+        run: git diff origin/main...HEAD --check
