@@ -1,7 +1,6 @@
 #include "v2x_v3_verify_service.h"
 
 #include <cstdint>
-#include <memory>
 
 #include <ns3/log.h>
 
@@ -14,22 +13,20 @@
 #include "vanetza_integration/context/rx_bridge/rx_bridge_context.h"
 #include "vanetza_integration/wrappers/vanetza/security/cpm_v3_verify_service.h"
 #include "vanetza_integration/wrappers/vanetza/security/denm_v3_verify_service.h"
+#include "vanetza_integration/wrappers/vanetza/security/spatem_v3_verify_service.h"
+#include "vanetza_integration/wrappers/vanetza/security/v2x_v3_security_profile.h"
 
 namespace ns3
 {
-
 namespace
 {
-constexpr vanetza::ItsAid kCpmItsAid = 639;
 
 vanetza::security::VerifyConfirm
-MakeCpmConfigurationFailure()
+MakeConfigurationFailure(vanetza::ItsAid aid)
 {
-    // Initialize every mandatory VerifyConfirm field. The report is a
-    // failure regardless of the placeholder certificate-validity field.
     return {
         vanetza::security::VerificationReport::Configuration_Problem,
-        kCpmItsAid,
+        aid,
         {},
         vanetza::security::CertificateValidity::valid(),
         {}
@@ -37,14 +34,14 @@ MakeCpmConfigurationFailure()
 }
 
 void
-RecordCpmConfigurationFailure()
+RecordConfigurationFailure(vanetza::ItsAid aid)
 {
     PacketContext* context = RxBridgeContext::Current();
-
     if (context == nullptr)
     {
         NS_LOG_UNCOND(
-            "[V2X_V3_VERIFY] CPM rejected: RxBridgeContext is null");
+            "[V2X_V3_VERIFY] rejected AID " << aid
+            << ": RxBridgeContext is null");
         return;
     }
 
@@ -52,24 +49,36 @@ RecordCpmConfigurationFailure()
     context->verificationSucceeded = false;
     context->verificationReport = static_cast<std::uint32_t>(
         vanetza::security::VerificationReport::Configuration_Problem);
-    context->verifiedItsAid = static_cast<std::uint32_t>(kCpmItsAid);
+    context->verifiedItsAid = static_cast<std::uint32_t>(aid);
 }
 } // namespace
 
 V2xV3VerifyService::V2xV3VerifyService(
     const vanetza::Runtime& runtime,
     vanetza::PositionProvider& position,
+    const std::string& vehiclePkiDirectory,
+    const std::string& spatemPkiDirectory,
     const std::string& cpmPkiDirectory)
-    : m_denmVerifier(
-          std::make_unique<DenmV3VerifyService>(runtime))
 {
-    // An empty path is allowed for runs that do not configure CPM.
-    // A non-empty but invalid directory must throw; it never downgrades
-    // CPM verification to the legacy verifier.
+    // Distinct protocol PKIs remain distinct trust domains. An absent domain
+    // leaves only its AIDs unavailable; it never selects a permissive verifier.
+    if (!vehiclePkiDirectory.empty())
+    {
+        m_vehicleVerifier =
+            std::make_unique<DenmV3VerifyService>(
+                runtime, position, vehiclePkiDirectory);
+    }
+    if (!spatemPkiDirectory.empty())
+    {
+        m_spatemVerifier =
+            std::make_unique<SpatemV3VerifyService>(
+                runtime, position, spatemPkiDirectory);
+    }
     if (!cpmPkiDirectory.empty())
     {
-        m_cpmVerifier = std::make_unique<CpmV3VerifyService>(
-            runtime, position, cpmPkiDirectory);
+        m_cpmVerifier =
+            std::make_unique<CpmV3VerifyService>(
+                runtime, position, cpmPkiDirectory);
     }
 }
 
@@ -79,28 +88,41 @@ vanetza::security::VerifyConfirm
 V2xV3VerifyService::verify(
     const vanetza::security::VerifyRequest& request)
 {
-    const auto aid =
+    const vanetza::ItsAid aid =
         vanetza::security::get_its_aid(request.secured_message);
 
-    if (aid == kCpmItsAid)
+    switch (ClassifyV2xV3SecurityProfile(
+        static_cast<std::uint32_t>(aid)))
     {
+    case V2xV3SecurityProfile::VehicleCamDenm:
+        if (m_vehicleVerifier)
+        {
+            return m_vehicleVerifier->verify(request);
+        }
+        break;
+    case V2xV3SecurityProfile::SpatemRsu:
+        if (m_spatemVerifier)
+        {
+            return m_spatemVerifier->verify(request);
+        }
+        break;
+    case V2xV3SecurityProfile::CpmRsu:
         if (m_cpmVerifier)
         {
             return m_cpmVerifier->verify(request);
         }
-
-        // Never route AID 639 through DenmV3VerifyService's compatibility
-        // fallback, which accepts non-DENM AIDs without real verification.
-        RecordCpmConfigurationFailure();
-
-        NS_LOG_UNCOND(
-            "[V2X_V3_VERIFY] CPM rejected: no CPM PKI verifier configured");
-
-        return MakeCpmConfigurationFailure();
+        break;
+    case V2xV3SecurityProfile::Unsupported:
+        break;
     }
 
-    // Keep the existing DENM and non-CPM verification behavior unchanged.
-    return m_denmVerifier->verify(request);
+    // Unknown AIDs and known AIDs without an explicitly configured trust
+    // domain are configuration failures, never DummyVerifyService success.
+    RecordConfigurationFailure(aid);
+    NS_LOG_UNCOND(
+        "[V2X_V3_VERIFY] REJECT aid=" << aid
+        << " reason=unsupported_or_unconfigured_security_profile");
+    return MakeConfigurationFailure(aid);
 }
 
 } // namespace ns3

@@ -271,6 +271,8 @@ add_library(vanetza_spatem_obj OBJECT
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/spatem/service/spatem_service.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/spatem/emitter/spatem_emitter_endpoint.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/spatem/emitter/spatem_rsu_runtime.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/security/spatem_v3_sign_service.cc
+    ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/wrappers/vanetza/security/spatem_v3_verify_service.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/spatem/emitter/spatem_rsu_position_provider.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/spatem/rx/spatem_rx_pipeline.cc
     ${CMAKE_SOURCE_DIR}/scratch/vanetza_integration/spatem/replay/spatem_replay_protection.cc

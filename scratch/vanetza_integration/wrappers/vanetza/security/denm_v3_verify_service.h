@@ -1,39 +1,34 @@
 #pragma once
 
-#include <vanetza/security/verify_service.hpp>
-
 #include <memory>
+#include <string>
+
+#include <vanetza/security/verify_service.hpp>
 
 namespace vanetza
 {
+class PositionProvider;
 class Runtime;
-
-namespace security
-{
-
-class Backend;
-
-namespace v3
-{
-class CertificateCache;
-class DefaultCertificateValidator;
-class CertificateProvider;
 }
-
-} // namespace security
-} // namespace vanetza
 
 namespace ns3
 {
 
+// Shared vehicle verifier for CAM (AID 36) and DENM (AID 37).
+// The legacy class name is retained to avoid unnecessary source churn.
 class DenmV3VerifyService final :
     public vanetza::security::VerifyService
 {
 public:
-    explicit DenmV3VerifyService(
-        const vanetza::Runtime& runtime);
+    DenmV3VerifyService(
+        const vanetza::Runtime& runtime,
+        vanetza::PositionProvider& position,
+        const std::string& pkiDirectory);
 
-    ~DenmV3VerifyService();
+    ~DenmV3VerifyService() override;
+
+    DenmV3VerifyService(const DenmV3VerifyService&) = delete;
+    DenmV3VerifyService& operator=(const DenmV3VerifyService&) = delete;
 
     vanetza::security::VerifyConfirm verify(
         const vanetza::security::VerifyRequest& request) override;

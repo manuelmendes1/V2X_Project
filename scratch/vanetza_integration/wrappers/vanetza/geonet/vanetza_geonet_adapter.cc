@@ -29,7 +29,6 @@
 #include <vanetza/security/delegating_security_entity.hpp>
 #include <vanetza/security/sign_service.hpp>
 #include <vanetza/security/verify_service.hpp>
-#include <vanetza/security/v3/sign_service.hpp>
 #include <vanetza/security/secured_message.hpp>
 
 #include <ns3/log.h>
@@ -96,11 +95,26 @@ namespace ns3 {
         // time must be the runtime epoch.
         //=====================================================================
 
-        const bool hasRealDenmCredential =
-            !m_impl->vehicle.security.certFile.empty() &&
-            !m_impl->vehicle.security.keyFile.empty();
+        const VehicleCredential* activeCredential =
+            m_impl->vehicle.security.credentialPool.GetActiveCredential();
 
-        if (hasRealDenmCredential &&
+        const bool hasRealVehicleCredential =
+            activeCredential != nullptr &&
+            !activeCredential->certFile.empty() &&
+            !activeCredential->keyFile.empty() &&
+            m_impl->vehicle.security.privateKey != nullptr &&
+            m_impl->vehicle.security.certificate != nullptr;
+
+        if (!hasRealVehicleCredential)
+        {
+            NS_LOG_UNCOND(
+                "[SECURITY] V2X_V3_CREDENTIAL_REQUIRED "
+                << "veh=" << m_impl->vehicle.identity.vehId
+                << " no_dummy_fallback=1");
+            return false;
+        }
+
+        if (hasRealVehicleCredential &&
             SimulationContext::itsStartTime.empty())
         {
             NS_LOG_UNCOND(
@@ -140,66 +154,32 @@ namespace ns3 {
         m_impl->position = std::make_unique<Ns3PositionProvider>(m_impl->vehicle);
 
         //=====================================================================
-        // GeoNetworking security
+        // Unified vehicle GeoNetworking security.
         //
-        // DENM / AID 37 -> real ETSI ITS Security V3 signing
-        // CAM  / other  -> previous dummy signer
+        // CAM / AID 36 and DENM / AID 37 use the active ETSI V3 vehicle
+        // ticket. StraightSignService enforces the requested AID permission;
+        // unauthorized messages fail instead of downgrading to dummy.
         //=====================================================================
 
-        std::unique_ptr<vanetza::security::SignService> signService;
+        const auto& security =
+            m_impl->vehicle.security;
 
-        if (hasRealDenmCredential)
-        {
-            const auto& security =
-                m_impl->vehicle.security;
+        auto realVehicleSigner =
+            std::make_unique<DenmV3SignService>(
+                *m_impl->runtime,
+                *m_impl->position,
+                security.credentialPool,
+                m_impl->denmCredentialMaterialResolver);
 
-            const VehicleCredential* activeCredential =
-                security.credentialPool.GetActiveCredential();
+        m_impl->denmSigner = realVehicleSigner.get();
 
-            if (activeCredential == nullptr)
-            {
-                NS_LOG_UNCOND(
-                    "[SECURITY] DENM V3 signer unavailable "
-                    "due to missing active credential");
-                return false;
-            }
+        std::unique_ptr<vanetza::security::SignService> signService =
+            std::move(realVehicleSigner);
 
-            auto realDenmSigner =
-                std::make_unique<DenmV3SignService>(
-                    *m_impl->runtime,
-                    *m_impl->position,
-                    security.credentialPool,
-                    m_impl->denmCredentialMaterialResolver);
-
-            // Keep a non-owning reference before transferring ownership to
-            // DelegatingSecurityEntity.
-            m_impl->denmSigner =
-                realDenmSigner.get();
-
-            signService =
-                std::move(realDenmSigner);
-
-            NS_LOG_UNCOND(
-                "[SECURITY] DENM V3 signer=REAL "
-                << "veh="
-                << m_impl->vehicle.identity.vehId
-                << " cert="
-                << m_impl->vehicle.security.certFile);
-        }
-        else
-        {
-            m_impl->denmSigner = nullptr;
-
-            signService =
-                std::make_unique<
-                    vanetza::security::v3::DummySignService>(
-                    *m_impl->runtime);
-
-            NS_LOG_UNCOND(
-                "[SECURITY] DENM V3 signer=DUMMY "
-                << "veh="
-                << m_impl->vehicle.identity.vehId);
-        }
+        NS_LOG_UNCOND(
+            "[SECURITY] V2X V3 signer=REAL"
+            << " veh=" << m_impl->vehicle.identity.vehId
+            << " cert=" << security.certFile);
 
         std::unique_ptr<vanetza::security::VerifyService> verifyService;
 
@@ -209,6 +189,8 @@ namespace ns3 {
                 std::make_unique<V2xV3VerifyService>(
                     *m_impl->runtime,
                     *m_impl->position,
+                    SimulationContext::denmPkiDirectory,
+                    SimulationContext::spatemPkiDirectory,
                     SimulationContext::cpmPkiDirectory);
         }
         catch (const std::exception& error)
