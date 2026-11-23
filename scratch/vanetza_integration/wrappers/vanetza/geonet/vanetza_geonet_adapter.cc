@@ -696,32 +696,23 @@ VanetzaGeoNetAdapter::Receive(
         // RxBridgeContext::Current().
         //=====================================================================
 
-        RxBridgeContext::Push(&context);
+        RxBridgeContext::Scope rxBridgeScope(&context);
 
-        try
-        {
-            m_impl->router->indicate(
-                std::move(packet),
-                sender,
-                vanetza::cBroadcastMacAddress);
+        m_impl->router->indicate(
+            std::move(packet),
+            sender,
+            vanetza::cBroadcastMacAddress);
 
-            // Router::indicate() may have created internal ManualRuntime
-            // callbacks, e.g. a CBF forwarding timer. Export the earliest
-            // Runtime deadline to the ns-3 Simulator immediately after the
-            // Router operation so it cannot remain dormant until a later
-            // application TX calls PrepareTx().
-            if (m_impl->dccAdapter)
-            {
-                m_impl->dccAdapter->SynchronizeRuntimeScheduler();
-            }
-        }
-        catch (...)
+        // Router::indicate() may have created internal ManualRuntime
+        // callbacks, e.g. a CBF forwarding timer. Export the earliest
+        // Runtime deadline to the ns-3 Simulator immediately after the
+        // Router operation so it cannot remain dormant until a later
+        // application TX calls PrepareTx().
+        if (m_impl->dccAdapter)
         {
-            RxBridgeContext::Pop();
-            throw;
+            m_impl->dccAdapter->SynchronizeRuntimeScheduler();
         }
 
-        RxBridgeContext::Pop();
 
         NS_LOG_UNCOND(
             "[GEO_RX] Router indicate accepted frame"
@@ -734,8 +725,6 @@ VanetzaGeoNetAdapter::Receive(
     }
     catch (const std::exception& e)
     {
-        RxBridgeContext::Pop();
-
         NS_LOG_UNCOND(
             "[GEO_RX] ERROR: Router receive failed: "
             << e.what());
@@ -744,8 +733,6 @@ VanetzaGeoNetAdapter::Receive(
     }
     catch (...)
     {
-        RxBridgeContext::Pop();
-
         NS_LOG_UNCOND(
             "[GEO_RX] ERROR: Router receive failed with unknown exception");
 
