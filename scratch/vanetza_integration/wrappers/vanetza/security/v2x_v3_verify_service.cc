@@ -59,9 +59,12 @@ RecordCpmConfigurationFailure()
 V2xV3VerifyService::V2xV3VerifyService(
     const vanetza::Runtime& runtime,
     vanetza::PositionProvider& position,
-    const std::string& cpmPkiDirectory)
+    const std::string& cpmPkiDirectory,
+    const std::string& vehiclePkiRunDirectory)
     : m_denmVerifier(
-          std::make_unique<DenmV3VerifyService>(runtime))
+          std::make_unique<DenmV3VerifyService>(
+              runtime,
+              vehiclePkiRunDirectory))
 {
     // An empty path is allowed for runs that do not configure CPM.
     // A non-empty but invalid directory must throw; it never downgrades

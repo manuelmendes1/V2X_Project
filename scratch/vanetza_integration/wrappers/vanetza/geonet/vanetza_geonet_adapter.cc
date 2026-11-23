@@ -209,7 +209,8 @@ namespace ns3 {
                 std::make_unique<V2xV3VerifyService>(
                     *m_impl->runtime,
                     *m_impl->position,
-                    SimulationContext::cpmPkiDirectory);
+                    SimulationContext::cpmPkiDirectory,
+                    m_impl->vehicle.security.vehiclePkiRunDirectory);
         }
         catch (const std::exception& error)
         {
@@ -239,6 +240,28 @@ namespace ns3 {
         m_impl->mib->vanetzaDisableBeaconing = false;
 
         m_impl->mib->itsGnSecurity = true;
+
+        NS_LOG_UNCOND(
+            "[GEONET_MIB]"
+            << " area_forwarding="
+            << static_cast<unsigned>(
+                m_impl->mib->itsGnAreaForwardingAlgorithm)
+            << " non_area_forwarding="
+            << static_cast<unsigned>(
+                m_impl->mib->itsGnNonAreaForwardingAlgorithm)
+            << " cbf_min_s="
+            << m_impl->mib->itsGnCbfMinTime.value()
+            << " cbf_max_s="
+            << m_impl->mib->itsGnCbfMaxTime.value()
+            << " max_range_m="
+            << m_impl->mib->itsGnDefaultMaxCommunicationRange.value()
+            << " cbf_max_counter="
+            << m_impl->mib->vanetzaCbfMaxCounter
+            << " gbc_memory_capacity="
+            << m_impl->mib->vanetzaGbcMemoryCapacity
+            << " dpl_length="
+            << m_impl->mib->itsGnDPLLength
+        );
 
         //=====================================================================
         // GN_ADDR
@@ -696,32 +719,23 @@ VanetzaGeoNetAdapter::Receive(
         // RxBridgeContext::Current().
         //=====================================================================
 
-        RxBridgeContext::Push(&context);
+        RxBridgeContext::Scope rxBridgeScope(&context);
 
-        try
-        {
-            m_impl->router->indicate(
-                std::move(packet),
-                sender,
-                vanetza::cBroadcastMacAddress);
+        m_impl->router->indicate(
+            std::move(packet),
+            sender,
+            vanetza::cBroadcastMacAddress);
 
-            // Router::indicate() may have created internal ManualRuntime
-            // callbacks, e.g. a CBF forwarding timer. Export the earliest
-            // Runtime deadline to the ns-3 Simulator immediately after the
-            // Router operation so it cannot remain dormant until a later
-            // application TX calls PrepareTx().
-            if (m_impl->dccAdapter)
-            {
-                m_impl->dccAdapter->SynchronizeRuntimeScheduler();
-            }
-        }
-        catch (...)
+        // Router::indicate() may have created internal ManualRuntime
+        // callbacks, e.g. a CBF forwarding timer. Export the earliest
+        // Runtime deadline to the ns-3 Simulator immediately after the
+        // Router operation so it cannot remain dormant until a later
+        // application TX calls PrepareTx().
+        if (m_impl->dccAdapter)
         {
-            RxBridgeContext::Pop();
-            throw;
+            m_impl->dccAdapter->SynchronizeRuntimeScheduler();
         }
 
-        RxBridgeContext::Pop();
 
         NS_LOG_UNCOND(
             "[GEO_RX] Router indicate accepted frame"
@@ -734,8 +748,6 @@ VanetzaGeoNetAdapter::Receive(
     }
     catch (const std::exception& e)
     {
-        RxBridgeContext::Pop();
-
         NS_LOG_UNCOND(
             "[GEO_RX] ERROR: Router receive failed: "
             << e.what());
@@ -744,8 +756,6 @@ VanetzaGeoNetAdapter::Receive(
     }
     catch (...)
     {
-        RxBridgeContext::Pop();
-
         NS_LOG_UNCOND(
             "[GEO_RX] ERROR: Router receive failed with unknown exception");
 

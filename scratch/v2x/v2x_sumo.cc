@@ -47,6 +47,8 @@ int main(int argc, char* argv[]) {
     uint64_t denmInitialTxDelayUs = 0;
 
     std::string denmPkiDir;
+    std::string vehiclePkiRunDir;
+    std::string vehicleCredentialMapFile;
     std::string cpmPkiDir;
 
     std::string itsStartTime;
@@ -122,6 +124,16 @@ int main(int argc, char* argv[]) {
         "denmPkiDir",
         "Diretorio contendo os certificados e chaves ETSI ITS Security V3 para DENM",
         denmPkiDir);
+
+    cmd.AddValue(
+        "vehiclePkiRunDir",
+        "Diretorio da execucao PKI selecionada para as credenciais dos veiculos",
+        vehiclePkiRunDir);
+
+    cmd.AddValue(
+        "vehicleCredentialMapFile",
+        "Ficheiro TSV que associa IDs SUMO a diretorios e prefixos de credenciais",
+        vehicleCredentialMapFile);
 
     cmd.AddValue(
         "itsStartTime",
@@ -261,6 +273,55 @@ int main(int argc, char* argv[]) {
         vamMaximumSampleAgeUs);
 
     cmd.Parse(argc, argv);
+
+    // The explicit vehicle PKI configuration is an atomic pair.
+    const bool hasVehiclePkiRunDir = !vehiclePkiRunDir.empty();
+    const bool hasVehicleCredentialMap =
+        !vehicleCredentialMapFile.empty();
+
+    if (hasVehiclePkiRunDir != hasVehicleCredentialMap)
+    {
+        std::cerr
+            << "[VEHICLE_PKI] both --vehiclePkiRunDir and "
+               "--vehicleCredentialMapFile must be supplied together\n";
+        return 2;
+    }
+
+    const bool vehiclePkiConfigured =
+        hasVehiclePkiRunDir && hasVehicleCredentialMap;
+
+    // Do not allow the legacy DENM directory and the new shared vehicle
+    // PKI configuration to compete as credential sources.
+    if (vehiclePkiConfigured && !denmPkiDir.empty())
+    {
+        std::cerr
+            << "[VEHICLE_PKI] --denmPkiDir cannot be combined with "
+               "--vehiclePkiRunDir/--vehicleCredentialMapFile\n";
+        return 2;
+    }
+
+    std::string vehiclePkiConfigurationError;
+
+    if (!SimulationController::ConfigureVehiclePki(
+            vehiclePkiRunDir,
+            vehicleCredentialMapFile,
+            vehiclePkiConfigurationError))
+    {
+        std::cerr
+            << "[VEHICLE_PKI] invalid configuration; startup aborted: "
+            << vehiclePkiConfigurationError << '\n';
+        return 2;
+    }
+
+    if (vehiclePkiConfigured)
+    {
+        std::cout
+            << "[VEHICLE_PKI] strict vehicle credential mode configured"
+            << " run_dir=" << vehiclePkiRunDir
+            << " mapping_file=" << vehicleCredentialMapFile
+            << '\n';
+    }
+
 
     // Load the optional network projection exactly once, before configuring
     // the VAM scheduler. An explicitly supplied but invalid file fails

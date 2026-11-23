@@ -1153,6 +1153,19 @@ SimulationController::SetDenmPkiDirectory(const std::string& directory)
 }
 
 
+bool
+SimulationController::ConfigureVehiclePki(
+    const std::string& runDirectory,
+    const std::string& mappingFile,
+    std::string& error)
+{
+    return VehicleSecurityInitializer::ConfigureVehiclePki(
+        runDirectory,
+        mappingFile,
+        error);
+}
+
+
 void
 SimulationController::SendDenm()
 {

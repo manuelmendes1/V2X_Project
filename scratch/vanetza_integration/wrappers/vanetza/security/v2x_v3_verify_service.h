@@ -20,7 +20,8 @@ public:
     V2xV3VerifyService(
         const vanetza::Runtime& runtime,
         vanetza::PositionProvider& position,
-        const std::string& cpmPkiDirectory);
+        const std::string& cpmPkiDirectory,
+        const std::string& vehiclePkiRunDirectory = {});
 
     ~V2xV3VerifyService() override;
 

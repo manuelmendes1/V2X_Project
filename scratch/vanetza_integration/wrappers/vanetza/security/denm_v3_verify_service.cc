@@ -8,12 +8,17 @@
 #include <vanetza/security/verify_service.hpp>
 #include <vanetza/security/v3/certificate_cache.hpp>
 #include <vanetza/security/v3/certificate_validator.hpp>
+#include <vanetza/security/v3/issuer_memory_lookup.hpp>
+#include <vanetza/security/v3/persistence.hpp>
+#include <vanetza/security/v3/trust_store.hpp>
 #include <vanetza/security/v3/secured_message.hpp>
 
 #include <ns3/log.h>
 
 #include "vanetza_integration/context/rx_bridge/rx_bridge_context.h"
 
+#include <algorithm>
+#include <filesystem>
 #include <stdexcept>
 
 namespace ns3
@@ -22,8 +27,122 @@ namespace ns3
 namespace
 {
 
+std::filesystem::path
+RequireVehiclePkiRunDirectory(
+    const std::string& directory)
+{
+    namespace fs = std::filesystem;
+
+    std::error_code ec;
+
+    const fs::path absoluteDirectory =
+        fs::absolute(fs::path(directory), ec).lexically_normal();
+
+    if (ec)
+    {
+        throw std::runtime_error(
+            "DENM vehicle PKI run directory cannot be resolved");
+    }
+
+    const fs::path canonicalDirectory =
+        fs::canonical(absoluteDirectory, ec);
+
+    if (ec || canonicalDirectory != absoluteDirectory)
+    {
+        throw std::runtime_error(
+            "DENM vehicle PKI run directory must be canonical "
+            "and contain no symlink path components");
+    }
+
+    const auto status =
+        fs::symlink_status(canonicalDirectory, ec);
+
+    if (ec ||
+        fs::is_symlink(status) ||
+        !fs::is_directory(status))
+    {
+        throw std::runtime_error(
+            "DENM vehicle PKI run path is not a regular directory");
+    }
+
+    return canonicalDirectory;
+}
+
+std::filesystem::path
+RequireVehiclePkiFile(
+    const std::filesystem::path& directory,
+    const char* relativeName)
+{
+    namespace fs = std::filesystem;
+
+    const fs::path relativePath(relativeName);
+    const fs::path parentPath =
+        directory / relativePath.parent_path();
+
+    std::error_code ec;
+
+    const auto parentStatus =
+        fs::symlink_status(parentPath, ec);
+
+    if (ec ||
+        fs::is_symlink(parentStatus) ||
+        !fs::is_directory(parentStatus))
+    {
+        throw std::runtime_error(
+            "DENM vehicle PKI certificate directory is missing "
+            "or is a symlink");
+    }
+
+    const fs::path filePath =
+        directory / relativePath;
+
+    ec.clear();
+
+    const auto fileStatus =
+        fs::symlink_status(filePath, ec);
+
+    if (ec ||
+        fs::is_symlink(fileStatus) ||
+        !fs::is_regular_file(fileStatus))
+    {
+        throw std::runtime_error(
+            "DENM vehicle PKI certificate must be a regular "
+            "non-symlink file: " + filePath.string());
+    }
+
+    ec.clear();
+
+    const auto size =
+        fs::file_size(filePath, ec);
+
+    if (ec || size == 0)
+    {
+        throw std::runtime_error(
+            "DENM vehicle PKI certificate is empty or unreadable: " +
+            filePath.string());
+    }
+
+    return filePath;
+}
+
+bool
+SameCertificateEncoding(
+    const vanetza::security::v3::Certificate& left,
+    const vanetza::security::v3::Certificate& right)
+{
+    const auto leftEncoding = left.encode();
+    const auto rightEncoding = right.encode();
+
+    return leftEncoding.size() == rightEncoding.size() &&
+           std::equal(
+               leftEncoding.begin(),
+               leftEncoding.end(),
+               rightEncoding.begin());
+}
+
 const char*
 VerificationReportToString(
+
     vanetza::security::VerificationReport report)
 {
     using vanetza::security::VerificationReport;
@@ -81,6 +200,9 @@ struct DenmV3VerifyService::Impl
 
     vanetza::security::v3::CertificateCache certificateCache;
 
+    vanetza::security::v3::TrustStore trustStore;
+    vanetza::security::v3::IssuerMemoryLookup issuerLookup;
+
     vanetza::security::v3::DefaultCertificateValidator certificateValidator;
 
     std::unique_ptr<vanetza::security::StraightVerifyService> realVerifier;
@@ -88,8 +210,70 @@ struct DenmV3VerifyService::Impl
     std::unique_ptr<vanetza::security::DummyVerifyService> fallbackVerifier;
 
     explicit Impl(
-        const vanetza::Runtime& runtime)
+        const vanetza::Runtime& runtime,
+        const std::string& vehiclePkiRunDirectory)
     {
+        if (!vehiclePkiRunDirectory.empty())
+        {
+            const auto directory =
+                RequireVehiclePkiRunDirectory(
+                    vehiclePkiRunDirectory);
+
+            const auto trustedRootPath =
+                RequireVehiclePkiFile(
+                    directory,
+                    "trust-store/trusted-root.cert");
+
+            const auto aaPath =
+                RequireVehiclePkiFile(
+                    directory,
+                    "certificate-chain/aa.cert");
+
+            const auto chainRootPath =
+                RequireVehiclePkiFile(
+                    directory,
+                    "certificate-chain/root.cert");
+
+            const auto trustedRoot =
+                vanetza::security::v3::load_certificate_from_file(
+                    trustedRootPath.string());
+
+            const auto aa =
+                vanetza::security::v3::load_certificate_from_file(
+                    aaPath.string());
+
+            const auto chainRoot =
+                vanetza::security::v3::load_certificate_from_file(
+                    chainRootPath.string());
+
+            // The trust-store anchor and the issuer-chain Root must be
+            // exactly the same OER-encoded ETSI certificate.
+            if (!SameCertificateEncoding(trustedRoot, chainRoot))
+            {
+                throw std::runtime_error(
+                    "DENM vehicle PKI trust Root does not match "
+                    "issuer-chain Root");
+            }
+
+            // The issuer lookup must contain the AA and Root so that
+            // the AT -> AA -> Root chain can be resolved.
+            if (!issuerLookup.insert(aa) ||
+                !issuerLookup.insert(chainRoot))
+            {
+                throw std::runtime_error(
+                    "DENM vehicle PKI issuer chain is invalid");
+            }
+
+            // Only the configured trust anchor is trusted directly.
+            trustStore.insert(trustedRoot);
+
+            certificateValidator.use_issuer_lookup(
+                &issuerLookup);
+
+            certificateValidator.use_trust_store(
+                &trustStore);
+        }
+
         backend =
             vanetza::security::create_backend("default");
 
@@ -129,8 +313,11 @@ struct DenmV3VerifyService::Impl
 };
 
 DenmV3VerifyService::DenmV3VerifyService(
-    const vanetza::Runtime& runtime) :
-    m_impl(std::make_unique<Impl>(runtime))
+    const vanetza::Runtime& runtime,
+    const std::string& vehiclePkiRunDirectory) :
+    m_impl(std::make_unique<Impl>(
+        runtime,
+        vehiclePkiRunDirectory))
 {
 }
 

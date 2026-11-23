@@ -1,5 +1,7 @@
 #include "vehicle_builder.h"
 
+#include <string>
+
 #include "vanetza_integration/context/simulation_context/simulation_context.h"
 #include "vanetza_integration/context/vehicle_registry/vehicle_registry.h"
 #include "vanetza_integration/core/v2x_log.h"
@@ -38,7 +40,19 @@ namespace ns3 {
         //----------------------------------------------------------------------
         // STEP 2: security identity/context
         //----------------------------------------------------------------------
-        VehicleSecurityInitializer::Initialize(*state);
+        std::string securityError;
+
+        if (!VehicleSecurityInitializer::Initialize(
+                *state,
+                securityError))
+        {
+            NS_LOG_UNCOND(
+                "[VEHICLE_BUILDER] ERROR: security initialization failed "
+                << "for veh=" << state->identity.vehId
+                << " reason=" << securityError);
+
+            return nullptr;
+        }
 
         //----------------------------------------------------------------------
         // STEP 3: Vanetza Runtime
