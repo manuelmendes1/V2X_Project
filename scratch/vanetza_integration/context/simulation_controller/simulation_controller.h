@@ -124,6 +124,12 @@ public:
 
     static void SetDenmPkiDirectory(const std::string& directory);
 
+    // Configures strict vehicle PKI before simulation startup.
+    static bool ConfigureVehiclePki(
+        const std::string& runDirectory,
+        const std::string& mappingFile,
+        std::string& error);
+
     // Constrói CpmInput a partir dos estados SUMO; não transmite pacotes.
     static bool ConfigureCpmPerception(
         bool enabled,

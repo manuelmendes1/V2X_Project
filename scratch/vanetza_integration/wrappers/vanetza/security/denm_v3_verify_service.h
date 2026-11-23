@@ -3,6 +3,7 @@
 #include <vanetza/security/verify_service.hpp>
 
 #include <memory>
+#include <string>
 
 namespace vanetza
 {
@@ -31,7 +32,8 @@ class DenmV3VerifyService final :
 {
 public:
     explicit DenmV3VerifyService(
-        const vanetza::Runtime& runtime);
+        const vanetza::Runtime& runtime,
+        const std::string& vehiclePkiRunDirectory = {});
 
     ~DenmV3VerifyService();
 

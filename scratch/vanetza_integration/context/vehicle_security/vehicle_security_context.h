@@ -46,6 +46,11 @@ struct VehicleSecurityContext
     std::string certFile;
     std::string keyFile;
 
+    // Canonical issuance run associated with this vehicle's active credential.
+    // Empty in legacy mode or when strict credential activation fails.
+    std::string vehiclePkiRunDirectory;
+
+
     // Common credential pool discovered for this vehicle.
     // The active credential is shared by CAM and DENM security consumers.
     VehicleCredentialPool credentialPool;

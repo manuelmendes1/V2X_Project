@@ -209,7 +209,8 @@ namespace ns3 {
                 std::make_unique<V2xV3VerifyService>(
                     *m_impl->runtime,
                     *m_impl->position,
-                    SimulationContext::cpmPkiDirectory);
+                    SimulationContext::cpmPkiDirectory,
+                    m_impl->vehicle.security.vehiclePkiRunDirectory);
         }
         catch (const std::exception& error)
         {
