@@ -241,6 +241,28 @@ namespace ns3 {
 
         m_impl->mib->itsGnSecurity = true;
 
+        NS_LOG_UNCOND(
+            "[GEONET_MIB]"
+            << " area_forwarding="
+            << static_cast<unsigned>(
+                m_impl->mib->itsGnAreaForwardingAlgorithm)
+            << " non_area_forwarding="
+            << static_cast<unsigned>(
+                m_impl->mib->itsGnNonAreaForwardingAlgorithm)
+            << " cbf_min_s="
+            << m_impl->mib->itsGnCbfMinTime.value()
+            << " cbf_max_s="
+            << m_impl->mib->itsGnCbfMaxTime.value()
+            << " max_range_m="
+            << m_impl->mib->itsGnDefaultMaxCommunicationRange.value()
+            << " cbf_max_counter="
+            << m_impl->mib->vanetzaCbfMaxCounter
+            << " gbc_memory_capacity="
+            << m_impl->mib->vanetzaGbcMemoryCapacity
+            << " dpl_length="
+            << m_impl->mib->itsGnDPLLength
+        );
+
         //=====================================================================
         // GN_ADDR
         //=====================================================================
