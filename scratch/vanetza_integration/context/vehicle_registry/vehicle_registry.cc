@@ -318,6 +318,7 @@ VehicleRegistry::Clear()
     nodeToVeh.clear();
     stationToVeh.clear();
     m_byLinkMac.clear();
+    m_byMid.clear();
     m_byIpv4.clear();
 }
 
