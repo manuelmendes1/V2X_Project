@@ -206,6 +206,7 @@ struct DenmV3VerifyService::Impl
     vanetza::security::v3::DefaultCertificateValidator certificateValidator;
 
     std::unique_ptr<vanetza::security::StraightVerifyService> realVerifier;
+    bool vehiclePkiConfigured{false};
 
     std::unique_ptr<vanetza::security::DummyVerifyService> fallbackVerifier;
 
@@ -309,6 +310,9 @@ struct DenmV3VerifyService::Impl
                 vanetza::security::DummyVerifyService>(
                     vanetza::security::VerificationReport::Success,
                     vanetza::security::CertificateValidity::valid());
+
+        // Strict vehicle PKI is active only after successful initialization.
+        vehiclePkiConfigured = !vehiclePkiRunDirectory.empty();
     }
 };
 
@@ -428,10 +432,68 @@ DenmV3VerifyService::verify(
     }
 
     //----------------------------------------------------------------------
-    // CAM / other AIDs
+    // CAM / AID 36
     //
-    // Keep the existing dummy behavior for the current baseline.
-    //----------------------------------------------------------------------
+    // Strict vehicle PKI: perform real ETSI Security V3 verification.
+    if (aid == 36 && m_impl->vehiclePkiConfigured)
+    {
+        NS_LOG_UNCOND("[CAM_V3_VERIFY_ENTRY] aid=36");
+
+        auto confirm =
+            m_impl->realVerifier->verify(request);
+
+        PacketContext* ctx =
+            RxBridgeContext::Current();
+
+        if (ctx)
+        {
+            ctx->verificationPerformed = true;
+            ctx->verificationSucceeded =
+                confirm.report ==
+                vanetza::security::VerificationReport::Success;
+            ctx->verificationReport =
+                static_cast<uint32_t>(confirm.report);
+            ctx->verifiedItsAid =
+                static_cast<uint32_t>(aid);
+        }
+        else
+        {
+            NS_LOG_UNCOND(
+                "[CAM_V3_VERIFY] ERROR "
+                "RxBridgeContext is null");
+        }
+
+        NS_LOG_UNCOND(
+            "[CAM_V3_VERIFY] "
+            "protocol_version=3 "
+            "aid=36 "
+            "report="
+            << VerificationReportToString(confirm.report)
+            << " "
+            "cryptographic="
+            << (confirm.report ==
+                    vanetza::security::VerificationReport::Success
+                    ? "PASS"
+                    : "FAIL")
+            << " "
+            "context="
+            << (ctx ? "BOUND" : "NULL"));
+
+        return confirm;
+    }
+
+    // Compatibility mode: fallback is explicit and only applies
+    // when no vehicle PKI directory was configured.
+    if (aid == 36 && !m_impl->vehiclePkiConfigured)
+    {
+        NS_LOG_UNCOND(
+            "[CAM_V3_VERIFY] aid=36 mode=LEGACY_FALLBACK "
+            "cryptographic=NOT_PERFORMED");
+
+        return m_impl->fallbackVerifier->verify(request);
+    }
+
+    // Preserve the existing behavior for other non-DENM AIDs.
     return m_impl->fallbackVerifier->verify(request);
 }
 

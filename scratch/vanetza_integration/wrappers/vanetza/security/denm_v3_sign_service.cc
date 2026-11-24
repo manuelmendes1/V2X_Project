@@ -15,8 +15,138 @@
 #include <sstream>
 #include <stdexcept>
 #include <utility>
+#include <algorithm>
+#include <filesystem>
 
 namespace ns3 {
+
+namespace
+{
+
+constexpr vanetza::ItsAid kCamItsAid = 36;
+constexpr vanetza::ItsAid kDenmItsAid = 37;
+
+std::filesystem::path
+RequireVehiclePkiRunDirectory(
+    const std::string& directory)
+{
+    namespace fs = std::filesystem;
+
+    if (directory.empty())
+    {
+        throw std::runtime_error(
+            "Vehicle V3 PKI run directory is required");
+    }
+
+    std::error_code ec;
+
+    const fs::path absoluteDirectory =
+        fs::absolute(fs::path(directory), ec).lexically_normal();
+
+    if (ec)
+    {
+        throw std::runtime_error(
+            "Vehicle V3 PKI run directory cannot be resolved");
+    }
+
+    const fs::path canonicalDirectory =
+        fs::canonical(absoluteDirectory, ec);
+
+    if (ec || canonicalDirectory != absoluteDirectory)
+    {
+        throw std::runtime_error(
+            "Vehicle V3 PKI run directory must be canonical "
+            "and contain no symlink path components");
+    }
+
+    const auto status =
+        fs::symlink_status(canonicalDirectory, ec);
+
+    if (ec ||
+        fs::is_symlink(status) ||
+        !fs::is_directory(status))
+    {
+        throw std::runtime_error(
+            "Vehicle V3 PKI run path is not a regular directory");
+    }
+
+    return canonicalDirectory;
+}
+
+std::filesystem::path
+RequireVehiclePkiFile(
+    const std::filesystem::path& directory,
+    const char* relativeName)
+{
+    namespace fs = std::filesystem;
+
+    const fs::path relativePath(relativeName);
+    const fs::path parentPath =
+        directory / relativePath.parent_path();
+
+    std::error_code ec;
+
+    const auto parentStatus =
+        fs::symlink_status(parentPath, ec);
+
+    if (ec ||
+        fs::is_symlink(parentStatus) ||
+        !fs::is_directory(parentStatus))
+    {
+        throw std::runtime_error(
+            "Vehicle V3 PKI certificate directory is missing "
+            "or is a symlink");
+    }
+
+    const fs::path filePath =
+        directory / relativePath;
+
+    ec.clear();
+
+    const auto fileStatus =
+        fs::symlink_status(filePath, ec);
+
+    if (ec ||
+        fs::is_symlink(fileStatus) ||
+        !fs::is_regular_file(fileStatus))
+    {
+        throw std::runtime_error(
+            "Vehicle V3 PKI certificate must be a regular "
+            "non-symlink file: " + filePath.string());
+    }
+
+    ec.clear();
+
+    const auto size =
+        fs::file_size(filePath, ec);
+
+    if (ec || size == 0)
+    {
+        throw std::runtime_error(
+            "Vehicle V3 PKI certificate is empty or unreadable: " +
+            filePath.string());
+    }
+
+    return filePath;
+}
+
+bool
+SameCertificateEncoding(
+    const vanetza::security::v3::Certificate& left,
+    const vanetza::security::v3::Certificate& right)
+{
+    const auto leftEncoding = left.encode();
+    const auto rightEncoding = right.encode();
+
+    return leftEncoding.size() == rightEncoding.size() &&
+           std::equal(
+               leftEncoding.begin(),
+               leftEncoding.end(),
+               rightEncoding.begin());
+}
+
+} // namespace
+
 
 
 
@@ -25,16 +155,16 @@ namespace ns3 {
         vanetza::ManualRuntime& runtime,
         vanetza::PositionProvider& position,
         const ActiveCredentialProvider& credentialProvider,
-        CredentialMaterialResolver& materialResolver)
+        CredentialMaterialResolver& materialResolver,
+        const std::string& vehiclePkiRunDirectory)
     :
         m_backend(
             vanetza::security::create_backend("default")),
 
+        m_certificateValidator(),
         m_certificateProvider(nullptr),
         m_signHeaderPolicy(nullptr),
-        m_certificateValidator(),
         m_denmSigner(nullptr),
-        m_camFallback(runtime),
 
         m_credentialProvider(credentialProvider),
         m_materialResolver(materialResolver),
@@ -48,20 +178,66 @@ namespace ns3 {
                 "Unable to create Vanetza crypto backend");
         }
 
-        // Certificate temporal validity is evaluated against the same
-        // deterministic Vanetza ManualRuntime used by the DENM signer.
-        m_certificateValidator.use_runtime(&m_runtime);
+        const auto directory =
+            RequireVehiclePkiRunDirectory(vehiclePkiRunDirectory);
 
-        // DENM location restriction is not used by this local ECC test PKI.
-        m_certificateValidator.disable_location_checks(true);
+        const auto trustedRootPath =
+            RequireVehiclePkiFile(
+                directory,
+                "trust-store/trusted-root.cert");
+
+        const auto aaPath =
+            RequireVehiclePkiFile(
+                directory,
+                "certificate-chain/aa.cert");
+
+        const auto chainRootPath =
+            RequireVehiclePkiFile(
+                directory,
+                "certificate-chain/root.cert");
+
+        const auto trustedRoot =
+            vanetza::security::v3::load_certificate_from_file(
+                trustedRootPath.string());
+
+        const auto aa =
+            vanetza::security::v3::load_certificate_from_file(
+                aaPath.string());
+
+        const auto chainRoot =
+            vanetza::security::v3::load_certificate_from_file(
+                chainRootPath.string());
+
+        // Only the configured Root is a trust anchor. The Root in the
+        // issuer chain must be exactly the same OER certificate.
+        if (!SameCertificateEncoding(trustedRoot, chainRoot))
+        {
+            throw std::runtime_error(
+                "Vehicle V3 PKI trust Root does not match issuer-chain Root");
+        }
+
+        if (!m_issuerLookup.insert(aa) ||
+            !m_issuerLookup.insert(chainRoot))
+        {
+            throw std::runtime_error(
+                "Vehicle V3 PKI issuer chain is invalid");
+        }
+
+        m_trustStore.insert(trustedRoot);
+
+        // The validator retains non-owning references to these objects.
+        m_certificateValidator.use_runtime(&m_runtime);
+        m_certificateValidator.use_position_provider(&m_position);
+        m_certificateValidator.use_location_checker(&m_locationChecker);
+        m_certificateValidator.use_issuer_lookup(&m_issuerLookup);
+        m_certificateValidator.use_trust_store(&m_trustStore);
 
         if (!ReloadActiveCredential())
         {
             throw std::runtime_error(
-                "Unable to initialize DENM V3 signer credential");
+                "Unable to initialize vehicle CAM/DENM V3 signer credential");
         }
     }
-
 
 
     bool
@@ -92,22 +268,22 @@ namespace ns3 {
             return false;
         }
 
-        /*
-         * P11 rotation policy:
-         * a credential candidate must already be valid for DENM signing
-         * at the current simulation time before it can replace the
-         * currently active signer.
-         *
-         * This keeps temporal/policy failures at rotation time instead
-         * of allowing an unusable signer to become active.
-         */
-        const auto credentialVerdict =
+        // The same active ticket must explicitly authorize both CAM and
+        // DENM. Do not activate a ticket that only covers one application.
+        const auto camCredentialVerdict =
             m_certificateValidator.valid_for_signing(
                 material->certificate,
-                vanetza::aid::DEN);
+                kCamItsAid);
 
-        if (credentialVerdict !=
-            vanetza::security::v3::CertificateValidator::Verdict::Valid)
+        const auto denmCredentialVerdict =
+            m_certificateValidator.valid_for_signing(
+                material->certificate,
+                kDenmItsAid);
+
+        if (camCredentialVerdict !=
+                vanetza::security::v3::CertificateValidator::Verdict::Valid ||
+            denmCredentialVerdict !=
+                vanetza::security::v3::CertificateValidator::Verdict::Valid)
         {
             return false;
         }
@@ -129,6 +305,10 @@ namespace ns3 {
                     m_position,
                     *newCertificateProvider);
 
+            // The first message signed with this active ticket must carry
+            // its full certificate so receivers can establish the signer.
+            newSignHeaderPolicy->request_certificate();
+
             auto newDenmSigner =
                 std::make_unique<
                     vanetza::security::v3::
@@ -138,16 +318,16 @@ namespace ns3 {
                     *newSignHeaderPolicy,
                     m_certificateValidator);
 
-            // All replacement objects are valid before touching the
-            // currently active signer.
-            m_certificateProvider =
-                std::move(newCertificateProvider);
+            // Destroy the old signer before replacing the objects it
+            // references. The new objects remain alive after unique_ptr moves.
+            m_denmSigner =
+                std::move(newDenmSigner);
 
             m_signHeaderPolicy =
                 std::move(newSignHeaderPolicy);
 
-            m_denmSigner =
-                std::move(newDenmSigner);
+            m_certificateProvider =
+                std::move(newCertificateProvider);
 
             return true;
         }
@@ -162,141 +342,126 @@ namespace ns3 {
     DenmV3SignService::sign(
         vanetza::security::SignRequest&& request)
     {
-        if (request.its_aid == vanetza::aid::DEN)
+        if (request.its_aid != kCamItsAid &&
+            request.its_aid != kDenmItsAid)
         {
-            // -----------------------------------------------------------------
-            // Logical SIGN stage for the common V2X taxonomy.
-            //
-            // DENM signing is deliberately delegated to the V3 security
-            // service after the application ENCODE stage. The deferred
-            // marker remains in denm_service.cc; here we emit the actual
-            // structured SIGN lifecycle event consumed by v2x_analyzer.
-            // -----------------------------------------------------------------
-            auto txContext = TxBridgeContext::Current();
+            return vanetza::security::SignConfirm::failure(
+                vanetza::security::SignConfirmError::No_Certificate);
+        }
 
-            if (txContext)
+        if (!m_denmSigner)
+        {
+            return vanetza::security::SignConfirm::failure(
+                vanetza::security::SignConfirmError::No_Certificate);
+        }
+
+        const std::string application =
+            request.its_aid == kCamItsAid ? "CAM" : "DENM";
+
+        auto txContext = TxBridgeContext::Current();
+
+        if (txContext)
+        {
+            PacketContext logCtx = *txContext;
+            logCtx.pipelineStage = PipelineStage::SIGN;
+            logCtx.pipelineStep = 3;
+            logCtx.pipelineTotal = 8;
+            logCtx.pipelineResult = PipelineResult::BEGIN;
+
+            V2XWriteLog(
+                logCtx,
+                V2XLogLevel::DEBUG,
+                "SECURITY",
+                "SIGN_BEGIN",
+                application + "_V3 signing");
+        }
+
+        auto confirm = m_denmSigner->sign(std::move(request));
+
+        if (confirm.secured_message)
+        {
+            const auto* v3Message =
+                boost::get<vanetza::security::v3::SecuredMessage>(
+                    &*confirm.secured_message);
+
+            if (v3Message != nullptr)
             {
-                PacketContext logCtx = *txContext;
-                logCtx.pipelineStage = PipelineStage::SIGN;
-                logCtx.pipelineStep = 3;
-                logCtx.pipelineTotal = 8;
-                logCtx.pipelineResult = PipelineResult::BEGIN;
+                const auto signerIdentifier =
+                    v3Message->signer_identifier();
 
-                V2XWriteLog(
-                    logCtx,
-                    V2XLogLevel::DEBUG,
-                    "SECURITY",
-                    "SIGN_BEGIN",
-                    "DENM_V3 signing");
-            }
+                const bool hasCertificate =
+                    vanetza::security::v3::contains_certificate(
+                        signerIdentifier);
 
-            auto confirm = m_denmSigner->sign(std::move(request));
+                const auto certificateId =
+                    vanetza::security::v3::get_certificate_id(
+                        signerIdentifier);
 
-            if (confirm.secured_message)
-            {
-                const auto* v3Message =
-                    boost::get<vanetza::security::v3::SecuredMessage>(
-                        &*confirm.secured_message);
+                std::string certificateIdHex;
 
-                if (v3Message != nullptr)
+                if (certificateId)
                 {
-                    const auto signerIdentifier =
-                        v3Message->signer_identifier();
+                    std::ostringstream certificateIdStream;
 
-                    const bool hasCertificate =
-                        vanetza::security::v3::contains_certificate(
-                            signerIdentifier);
-
-                    const auto certificateId =
-                        vanetza::security::v3::get_certificate_id(
-                            signerIdentifier);
-
-                    std::string certificateIdHex;
-
-                    if (certificateId)
+                    for (const auto byte : *certificateId)
                     {
-                        std::ostringstream certificateIdStream;
-
-                        for (const auto byte : *certificateId)
-                        {
-                            certificateIdStream
-                                << std::hex
-                                << std::setw(2)
-                                << std::setfill('0')
-                                << static_cast<unsigned int>(
-                                       static_cast<unsigned char>(byte));
-                        }
-
-                        certificateIdHex = certificateIdStream.str();
+                        certificateIdStream
+                            << std::hex
+                            << std::setw(2)
+                            << std::setfill('0')
+                            << static_cast<unsigned int>(
+                                   static_cast<unsigned char>(byte));
                     }
 
-                    if (txContext && !certificateIdHex.empty())
-                    {
-                        txContext->signerCertificateIdHex =
-                            certificateIdHex;
-                    }
-
-                    NS_LOG_UNCOND(
-                        "[DENM_V3_SIGNER_TX] "
-                        "contains_certificate="
-                        << (hasCertificate ? 1 : 0)
-                        << " "
-                        "certificate_id="
-                        << (certificateId ? 1 : 0));
-
-                    if (txContext)
-                    {
-                        PacketContext logCtx = *txContext;
-                        logCtx.pipelineStage = PipelineStage::SIGN;
-                        logCtx.pipelineStep = 3;
-                        logCtx.pipelineTotal = 8;
-                        logCtx.pipelineResult = PipelineResult::OK;
-
-                        V2XWriteLog(
-                            logCtx,
-                            V2XLogLevel::DEBUG,
-                            "SECURITY",
-                            "SIGN_OK",
-                            "DENM_V3 signed "
-                            "protocol_version=" +
-                            std::to_string(
-                                static_cast<unsigned>(
-                                    v3Message->protocol_version())) +
-                            " aid=" +
-                            std::to_string(v3Message->its_aid()) +
-                            " signed=" +
-                            std::to_string(
-                                v3Message->is_signed() ? 1 : 0));
-                    }
-
-                    NS_LOG_UNCOND(
-                        "[DENM_V3_SIGN] "
-                        "protocol_version=" << static_cast<unsigned>(
-                            v3Message->protocol_version())
-                        << " aid=" << v3Message->its_aid()
-                        << " signed=" << (v3Message->is_signed() ? 1 : 0));
+                    certificateIdHex = certificateIdStream.str();
                 }
-                else
+
+                if (txContext && !certificateIdHex.empty())
                 {
-                    if (txContext)
-                    {
-                        PacketContext logCtx = *txContext;
-                        logCtx.pipelineStage = PipelineStage::SIGN;
-                        logCtx.pipelineStep = 3;
-                        logCtx.pipelineTotal = 8;
-                        logCtx.pipelineResult = PipelineResult::FAIL;
-
-                        V2XWriteLog(
-                            logCtx,
-                            V2XLogLevel::ERROR,
-                            "SECURITY",
-                            "SIGN_FAIL",
-                            "DENM_V3 unexpected_non_v3_secured_message");
-                    }
-
-                    NS_LOG_UNCOND(
-                        "[DENM_V3_SIGN] ERROR unexpected_non_v3_secured_message");
+                    txContext->signerCertificateIdHex =
+                        certificateIdHex;
                 }
+
+                NS_LOG_UNCOND(
+                    "[" << application << "_V3_SIGNER_TX] "
+                    "contains_certificate="
+                    << (hasCertificate ? 1 : 0)
+                    << " "
+                    "certificate_id="
+                    << (certificateId ? 1 : 0));
+
+                if (txContext)
+                {
+                    PacketContext logCtx = *txContext;
+                    logCtx.pipelineStage = PipelineStage::SIGN;
+                    logCtx.pipelineStep = 3;
+                    logCtx.pipelineTotal = 8;
+                    logCtx.pipelineResult = PipelineResult::OK;
+
+                    V2XWriteLog(
+                        logCtx,
+                        V2XLogLevel::DEBUG,
+                        "SECURITY",
+                        "SIGN_OK",
+                        application + "_V3 signed "
+                        "protocol_version=" +
+                        std::to_string(
+                            static_cast<unsigned>(
+                                v3Message->protocol_version())) +
+                        " aid=" +
+                        std::to_string(v3Message->its_aid()) +
+                        " signed=" +
+                        std::to_string(
+                            v3Message->is_signed() ? 1 : 0));
+                }
+
+                NS_LOG_UNCOND(
+                    "[" << application << "_V3_SIGN] "
+                    "protocol_version="
+                    << static_cast<unsigned>(
+                        v3Message->protocol_version())
+                    << " aid=" << v3Message->its_aid()
+                    << " signed=" << (v3Message->is_signed() ? 1 : 0));
             }
             else
             {
@@ -313,24 +478,42 @@ namespace ns3 {
                         V2XLogLevel::ERROR,
                         "SECURITY",
                         "SIGN_FAIL",
-                        "DENM_V3 sign_failed error=" +
-                        std::to_string(
-                            static_cast<int>(confirm.error)));
+                        application + "_V3 unexpected_non_v3_secured_message");
                 }
 
                 NS_LOG_UNCOND(
-                    "[DENM_V3_SIGN] ERROR sign_failed error="
-                    << static_cast<int>(confirm.error));
+                    "[" << application
+                    << "_V3_SIGN] ERROR unexpected_non_v3_secured_message");
+            }
+        }
+        else
+        {
+            if (txContext)
+            {
+                PacketContext logCtx = *txContext;
+                logCtx.pipelineStage = PipelineStage::SIGN;
+                logCtx.pipelineStep = 3;
+                logCtx.pipelineTotal = 8;
+                logCtx.pipelineResult = PipelineResult::FAIL;
+
+                V2XWriteLog(
+                    logCtx,
+                    V2XLogLevel::ERROR,
+                    "SECURITY",
+                    "SIGN_FAIL",
+                    application + "_V3 sign_failed error=" +
+                    std::to_string(
+                        static_cast<int>(confirm.error)));
             }
 
-            return confirm;
+            NS_LOG_UNCOND(
+                "[" << application << "_V3_SIGN] ERROR sign_failed error="
+                << static_cast<int>(confirm.error));
         }
 
-        // CAM and any other current application retain
-        // the previous dummy behaviour.
-        return m_camFallback.sign(
-            std::move(request));
+        return confirm;
     }
+
 
 } // namespace ns3
 
